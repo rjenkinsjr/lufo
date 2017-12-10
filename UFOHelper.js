@@ -1,8 +1,79 @@
 const net = require('net');
+const dgram = require('dgram');
 
 // All UFOs listen on the same ports.
 const tcpPort = 5577;
 const udpPort = 48899;
+
+// UDP discovery method.
+const discoverRequest = 'HF-A11ASSISTHREAD';
+const discoverTimeout = 1000;
+const discover = function(callback, target, timeout) {
+  // Return variables.
+  var error = null;
+  var data = [];
+  // If a target is defined, allow no timeout.
+  // Otherwise, set the default timeout if none was given.
+  if (target) {
+    if (!timeout || timeout < 0) timeout = 0;
+  } else {
+    if (!timeout || timeout < 0) timeout = discoverTimeout;
+  }
+  // Setup the socket.
+  // Let Node exit if this socket is open.
+  var closer = null;
+  const socket = dgram.createSocket('udp4').unref();
+  // Define the listener's event handlers.
+  socket.on('close', function() {
+    clearTimeout(closer);
+    typeof callback === 'function' && callback(error, data);
+  });
+  socket.on('error', function(err) {
+    clearTimeout(closer);
+    error = err;
+    socket.close();
+  });
+  socket.on('message', function(msg, rinfo) {
+    if (!error) {
+      var message = msg.toString('utf8');
+      // The socket sends itself the request message. Ignore this.
+      if (message !== discoverRequest) {
+        // Message format appears to be:
+        // IPv4 address,MAC address,model number
+        var splitMessage = message.split(',');
+        var ufo = {
+          ip: splitMessage[0],
+          mac: toMacString(splitMessage[1]),
+          model: splitMessage[2]
+        };
+        // Check end conditions and update the data appropriately.
+        if (target) {
+          if (ufo.ip === target || ufo.mac === toMacString(target)) {
+            data.push(ufo);
+            socket.close();
+          }
+        } else {
+          data.push(ufo);
+        }
+      }
+    }
+  });
+  // Send the request and start listening for responses.
+  socket.on('listening', function() {
+    // Send the request.
+    socket.setBroadcast(true);
+    socket.send(discoverRequest, udpPort, '255.255.255.255', function(err) {
+      if (err) socket.emit('error', err);
+      // Setup the automatic closer.
+      if (timeout > 0) {
+        closer = setTimeout(function() {
+          socket.close();
+        }, timeout);
+      }
+    });
+  });
+  socket.bind(udpPort);
+}
 
 // TCP socket (client) creation method.
 const initializeClient = function(ufo) {
@@ -298,6 +369,9 @@ const clamp = function(num, min, max) {
   if (min > max) throw new Error(`Min ${min} greater than max ${max}`);
   return num <= min ? min : num >= max ? max : num;
 }
+const toMacString = function(mac) {
+  return mac.toLowerCase().replace(/-/g, '').replace(/(.{2})/g,"$1:").slice(0, -1);
+}
 
 /*
  * Public export
@@ -305,6 +379,7 @@ const clamp = function(num, min, max) {
 var UFOHelper = module.exports = Object.freeze({
   tcpPort: tcpPort,
   udpPort: udpPort,
+  discover: discover,
   initializeClient: initializeClient,
   stopIfDead: stopIfDead,
   prepareBytes: prepareBytes,
@@ -322,5 +397,6 @@ var UFOHelper = module.exports = Object.freeze({
   customStepsSize: customStepsSize,
   nullStep: nullStep,
   flipSpeedCustom: flipSpeedCustom,
-  clamp: clamp
+  clamp: clamp,
+  toMacString: toMacString
 });

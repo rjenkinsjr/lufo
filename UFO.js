@@ -27,6 +27,11 @@ var UFO = module.exports = function(options, callback) {
 };
 
 /*
+ * Static methods
+ */
+UFO.discover = UFOH.discover;
+
+/*
  * Core methods
  */
 UFO.prototype.connect = function(callback) {
