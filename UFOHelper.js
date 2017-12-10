@@ -205,9 +205,8 @@ statusRequest.writeUInt8(0x81, 0);
 statusRequest.writeUInt8(0x8a, 1);
 statusRequest.writeUInt8(0x8b, 2);
 statusRequest.writeUInt8(0x96, 3);
-// Size of all status response messages.
-const statusResponseSize = 14;
 // Handler for receiving status bytes. Must be bound to a UFO instance.
+const statusResponseSize = 14;
 const statusReceive = function(data) {
   // Add the data to what we already have.
   var oldIndex = this._statusIndex;
@@ -343,7 +342,7 @@ const clampRGBW = function(num) {
   return clamp(num, 0, 255);
 }
 
-// Built-in function names and IDs.
+// Given a function name, returns its hex value.
 const functionIds = Object.freeze({
   sevenColorCrossFade: 0x25,
   redGradualChange: 0x26,
@@ -367,7 +366,6 @@ const functionIds = Object.freeze({
   sevenColorJumpingChange: 0x38,
   noFunction: 0x61
 });
-// Given a function name, returns its hex value.
 const getFunctionId = function(name) {
   if (!functionIds.hasOwnProperty(name)) throw new Error(`No such built-in function '${name}'.`);
   return functionIds[name];
@@ -381,7 +379,7 @@ const flipSpeedBuiltin = function(speed) {
 // Maximum number of custom steps per single command.
 const customStepsSize = 16;
 // Null step, used in custom commands.
-const nullStep = Object.freeze({
+const nullCustomStep = Object.freeze({
   red: 1,
   green: 2,
   blue: 3
@@ -404,7 +402,7 @@ const toMacString = function(mac) {
 }
 
 /*
- * Public export
+ * Public exports. Not everything in this file is exported.
  */
 var UFOHelper = module.exports = Object.freeze({
   ufoPort: ufoPort,
@@ -412,20 +410,14 @@ var UFOHelper = module.exports = Object.freeze({
   initializeClient: initializeClient,
   stopIfDead: stopIfDead,
   prepareBytes: prepareBytes,
-  finalizeBytes: finalizeBytes,
-  checksumBytes: checksumBytes,
   statusRequest: statusRequest,
   statusResponseSize: statusResponseSize,
-  statusReceive: statusReceive,
   onRequest: onRequest,
   offRequest: offRequest,
   clampRGBW: clampRGBW,
-  functionIds: functionIds,
   getFunctionId: getFunctionId,
   flipSpeedBuiltin: flipSpeedBuiltin,
   customStepsSize: customStepsSize,
-  nullStep: nullStep,
-  flipSpeedCustom: flipSpeedCustom,
-  clamp: clamp,
-  toMacString: toMacString
+  nullCustomStep: nullCustomStep,
+  flipSpeedCustom: flipSpeedCustom
 });

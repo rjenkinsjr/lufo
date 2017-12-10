@@ -91,7 +91,7 @@ UFO.prototype.builtin = function(name, speed, callback) {
   // 0x61 id speed
   var buf = Buffer.alloc(3);
   buf.writeUInt8(0x61, 0);
-  buf.writeUInt8(UFOH.functionIds[name], 1);
+  buf.writeUInt8(UFOH.getFunctionId(name), 1);
   // This function accepts a speed from 0 (slow) to 100 (fast).
   buf.writeUInt8(UFOH.flipSpeedBuiltin(speed), 2);
   this._client.write(UFOH.prepareBytes(buf), callback);
@@ -131,12 +131,12 @@ UFO.prototype.custom = function(speed, mode, steps, callback) {
   //
   // While we're doing this, truncate the array to size 16.
   var stepsCopy = steps.filter(function(s) {
-    return !(s.red === UFOH.nullStep.red &&
-             s.green === UFOH.nullStep.green &&
-             s.blue === UFOH.nullStep.blue);
+    return !(s.red === UFOH.nullCustomStep.red &&
+             s.green === UFOH.nullCustomStep.green &&
+             s.blue === UFOH.nullCustomStep.blue);
   }).slice(0, UFOH.customStepsSize);
   while (stepsCopy.length < UFOH.customStepsSize) {
-    stepsCopy.push(UFOH.nullStep);
+    stepsCopy.push(UFOH.nullCustomStep);
   }
   for (const step of stepsCopy) {
     buf.writeUInt8(UFOH.clampRGBW(step.red), index);
