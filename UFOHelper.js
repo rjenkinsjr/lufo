@@ -10,7 +10,7 @@ const initializeClient = function(ufo) {
   ufo._client = net.Socket();
   ufo._error = null;
   // Send all data immediately; no buffering.
-  ufo._client.setNoDelay(true);
+  ufo._client.setNoDelay(ufo._options.sendImmediately || true);
   // Capture the error so we can respond appropriately.
   ufo._client.on('error', function(err) {
     this._error = err;
