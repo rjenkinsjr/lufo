@@ -38,7 +38,7 @@ UFO.prototype.connect = function(callback) {
   if (UFOH.stopIfDead(this, callback)) return;
   this._client.connect({
     host: this._options.host,
-    port: UFOH.tcpPort
+    port: UFOH.ufoPort
   }, function() {
     typeof callback === 'function' && callback();
   });

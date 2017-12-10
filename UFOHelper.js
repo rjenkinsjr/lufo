@@ -1,13 +1,23 @@
 const net = require('net');
 const dgram = require('dgram');
 
-// All UFOs listen on the same ports.
-const tcpPort = 5577;
-const udpPort = 48899;
-
 // UDP discovery method.
+// Callback takes an error (only for UDP problems) and a data variable.
+//
+// If a target is specified:
+// - An unspecified or negative timeout is coerced to 0.
+// - The data variable is either null (not found) or an object.
+// If a target is not specified:
+// - An unspecified or negative timeout is coerced to 1000ms.
+// - The data variable is always an array and never null, but may be empty.
+//
+// If the timeout is zero (per above), this method waits forever until the
+// requested target is found and a discover request is sent every 3 seconds.
 const discoverRequest = 'HF-A11ASSISTHREAD';
-const discoverTimeout = 1000;
+const discoverPort = 48899;
+const discoverTimeout = 1000; // milliseconds
+const targetDiscoverInterval = 3000; // milliseconds
+const broadcastAddress = '255.255.255.255';
 const discover = function(callback, target, timeout) {
   // Return variables.
   var error = null;
@@ -19,17 +29,25 @@ const discover = function(callback, target, timeout) {
   } else {
     if (!timeout || timeout < 0) timeout = discoverTimeout;
   }
-  // Setup the socket.
-  // Let Node exit if this socket is open.
-  var closer = null;
+  // Setup the socket. Let Node exit if this socket is still active.
+  var targetDiscover = null;
+  var stopDiscover = null;
   const socket = dgram.createSocket('udp4').unref();
+  socket.setBroadcast(true);
   // Define the listener's event handlers.
   socket.on('close', function() {
-    clearTimeout(closer);
+    clearInterval(targetDiscover);
+    clearTimeout(stopDiscover);
+    // If a target was specified, return that object or null.
+    if (target) {
+      if (data.length > 0) data = data[0];
+      else data = null;
+    }
     typeof callback === 'function' && callback(error, data);
   });
   socket.on('error', function(err) {
-    clearTimeout(closer);
+    clearInterval(targetDiscover);
+    clearTimeout(stopDiscover);
     error = err;
     socket.close();
   });
@@ -59,21 +77,33 @@ const discover = function(callback, target, timeout) {
     }
   });
   // Send the request and start listening for responses.
+  const closeSocket = function() { socket.close(); };
   socket.on('listening', function() {
-    // Send the request.
-    socket.setBroadcast(true);
-    socket.send(discoverRequest, udpPort, '255.255.255.255', function(err) {
-      if (err) socket.emit('error', err);
-      // Setup the automatic closer.
-      if (timeout > 0) {
-        closer = setTimeout(function() {
-          socket.close();
-        }, timeout);
-      }
-    });
+    // Are we searching for a specific target?
+    if (target) {
+      // A target is specified. Send requests every 3 seconds.
+      const targetDiscoverFxn = function() {
+        socket.send(discoverRequest, discoverPort, broadcastAddress, function(err) {
+          if (err) socket.emit('error', err);
+          // If a timeout is configured, set it to stop discovery.
+          else if (timeout > 0) stopDiscover = setTimeout(closeSocket, timeout);
+        });
+      };
+      targetDiscoverFxn();
+      targetDiscover = setInterval(targetDiscoverFxn, targetDiscoverInterval);
+    } else {
+      // No target specified. Send a single request.
+      socket.send(discoverRequest, discoverPort, broadcastAddress, function(err) {
+        if (err) socket.emit('error', err);
+        else stopDiscover = setTimeout(closeSocket, timeout);
+      });
+    }
   });
-  socket.bind(udpPort);
+  socket.bind(discoverPort);
 }
+
+// All UFOs listen on the same port.
+const ufoPort = 5577;
 
 // TCP socket (client) creation method.
 const initializeClient = function(ufo) {
@@ -377,8 +407,7 @@ const toMacString = function(mac) {
  * Public export
  */
 var UFOHelper = module.exports = Object.freeze({
-  tcpPort: tcpPort,
-  udpPort: udpPort,
+  ufoPort: ufoPort,
   discover: discover,
   initializeClient: initializeClient,
   stopIfDead: stopIfDead,
