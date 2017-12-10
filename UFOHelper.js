@@ -23,37 +23,32 @@ const initializeClient = function(ufo) {
   ufo._client.pause();
 }
 
-// If the UFO FIN'ed first due to inactivity, reconnect.
-// If the UFO FIN'ed first due to an error, reconnect if requested by the client.
-// Otherwise, fire the disconnect callback.
+// If the UFO FIN'ed first due to inactivity, silently reconnect.
+// If the UFO FIN'ed first due to an error, fire the disconnect callback with the error.
+// Otherwise, fire the disconnect callback with no error.
 //
 // Must be bound to a UFO instance.
 const closeClient = function() {
-  // If still alive, the UFO closed on its own.
-  // Otherwise, the client closed intentionally.
+  // Assume the UFO closed on its own.
+  // Otherwise, the client closed intentionally and no error has occurred.
   var reconnect = !this._dead;
+  var err = null;
   if (reconnect) {
-    // Assume it was due to inactivity.
-    if (this._error) {
-      // UFO closed due to some error.
-      reconnect = this._options.reconnectOnError || false;
-      // If reconnect is true, print the error.
-      if (reconnect) {
-        console.log(`Error occurred on UFO ${this._options.host}, will reconnect as requested.`);
-        console.log(err, err.stack);
-      }
-    }
+    // The UFO closed on its own.
+    // If it closed due to an error, do not reconnect.
+    err = this._error;
+    if (err) reconnect = false;
   }
-  // Tear down the old socket.
-  this._client.destroy();
+  // Tear down the socket.
   this._client.unref();
-  // Reconnect if necessary.
+  this._client.destroy();
+  // Reconnect if necessary, or just fire the callback.
   if (reconnect) {
     initializeClient(this);
     this.connect();
   } else {
-    var callback = this._disconnectCallback;
-    typeof callback === 'function' && callback(this._error);
+    var callback = this._options.disconnectCallback;
+    typeof callback === 'function' && callback(err);
   }
 }
 

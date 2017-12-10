@@ -12,7 +12,7 @@ var UFO = module.exports = function(options, callback) {
   // that was unknowingly closed by the UFO.
   //
   // If this is true, this UFO instance is unusable and will no longer perform
-  // any UFO interaction methods (e.g. rgbw).
+  // any UFO control methods (e.g. rgbw).
   this._dead = false;
 
   // Storage/tracking for the status response.
@@ -38,17 +38,12 @@ UFO.prototype.connect = function(callback) {
     typeof callback === 'function' && callback();
   });
 }
-UFO.prototype.disconnect = function(callback) {
-  // If already dead, just run the callback with no error.
-  if (this._dead) {
-    typeof callback === 'function' && callback();
-    return;
-  }
+UFO.prototype.disconnect = function() {
+  // If already dead, stop now.
+  if (this._dead) return;
   // We're intentionally closing this connection.
   // Don't allow it to be used again.
   this._dead = true;
-  this._client.unref();
-  this._disconnectCallback = callback;
   this._client.end();
 }
 UFO.prototype.status = function(callback) {
