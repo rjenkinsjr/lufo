@@ -33,7 +33,6 @@ const discover = function(callback, target, timeout) {
   var targetDiscover = null;
   var stopDiscover = null;
   const socket = dgram.createSocket('udp4').unref();
-  socket.setBroadcast(true);
   // Define the listener's event handlers.
   socket.on('close', function() {
     clearInterval(targetDiscover);
@@ -79,6 +78,7 @@ const discover = function(callback, target, timeout) {
   // Send the request and start listening for responses.
   const closeSocket = function() { socket.close(); };
   socket.on('listening', function() {
+    socket.setBroadcast(true);
     // Are we searching for a specific target?
     if (target) {
       // A target is specified. Send requests every 3 seconds.
