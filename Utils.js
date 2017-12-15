@@ -8,8 +8,4 @@ Utils.prototype.clamp = function(num, min, max) {
 Utils.prototype.clampRGBW = function(num) {
   return this.clamp(num, 0, 255);
 }
-// Standardizes a MAC address string
-Utils.prototype.macAddress = function(mac) {
-  return mac.toLowerCase().replace(/-/g, '').replace(/(.{2})/g,"$1:").slice(0, -1);
-}
 module.exports = Object.freeze(new Utils());
