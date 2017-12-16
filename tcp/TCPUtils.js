@@ -1,4 +1,10 @@
+const Utils = require('../Utils.js');
+
 const TCPUtils = function() {};
+// Clamps RGBW values within the accepted range (0 <= value <= 255).
+TCPUtils.prototype.clampRGBW = function(num) {
+  return Utils.clamp(num, 0, 255);
+}
 // Given a buffer of data destined for a UFO, expands the buffer by 2 and
 // inserts the last two bytes (the "local" constant 0x0f, and the checksum).
 //

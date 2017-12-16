@@ -11,6 +11,7 @@ var UFO = module.exports = function(options, callback) {
   this._dead = false;
   // Capture the options provided by the user.
   this._options = Object.freeze(options);
+  this._disconnectCallback = this._options.disconnectCallback;
   // Create the TCP and UDP sockets.
   this._tcpSocket = new UFO_TCP(this, options);
   this._udpSocket = new UFO_UDP(this, options);
@@ -40,7 +41,7 @@ var UFO = module.exports = function(options, callback) {
     if (this._udpError || this._tcpError) {
       error = new UFOError("UFO disconnected due to an error.", this._udpError, this._tcpError);
     }
-    var callback = this._options.disconnectCallback;
+    var callback = this._disconnectCallback;
     typeof callback === 'function' && callback(error);
   }.bind(this));
   // Connect now, if a callback was requested.
@@ -100,4 +101,14 @@ UFO.prototype.freezeOutput = function(callback) {
 }
 UFO.prototype.zeroOutput = function(callback) {
   this.setColor(0, 0, 0, 0, callback);
+}
+
+/*
+ * Reconfiguration methods
+ */
+UFO.prototype.factoryReset = function(callback) {
+  this._udpSocket.factoryReset(callback);
+}
+UFO.prototype.asWifiClient = function(options, callback) {
+  this._udpSocket.asWifiClient(options, callback);
 }

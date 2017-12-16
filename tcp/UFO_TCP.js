@@ -130,10 +130,10 @@ UFO_TCP.prototype.rgbw = function(red, green, blue, white, callback) {
   // 0x00 seems to be a constant terminator for the data.
   var buf = Buffer.alloc(6);
   buf.writeUInt8(0x31, 0);
-  buf.writeUInt8(Utils.clampRGBW(red), 1);
-  buf.writeUInt8(Utils.clampRGBW(green), 2);
-  buf.writeUInt8(Utils.clampRGBW(blue), 3);
-  buf.writeUInt8(Utils.clampRGBW(white), 4);
+  buf.writeUInt8(TCPUtils.clampRGBW(red), 1);
+  buf.writeUInt8(TCPUtils.clampRGBW(green), 2);
+  buf.writeUInt8(TCPUtils.clampRGBW(blue), 3);
+  buf.writeUInt8(TCPUtils.clampRGBW(white), 4);
   buf.writeUInt8(0, 5);
   this._socket.write(TCPUtils.prepareBytes(buf), callback);
 }
@@ -187,11 +187,11 @@ UFO_TCP.prototype.custom = function(speed, mode, steps, callback) {
   // Each step consists of an RGB value and is translated into 4 bytes.
   // The 4th byte is always zero.
   for (const step of stepsCopy) {
-    buf.writeUInt8(Utils.clampRGBW(step.red), index);
+    buf.writeUInt8(TCPUtils.clampRGBW(step.red), index);
     index++;
-    buf.writeUInt8(Utils.clampRGBW(step.green), index);
+    buf.writeUInt8(TCPUtils.clampRGBW(step.green), index);
     index++;
-    buf.writeUInt8(Utils.clampRGBW(step.blue), index);
+    buf.writeUInt8(TCPUtils.clampRGBW(step.blue), index);
     index++;
     buf.writeUInt8(0, index);
     index++;
