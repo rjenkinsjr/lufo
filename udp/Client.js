@@ -156,15 +156,12 @@ Client.prototype.asWifiClient = function(options, callback) {
     // Set the SSID.
     const ssidCmd = util.format(Constants.commandSet.wifiClientSsid.send, options.ssid);
     this._sendAndVerify(ssidCmd, Constants.commandSet.wifiClientSsid.receive, function(options, msg, size) {
-      console.log('Set SSID.');
       // Set the passphrase/auth configuration.
       const authCmd = util.format(Constants.commandSet.wifiClientAuth.send, options.auth, options.encryption, options.passphrase);
       this._sendAndVerify(authCmd, Constants.commandSet.wifiClientAuth.receive, function(msg, size) {
-        console.log('Set auth info.');
         // Set the UFO to client (STA) mode.
         const modeCmd = util.format(Constants.commandSet.wifiMode.send, 'STA');
         this._sendAndVerify(modeCmd, Constants.commandSet.wifiMode.receive, function(msg, size) {
-          console.log('Set to client mode.');
           // Reboot the UFO.
           this.reboot(callback);
         }.bind(this));
