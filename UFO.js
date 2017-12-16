@@ -113,8 +113,12 @@ UFO.prototype.zeroOutput = function(callback) {
  * Reconfiguration methods
  */
 UFO.prototype.factoryReset = function(callback) {
-  this._udpSocket.factoryReset(callback);
+  this._tcpSocket._time(function() {
+    this._udpSocket.factoryReset(callback);
+  }.bind(this));
 }
 UFO.prototype.asWifiClient = function(options, callback) {
-  this._udpSocket.asWifiClient(options, callback);
+  this._tcpSocket._time(function() {
+    this._udpSocket.asWifiClient(options, callback);
+  }.bind(this));
 }

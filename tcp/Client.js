@@ -119,6 +119,35 @@ Client.prototype.off = function(callback) {
   if (this._dead) return;
   this._socket.write(Power.off(), callback);
 }
+// This function appears to set the UFO's time.
+// It is called by the Android app when a UFO is factory reset or has its WiFi configuration is updated.
+// Neither of those functions seem dependent on this function executing, however...correctly or at all.
+//
+// Since this function's purpose isn't fully known, it is marked as private.
+Client.prototype._time = function(callback) {
+  if (this._dead) return;
+  // 0x10 yy yy mm dd hh mm ss 0x07 0x00
+  // The first "yy" is the first 2 digits of the year.
+  // The second "yy" is the last 2 digits of the year.
+  // "mm" ranges from decimal "01" to "12".
+  // "hh" is 24-hour format.
+  // 0x07 0x00 seems to be a constant terminator for the data.
+  var buf = Buffer.alloc(10);
+  buf.writeUInt8(0x10, 0);
+  var now = new Date();
+  var first2Year = parseInt(now.getFullYear().toString().substring(0, 2));
+  var last2Year = parseInt(now.getFullYear().toString().substring(2));
+  buf.writeUInt8(first2Year, 1);
+  buf.writeUInt8(last2Year, 2);
+  buf.writeUInt8(now.getMonth() + 1, 3);
+  buf.writeUInt8(now.getDate(), 4);
+  buf.writeUInt8(now.getHours(), 5);
+  buf.writeUInt8(now.getMinutes(), 6);
+  buf.writeUInt8(now.getSeconds(), 7);
+  buf.writeUInt8(0x07, 8);
+  buf.writeUInt8(0, 9);
+  this._socket.write(TCPUtils.prepareBytes(buf), callback);
+}
 
 /*
  * Standard control methods
