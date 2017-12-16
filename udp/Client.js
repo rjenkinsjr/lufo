@@ -104,11 +104,23 @@ Client.prototype.hello = function(callback) {
 }
 
 /*
+ * Core methods
+ */
+Client.prototype.reboot = function(callback) {
+  this._send(Constants.commandSet.reboot.send, function() {
+    // Override the callback if requested.
+    if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
+    this._ufo.disconnect();
+  }.bind(this));
+}
+
+/*
  * Reconfiguration methods
  */
 Client.prototype.factoryReset = function(callback) {
   this._commandMode(function() {
     const command = Constants.commandSet.factoryReset;
+    // This command implies a reboot, so no explicit reboot command is needed.
     this._sendAndVerify(command.send, command.receive, function(err, msg, size) {
       if (err) this._socket.emit('error', err);
       // Override the callback if requested.
@@ -154,12 +166,7 @@ Client.prototype.asWifiClient = function(options, callback) {
         this._sendAndVerify(modeCmd, Constants.commandSet.wifiMode.receive, function(msg, size) {
           console.log('Set to client mode.');
           // Reboot the UFO.
-          this._send(Constants.commandSet.reboot.send, function() {
-            console.log('Rebooted.');
-            // Override the callback if requested.
-            if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
-            this._ufo.disconnect();
-          }.bind(this));
+          this.reboot(callback);
         }.bind(this));
       }.bind(this));
     }.bind(this, options));
