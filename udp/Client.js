@@ -1,14 +1,14 @@
 const util = require('util');
 const dgram = require('dgram');
-const Constants = require('./Constants.js');
-const UDPUtils = require('./UDPUtils.js');
-const Utils = require('../Utils.js');
+const Constants = lufoRequire('udp/Constants');
+const UDPUtils = lufoRequire('udp/Utils');
+const MiscUtils = lufoRequire('misc/Utils');
 
 /*
  * Exports
  */
 
-var UFO_UDP = module.exports = function(ufo, options) {
+var Client = module.exports = function(ufo, options) {
   // Capture the parent UFO.
   this._ufo = ufo;
   // Flag that tracks the state of this socket.
@@ -41,22 +41,22 @@ var UFO_UDP = module.exports = function(ufo, options) {
 };
 
 // Export static discovery method.
-UFO_UDP.discover = require('./Discovery.js');
+Client.discover = require('./Discovery.js');
 
 /*
  * Private methods
  */
  // Sends the given message to the UFO and runs the callback once the message is sent.
- UFO_UDP.prototype._send = function(msg, callback) {
-   this._socket.send(msg, Constants.ufoPort, this._options.host, callback);
- }
+Client.prototype._send = function(msg, callback) {
+  this._socket.send(msg, Constants.ufoPort, this._options.host, callback);
+}
 // Sends the given message to the UFO and runs the callback once a response is received.
-UFO_UDP.prototype._sendAndWait = function(msg, callback) {
+Client.prototype._sendAndWait = function(msg, callback) {
   this._receiveCallback = callback;
   this._socket.send(msg, Constants.ufoPort, this._options.host);
 }
 // Sends the given message to the UFO and runs the callback once a response is received and verified.
-UFO_UDP.prototype._sendAndVerify = function(msg, expected, callback) {
+Client.prototype._sendAndVerify = function(msg, expected, callback) {
   this._sendAndWait(msg, function(resp, size) {
     var error = null;
     if (expected !== resp) {
@@ -66,7 +66,7 @@ UFO_UDP.prototype._sendAndVerify = function(msg, expected, callback) {
   }.bind(this));
 }
 // Puts the socket in command mode.
-UFO_UDP.prototype._commandMode = function(callback) {
+Client.prototype._commandMode = function(callback) {
   if (this._dead) return;
   this.hello(function() {
     this._send(Constants.commandSet.ok.send, callback);
@@ -76,7 +76,7 @@ UFO_UDP.prototype._commandMode = function(callback) {
 /*
  * Core methods
  */
-UFO_UDP.prototype.connect = function(callback) {
+Client.prototype.connect = function(callback) {
   if (this._dead) return;
   var port = this._options.port;
   if (port >= 0) {
@@ -85,14 +85,14 @@ UFO_UDP.prototype.connect = function(callback) {
     this._socket.bind();
   }
 }
-UFO_UDP.prototype.disconnect = function() {
+Client.prototype.disconnect = function() {
   if (this._dead) return;
   // We're intentionally closing this connection.
   // Don't allow it to be used again.
   this._dead = true;
   this._socket.close();
 }
-UFO_UDP.prototype.hello = function(callback) {
+Client.prototype.hello = function(callback) {
   if (this._dead) return;
   this._sendAndWait(Constants.udpHello, function(msg, size) {
     // Only invoke the callback if the IP address matches.
@@ -106,7 +106,7 @@ UFO_UDP.prototype.hello = function(callback) {
 /*
  * Reconfiguration methods
  */
-UFO_UDP.prototype.factoryReset = function(callback) {
+Client.prototype.factoryReset = function(callback) {
   this._commandMode(function() {
     const command = Constants.commandSet.factoryReset;
     this._sendAndVerify(command.send, command.receive, function(err, msg, size) {
@@ -117,19 +117,19 @@ UFO_UDP.prototype.factoryReset = function(callback) {
     }.bind(this));
   }.bind(this));
 }
-UFO_UDP.prototype.asWifiClient = function(options, callback) {
+Client.prototype.asWifiClient = function(options, callback) {
   // Parse options.
-  const auth = Utils.checkWithDefault(options.auth, ['OPEN', 'SHARED', 'WPAPSK', 'WPA2PSK'], 'OPEN');
+  const auth = MiscUtils.checkWithDefault(options.auth, ['OPEN', 'SHARED', 'WPAPSK', 'WPA2PSK'], 'OPEN');
   switch (auth) {
     case 'WPAPSK':
     case 'WPA2PSK':
-      var encryption = Utils.checkWithDefault(options.encryption, ['TKIP', 'AES'], 'AES');
+      var encryption = MiscUtils.checkWithDefault(options.encryption, ['TKIP', 'AES'], 'AES');
       break;
     case 'SHARED':
-      var encryption = Utils.checkWithDefault(options.encryption, ['WEP-H', 'WEP-A'], 'WEP-A');
+      var encryption = MiscUtils.checkWithDefault(options.encryption, ['WEP-H', 'WEP-A'], 'WEP-A');
       break;
     default: // OPEN
-      var encryption = Utils.checkWithDefault(options.encryption, ['NONE', 'WEP-H', 'WEP-A'], 'NONE');
+      var encryption = MiscUtils.checkWithDefault(options.encryption, ['NONE', 'WEP-H', 'WEP-A'], 'NONE');
       break;
   }
   // Assemble the final options object.

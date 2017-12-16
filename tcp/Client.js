@@ -1,12 +1,11 @@
 const net = require('net');
-const Builtins = require('./Builtins.js');
-const Customs = require('./Customs.js');
-const Power = require('./Power.js');
-const Status = require('./Status.js');
-const TCPUtils = require('./TCPUtils.js');
-const Utils = require('../Utils.js');
+const Builtins = lufoRequire('tcp/model/Builtins');
+const Customs = lufoRequire('tcp/model/Customs');
+const Power = lufoRequire('tcp/model/Power');
+const Status = lufoRequire('tcp/model/Status');
+const TCPUtils = lufoRequire('tcp/Utils');
 
-// TCP socket creation method. Must be bound to a UFO_TCP instance.
+// TCP socket creation method. Must be bound to a tcp/Client instance.
 const createSocket = function() {
   // UFOs will close TCP connections after a cetain time of not receiving any data.
   // TCP keepalives from Node don't seem to help.
@@ -38,7 +37,7 @@ const createSocket = function() {
   this._socket.pause();
 }
 
-// TCP socket close event handler. Must be bound to a UFO_TCP instance.
+// TCP socket close event handler. Must be bound to a tcp/Client instance.
 //
 // If the UFO FIN'ed first due to inactivity, silently reconnect.
 // If the UFO FIN'ed first due to an error, fire the disconnect callback with the error.
@@ -72,7 +71,7 @@ const closeSocket = function() {
  * Exports
  */
 
-var UFO_TCP = module.exports = function(ufo, options) {
+var Client = module.exports = function(ufo, options) {
   // Capture the parent UFO.
   this._ufo = ufo;
   // Capture the options provided by the user.
@@ -84,7 +83,7 @@ var UFO_TCP = module.exports = function(ufo, options) {
 /*
  * Core methods
  */
-UFO_TCP.prototype.connect = function(callback) {
+Client.prototype.connect = function(callback) {
   if (this._dead) return;
   // All UFOs listen on the same port.
   const port = 5577;
@@ -95,14 +94,14 @@ UFO_TCP.prototype.connect = function(callback) {
     typeof callback === 'function' && callback();
   });
 }
-UFO_TCP.prototype.disconnect = function() {
+Client.prototype.disconnect = function() {
   if (this._dead) return;
   // We're intentionally closing this connection.
   // Don't allow it to be used again.
   this._dead = true;
   this._socket.end();
 }
-UFO_TCP.prototype.status = function(callback) {
+Client.prototype.status = function(callback) {
   if (this._dead) return;
   this._socket.resume();
   this._statusCallback = function(err, data) {
@@ -112,11 +111,11 @@ UFO_TCP.prototype.status = function(callback) {
   }.bind(this);
   this._socket.write(Status.request());
 }
-UFO_TCP.prototype.on = function(callback) {
+Client.prototype.on = function(callback) {
   if (this._dead) return;
   this._socket.write(Power.on(), callback);
 }
-UFO_TCP.prototype.off = function(callback) {
+Client.prototype.off = function(callback) {
   if (this._dead) return;
   this._socket.write(Power.off(), callback);
 }
@@ -124,7 +123,7 @@ UFO_TCP.prototype.off = function(callback) {
 /*
  * Standard control methods
  */
-UFO_TCP.prototype.rgbw = function(red, green, blue, white, callback) {
+Client.prototype.rgbw = function(red, green, blue, white, callback) {
   if (this._dead) return;
   // 0x31 rr gg bb ww 0x00
   // 0x00 seems to be a constant terminator for the data.
@@ -137,7 +136,7 @@ UFO_TCP.prototype.rgbw = function(red, green, blue, white, callback) {
   buf.writeUInt8(0, 5);
   this._socket.write(TCPUtils.prepareBytes(buf), callback);
 }
-UFO_TCP.prototype.builtin = function(name, speed, callback) {
+Client.prototype.builtin = function(name, speed, callback) {
   if (this._dead) return;
   // 0x61 id speed
   var buf = Buffer.alloc(3);
@@ -147,7 +146,7 @@ UFO_TCP.prototype.builtin = function(name, speed, callback) {
   buf.writeUInt8(Builtins.flipSpeed(speed), 2);
   this._socket.write(TCPUtils.prepareBytes(buf), callback);
 }
-UFO_TCP.prototype.custom = function(speed, mode, steps, callback) {
+Client.prototype.custom = function(speed, mode, steps, callback) {
   if (this._dead) return;
   // Validate the mode.
   var modeId;

@@ -1,11 +1,11 @@
-const Builtins = require('./Builtins.js');
-const Customs = require('./Customs.js');
+const Builtins = lufoRequire('tcp/model/Builtins');
+const Customs = lufoRequire('tcp/model/Customs');
 
 // The status response payload is always the same size.
 const statusResponseSize = 14;
 
 const Status = function() {
-  // Handler for receiving status bytes. Must be bound to a UFO_TCP instance.
+  // Handler for receiving status bytes. Must be bound to a TcpClient instance.
   this.statusResponseHandler = function(data) {
     if (!this._error) {
       // Add the data to what we already have.
@@ -123,7 +123,7 @@ const Status = function() {
   }
 };
 // 0x81 0x8A 0x8B 0x96, always.
-// No local flag or checksum; do not pass to TCPUtils.
+// No local flag or checksum; do not pass to tcp/Utils.
 Status.prototype.request = function() { return Buffer.from([0x81, 0x8A, 0x8B, 0x96]); };
 Status.prototype.responseSize = function() { return statusResponseSize; };
 Status.prototype.responseHandler = function(ufoTcp) { return this.statusResponseHandler.bind(ufoTcp); };

@@ -1,15 +1,15 @@
-const Utils = require('../Utils.js');
+const MiscUtils = lufoRequire('misc/Utils');
 
-const TCPUtils = function() {};
+const Utils = function() {};
 // Clamps RGBW values within the accepted range (0 <= value <= 255).
-TCPUtils.prototype.clampRGBW = function(num) {
-  return Utils.clamp(num, 0, 255);
+Utils.prototype.clampRGBW = function(num) {
+  return MiscUtils.clamp(num, 0, 255);
 }
 // Given a buffer of data destined for a UFO, expands the buffer by 2 and
 // inserts the last two bytes (the "local" constant 0x0f, and the checksum).
 //
 // Returns a new buffer and leaves the input buffer unmodified.
-TCPUtils.prototype.prepareBytes = function(buf) {
+Utils.prototype.prepareBytes = function(buf) {
   var newBuf = Buffer.alloc(buf.length + 2);
   buf.copy(newBuf);
   this.finalizeBytes(newBuf);
@@ -24,13 +24,13 @@ TCPUtils.prototype.prepareBytes = function(buf) {
 // library, so we always use "local".
 //
 // Expects a buffer from the prepareBytes method.
-TCPUtils.prototype.finalizeBytes = function(buf) {
+Utils.prototype.finalizeBytes = function(buf) {
   buf.writeUInt8(0x0f, buf.length - 2);
 }
 // Adds the checksum to the buffer.
 //
 // Expects a buffer from the prepareBytes method.
-TCPUtils.prototype.checksumBytes = function(buf) {
+Utils.prototype.checksumBytes = function(buf) {
   // Sanity.
   var lastIndex = buf.length - 1;
   buf.writeUInt8(0, lastIndex);
@@ -43,4 +43,4 @@ TCPUtils.prototype.checksumBytes = function(buf) {
   checksum = checksum % 0x100;
   buf.writeUInt8(checksum, lastIndex);
 }
-module.exports = Object.freeze(new TCPUtils());
+module.exports = Object.freeze(new Utils());

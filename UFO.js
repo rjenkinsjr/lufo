@@ -1,7 +1,13 @@
+// require() specific to this module.
+// https://gist.github.com/branneman/8048520#7-the-wrapper
+global.lufoRequire = function(name) {
+  return require(__dirname + '/' + name);
+}
+
 const events = require('events');
-const UFO_TCP = require('./tcp/UFO_TCP.js');
-const UFO_UDP = require('./udp/UFO_UDP.js');
-const UFOError = require('./UFOError.js');
+const TcpClient = lufoRequire('tcp/Client');
+const UdpClient = lufoRequire('udp/Client');
+const UFOError = lufoRequire('misc/UFOError');
 
 /*
  * Constructor
@@ -13,8 +19,8 @@ var UFO = module.exports = function(options, callback) {
   this._options = Object.freeze(options);
   this._disconnectCallback = this._options.disconnectCallback;
   // Create the TCP and UDP sockets.
-  this._tcpSocket = new UFO_TCP(this, options);
-  this._udpSocket = new UFO_UDP(this, options);
+  this._tcpSocket = new TcpClient(this, options);
+  this._udpSocket = new UdpClient(this, options);
   // Define the socket close event handlers.
   this._tcpError = null;
   this.on('tcpDead', function(err) {
@@ -52,7 +58,7 @@ UFO.prototype = new events.EventEmitter;
 /*
  * Query methods
  */
-UFO.discover = UFO_UDP.discover;
+UFO.discover = UdpClient.discover;
 UFO.prototype.getHost = function() {
   return this._options.host;
 }
