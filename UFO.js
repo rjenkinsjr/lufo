@@ -18,29 +18,29 @@ var UFO = module.exports = function(options, callback) {
   // Capture the options provided by the user.
   this._options = Object.freeze(options);
   this._disconnectCallback = this._options.disconnectCallback;
-  // Create the TCP and UDP sockets.
-  this._tcpSocket = new TcpClient(this, options);
-  this._udpSocket = new UdpClient(this, options);
-  // Define the socket close event handlers.
+  // Create the TCP and UDP clients.
+  this._tcpClient = new TcpClient(this, options);
+  this._udpClient = new UdpClient(this, options);
+  // Define the "client is dead" event handlers.
   this._tcpError = null;
   this.on('tcpDead', function(err) {
     this._tcpError = err;
-    if (this._udpSocket._dead) {
+    if (this._udpClient._dead) {
       this.emit('dead');
     } else {
-      this._udpSocket.disconnect();
+      this._udpClient.disconnect();
     }
   }.bind(this));
   this._udpError = null;
   this.on('udpDead', function(err) {
     this._udpError = err;
-    if (this._tcpSocket._dead) {
+    if (this._tcpClient._dead) {
       this.emit('dead');
     } else {
-      this._tcpSocket.disconnect();
+      this._tcpClient.disconnect();
     }
   }.bind(this))
-  // Define the "UFO is dead" event handler, invoked once both sockets are closed.
+  // Define the "UFO is dead" event handler, invoked once both clients are closed.
   this.on('dead', function() {
     // Invoke the disconnect callback, if one is defined.
     var error = null;
@@ -66,20 +66,20 @@ UFO.prototype.getHost = function() {
  * Connect/disconnect methods
  */
 UFO.prototype.connect = function(callback) {
-  this._udpSocket.hello(function() {
-    this._tcpSocket.connect(callback);
+  this._udpClient.hello(function() {
+    this._tcpClient.connect(callback);
   }.bind(this));
 }
 UFO.prototype.disconnect = function() {
   this._dead = true;
-  this._tcpSocket.disconnect();
-  this._udpSocket.disconnect();
+  this._tcpClient.disconnect();
+  this._udpClient.disconnect();
 }
 /*
  * Status/power methods
  */
 UFO.prototype.getStatus = function(callback) {
-  this._tcpSocket.status(callback);
+  this._tcpClient.status(callback);
 }
 UFO.prototype.setPower = function(onOff, callback) {
   onOff ? this.turnOn(callback) : this.turnOff(callback);
@@ -88,19 +88,19 @@ UFO.prototype.setPower = function(onOff, callback) {
  * RGBW control methods
  */
 UFO.prototype.turnOn = function(callback) {
-  this._tcpSocket.on(callback);
+  this._tcpClient.on(callback);
 }
 UFO.prototype.turnOff = function(callback) {
-  this._tcpSocket.off(callback);
+  this._tcpClient.off(callback);
 }
 UFO.prototype.setColor = function(red, green, blue, white, callback) {
-  this._tcpSocket.rgbw(red, green, blue, white, callback);
+  this._tcpClient.rgbw(red, green, blue, white, callback);
 }
 UFO.prototype.setBuiltin = function(name, speed, callback) {
-  this._tcpSocket.builtin(name, speed, callback);
+  this._tcpClient.builtin(name, speed, callback);
 }
 UFO.prototype.setCustom = function(speed, mode, steps, callback) {
-  this._tcpSocket.custom(speed, mode, steps, callback);
+  this._tcpClient.custom(speed, mode, steps, callback);
 }
 UFO.prototype.freezeOutput = function(callback) {
   this.setBuiltin('noFunction', 0, callback);
@@ -113,12 +113,12 @@ UFO.prototype.zeroOutput = function(callback) {
  * Reconfiguration methods
  */
 UFO.prototype.factoryReset = function(callback) {
-  this._tcpSocket._time(function() {
-    this._udpSocket.factoryReset(callback);
+  this._tcpClient._time(function() {
+    this._udpClient.factoryReset(callback);
   }.bind(this));
 }
 UFO.prototype.asWifiClient = function(options, callback) {
-  this._tcpSocket._time(function() {
-    this._udpSocket.asWifiClient(options, callback);
+  this._tcpClient._time(function() {
+    this._udpClient.asWifiClient(options, callback);
   }.bind(this));
 }
