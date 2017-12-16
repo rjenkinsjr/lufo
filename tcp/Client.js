@@ -124,6 +124,7 @@ Client.prototype.off = function(callback) {
 // Neither of those functions seem dependent on this function executing, however...correctly or at all.
 //
 // Since this function's purpose isn't fully known, it is marked as private.
+// Its response always seems to be 0x0f 0x10 0x00 0x1f.
 Client.prototype._time = function(callback) {
   if (this._dead) return;
   // 0x10 yy yy mm dd hh mm ss 0x07 0x00
