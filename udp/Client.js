@@ -21,16 +21,50 @@ var Client = module.exports = function(ufo, options) {
   // Route received messages to whatever the current callback is.
   this._receiveCallback = null;
   this._socket.on('message', function(msg, rinfo) {
+    // Don't do anything if we've had a socket error.
     if (!this._error) {
+      // Don't do anything unless we have a valid callback.
       var callback = this._receiveCallback;
-      // Convert all messages to UTF-8 because UFOs always send ASCII.
-      typeof callback === 'function' && callback(msg.toString('utf8'), rinfo.size);
+      if (typeof callback === 'function') {
+        // Convert all messages to UTF-8 because UFOs always send ASCII.
+        var message = msg.toString('utf8') || '';
+        // Determine if we had an error.
+        var atError = null;
+        if (message.startsWith(Constants.errAck)) {
+          var code = message.substring(message.indexOf('=') + 1);
+          var errorMsg = 'Unknown error';
+          switch (code) {
+            case '-1':
+              errorMsg = 'Invalid command format (%s)';
+              break;
+            case '-2':
+              errorMsg = 'Invalid command (%s)';
+              break;
+            case '-3':
+              errorMsg = 'Invalid operation symbol (%s)';
+              break;
+            case '-4':
+              errorMsg = 'Invalid parameter (%s)';
+              break;
+            case '-5':
+              errorMsg = 'Operation not permitted (%s)';
+              break;
+            default:
+              break;
+          }
+          atError = new Error(util.format(errorMsg, code));
+          message = null;
+        }
+        // Invoke the callback.
+        callback(atError, message);
+      }
     }
   }.bind(this));
-  // Capture errors so we can respond appropriately.
+  // Capture socket errors so we can respond appropriately.
+  // These are not AT command errors; we handle those separately.
   this._socket.on('error', function(err) {
     this._dead = true;
-    this._error = error;
+    this._error = err;
     this._socket.close();
   }.bind(this));
   // The socket has been closed; react appropriately.
@@ -46,45 +80,99 @@ Client.discover = require('./Discovery.js');
 /*
  * Private methods
  */
- // Sends the given message to the UFO and runs the callback once the message is sent.
-Client.prototype._send = function(msg, callback) {
-  this._socket.send(msg, Constants.ufoPort, this._options.host, callback);
-}
-// Sends the given message to the UFO and runs the callback once a response is received.
-Client.prototype._sendAndWait = function(msg, callback) {
-  this._receiveCallback = callback;
-  this._socket.send(msg, Constants.ufoPort, this._options.host);
-}
-// Sends the given message to the UFO and runs the callback once a response is received and verified.
-Client.prototype._sendAndVerify = function(msg, expected, callback) {
-  this._sendAndWait(msg, function(resp, size) {
-    var error = null;
-    if (expected !== resp) {
-      error = new Error('Unexpected UDP response.');
-    }
-    typeof callback === 'function' && callback(error, resp, size);
-  }.bind(this));
-}
 // Puts the socket in command mode.
+// If this method fails, the UFO object is disconnected with an error.
+//
+// Callback is required and accepts no arguments.
 Client.prototype._commandMode = function(callback) {
   if (this._dead) return;
-  this.hello(function() {
-    this._send(Constants.commandSet.ok.send, callback);
+  // Say hello.
+  this._sendAndWait(Constants.hello, function(err, msg) {
+    if (err) {
+      // Give up if we couldn't say hello.
+      if (err) this._socket.emit('error', err);
+    } else {
+      // Give up if the response did not come from the expected IP.
+      var ufo = UDPUtils.parseHelloResponse(msg);
+      // TODO 0.0.0.0 seems to be valid only when it's in AP mode, we should check for that
+      if (ufo.ip === this._options.host || ufo.ip === '0.0.0.0') {
+        // Switch to command mode.
+        this._send(Constants.commandSet.ok.send, function(err) {
+          // Give up if we couldn't switch to command mode.
+          // Otherwise fire the callback.
+          if (err) this._socket.emit('error', err);
+          else callback();
+        });
+      } else {
+        this._socket.emit('error', new Error(`Received hello response from unexpected host: ${JSON.stringify(ufo)}`));
+      }
+    }
   }.bind(this));
+}
+// Sends the given message to the UFO and runs the callback once a response is received and verified.
+// If the command fails or verification fails, the UFO object is disconnected with an error.
+//
+// Callback is required and accepts a message argument.
+Client.prototype._sendAndRequire = function(msg, expected, callback) {
+  this._sendAndVerify(msg, expected, function(err, resp, matches) {
+    // Emit the receive error, or...
+    // Emit an error if the response did not match, or...
+    // Fire the callback with the response.
+    if (err) {
+      this._socket.emit('error', err);
+    } else if (matches) {
+      callback(resp);
+    } else {
+      this._socket_emit('error', new Error(`Unexpected response: ${resp}`));
+    }
+  }.bind(this));
+}
+// Sends the given message to the UFO and runs the callback once a response is received and verified.
+// If the command fails or verification fails, the callback receives this information.
+//
+// Callback is required and accepts error, message and boolean "matches" arguments.
+// Either the error or message argument is null, but never both.
+// The "matches" argument is never null, and is always false if error is not null.
+Client.prototype._sendAndVerify = function(msg, expected, callback) {
+  this._sendAndWait(msg, function(err, resp) {
+    var matches = !err && (expected || '') === resp;
+    callback(err, resp, matches);
+  }.bind(this));
+}
+// Sends the given message to the UFO and runs the callback once a response is received.
+//
+// Callback is required and accepts error and message arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype._sendAndWait = function(msg, callback) {
+  this._receiveCallback = callback;
+  this._socket.send(msg, Constants.port, this._options.host, function(err) {
+    if (err) callback(err, null);
+  });
+}
+// Sends the given message to the UFO and runs the callback once the message is sent.
+// This method is suitable for commands that do not send responses.
+//
+// Callback is required and accepts an error argument.
+Client.prototype._send = function(msg, callback) {
+  this._socket.send(msg, Constants.port, this._options.host, callback);
 }
 
 /*
  * Core methods
  */
+// Binds the UDP socket on this machine.
+//
+// Callback is required and accepts no arguments.
 Client.prototype.connect = function(callback) {
   if (this._dead) return;
-  var port = this._options.port;
+  var port = this._options.udpPort;
   if (port >= 0) {
-    this._socket.bind(port);
+    this._socket.bind(port, callback);
   } else {
-    this._socket.bind();
+    this._socket.bind(callback);
   }
 }
+// Closes the UDP socket on this machine.
 Client.prototype.disconnect = function() {
   if (this._dead) return;
   // We're intentionally closing this connection.
@@ -92,80 +180,83 @@ Client.prototype.disconnect = function() {
   this._dead = true;
   this._socket.close();
 }
-Client.prototype.hello = function(callback) {
-  if (this._dead) return;
-  this._sendAndWait(Constants.udpHello, function(msg, size) {
-    // Only invoke the callback if the IP address matches.
-    var ufo = UDPUtils.getHelloResponse(msg);
-    if (ufo.ip === this._options.host) {
-      typeof callback === 'function' && callback();
-    }
-  }.bind(this));
-}
 
 /*
  * Core methods
  */
+// Reboots the UFO. This method invalidates the owning UFO object.
+//
+// Callback is optional and overrides any already-defined disconnect callback.
 Client.prototype.reboot = function(callback) {
-  this._send(Constants.commandSet.reboot.send, function() {
-    // Override the callback if requested.
-    if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
-    this._ufo.disconnect();
+  // Override the callback if requested.
+  if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
+  // Reboot and disconnect.
+  this._commandMode(function() {
+    this._send(Constants.commandSet.reboot.send, function(err) {
+      if (err) this._socket.emit('error', err);
+      else this._ufo.disconnect();
+    }.bind(this));
   }.bind(this));
 }
 
 /*
  * Reconfiguration methods
  */
+// Resets the UFO to factory defaults. This method invalidates the owning UFO object.
+//
+// Callback is optional and overrides any already-defined disconnect callback.
 Client.prototype.factoryReset = function(callback) {
+  // Override the callback if requested.
+  if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
+  // Request a factory reset.
+  // This command implies a reboot, so no explicit reboot command is needed.
   this._commandMode(function() {
     const command = Constants.commandSet.factoryReset;
-    // This command implies a reboot, so no explicit reboot command is needed.
-    this._sendAndVerify(command.send, command.receive, function(err, msg, size) {
-      if (err) this._socket.emit('error', err);
-      // Override the callback if requested.
-      if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
+    this._sendAndRequire(command.send, command.receive, function(msg) {
       this._ufo.disconnect();
     }.bind(this));
   }.bind(this));
 }
+// Set the UFO in WiFi client mode and configures connection parameters.
+//
+// Callback is optional and has no arguments.
 Client.prototype.asWifiClient = function(options, callback) {
-  // Parse options.
-  const auth = MiscUtils.checkWithDefault(options.auth, ['OPEN', 'SHARED', 'WPAPSK', 'WPA2PSK'], 'OPEN');
-  switch (auth) {
-    case 'WPAPSK':
-    case 'WPA2PSK':
-      var encryption = MiscUtils.checkWithDefault(options.encryption, ['TKIP', 'AES'], 'AES');
-      break;
-    case 'SHARED':
-      var encryption = MiscUtils.checkWithDefault(options.encryption, ['WEP-H', 'WEP-A'], 'WEP-A');
-      break;
-    default: // OPEN
-      var encryption = MiscUtils.checkWithDefault(options.encryption, ['NONE', 'WEP-H', 'WEP-A'], 'NONE');
-      break;
-  }
-  // Assemble the final options object.
-  const finalOptions = {
-    ssid: options.ssid,
-    auth: auth,
-    encryption: encryption,
-    passphrase: options.passphrase
-  }
   // Switch to command mode.
-  this._commandMode(function(options) {
+  this._commandMode(function() {
+    // Parse options.
+    const auth = MiscUtils.checkWithDefault(options.auth, ['OPEN', 'SHARED', 'WPAPSK', 'WPA2PSK'], 'OPEN');
+    switch (auth) {
+      case 'WPAPSK':
+      case 'WPA2PSK':
+        var encryption = MiscUtils.checkWithDefault(options.encryption, ['TKIP', 'AES'], 'AES');
+        break;
+      case 'SHARED':
+        var encryption = MiscUtils.checkWithDefault(options.encryption, ['WEP-H', 'WEP-A'], 'WEP-A');
+        break;
+      default: // OPEN
+        var encryption = MiscUtils.checkWithDefault(options.encryption, ['NONE', 'WEP-H', 'WEP-A'], 'NONE');
+        break;
+    }
+    // Assemble the final options object.
+    const finalOptions = {
+      ssid: options.ssid,
+      auth: auth,
+      encryption: encryption,
+      passphrase: options.passphrase
+    }
     // Set the SSID.
-    const ssidCmd = util.format(Constants.commandSet.wifiClientSsid.send, options.ssid);
-    this._sendAndVerify(ssidCmd, Constants.commandSet.wifiClientSsid.receive, function(options, msg, size) {
+    const ssidCmd = util.format(Constants.commandSet.wifiClientSsid.send, finalOptions.ssid);
+    this._sendAndRequire(ssidCmd, Constants.commandSet.wifiClientSsid.receive, function(finalOptions, msg) {
       // Set the passphrase/auth configuration.
-      const authCmd = util.format(Constants.commandSet.wifiClientAuth.send, options.auth, options.encryption, options.passphrase);
-      this._sendAndVerify(authCmd, Constants.commandSet.wifiClientAuth.receive, function(msg, size) {
+      const authCmd = util.format(Constants.commandSet.wifiClientAuth.send, finalOptions.auth, finalOptions.encryption, finalOptions.passphrase);
+      this._sendAndRequire(authCmd, Constants.commandSet.wifiClientAuth.receive, function(msg) {
         // Set the UFO to client (STA) mode.
         const modeCmd = util.format(Constants.commandSet.wifiMode.send, 'STA');
-        this._sendAndVerify(modeCmd, Constants.commandSet.wifiMode.receive, function(msg, size) {
-          // Reboot the UFO.
-          this.reboot(callback);
+        this._sendAndRequire(modeCmd, Constants.commandSet.wifiMode.receive, function(msg) {
+          // Fire the callback.
+          callback();
         }.bind(this));
       }.bind(this));
-    }.bind(this, options));
-  }.bind(this, finalOptions));
+    }.bind(this, finalOptions));
+  }.bind(this));
 }

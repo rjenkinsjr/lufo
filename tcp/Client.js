@@ -81,43 +81,17 @@ var Client = module.exports = function(ufo, options) {
 };
 
 /*
- * Core methods
+ * Private methods
  */
-Client.prototype.connect = function(callback) {
-  if (this._dead) return;
-  // All UFOs listen on the same port.
-  const port = 5577;
-  this._socket.connect({
-    host: this._options.host,
-    port: port
-  }, function() {
-    typeof callback === 'function' && callback();
-  });
-}
-Client.prototype.disconnect = function() {
-  if (this._dead) return;
-  // We're intentionally closing this connection.
-  // Don't allow it to be used again.
-  this._dead = true;
-  this._socket.end();
-}
-Client.prototype.status = function(callback) {
-  if (this._dead) return;
-  this._socket.resume();
-  this._statusCallback = function(err, data) {
-    typeof callback === 'function' && callback(err, data);
-    this._statusCallback = null;
-    this._socket.pause();
-  }.bind(this);
-  this._socket.write(Status.request());
-}
-Client.prototype.on = function(callback) {
-  if (this._dead) return;
-  this._socket.write(Power.on(), callback);
-}
-Client.prototype.off = function(callback) {
-  if (this._dead) return;
-  this._socket.write(Power.off(), callback);
+// Wraps the socket.write() method, handling the optional callback.
+//
+// callback is optional and accepts no arguments.
+Client.prototype._write = function(buffer, callback) {
+  if (typeof callback === 'function') {
+    this._socket.write(buffer, callback);
+  } else {
+    this._socket.write(buffer);
+  }
 }
 // This function appears to set the UFO's time.
 // It is called by the Android app when a UFO is factory reset or has its WiFi configuration is updated.
@@ -125,6 +99,8 @@ Client.prototype.off = function(callback) {
 //
 // Since this function's purpose isn't fully known, it is marked as private.
 // Its response always seems to be 0x0f 0x10 0x00 0x1f.
+//
+// Callback is optional and accepts no arguments.
 Client.prototype._time = function(callback) {
   if (this._dead) return;
   // 0x10 yy yy mm dd hh mm ss 0x07 0x00
@@ -147,12 +123,73 @@ Client.prototype._time = function(callback) {
   buf.writeUInt8(now.getSeconds(), 7);
   buf.writeUInt8(0x07, 8);
   buf.writeUInt8(0, 9);
-  this._socket.write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TCPUtils.prepareBytes(buf), callback);
+}
+
+
+/*
+ * Core methods
+ */
+// Binds the TCP socket on this machine.
+//
+// Callback is required and accepts no arguments.
+Client.prototype.connect = function(callback) {
+  if (this._dead) return;
+  // Define options object.
+  var options = {
+    host: this._options.host,
+    // All UFOs listen on the same port.
+    port: 5577
+  };
+  if (this._options.tcpPort && this._options.tcpPort > 0) {
+    options.localPort = this._options.tcpPort;
+  }
+  // Connect.
+  this._socket.connect(options, callback);
+}
+// Closes the TCP socket on this machine.
+Client.prototype.disconnect = function() {
+  if (this._dead) return;
+  // We're intentionally closing this connection.
+  // Don't allow it to be used again.
+  this._dead = true;
+  this._socket.end();
+}
+// Returns a JSON object describing the status of the UFO.
+//
+// Callback is required and accepts error and data arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.status = function(callback) {
+  if (this._dead) return;
+  this._socket.resume();
+  this._statusCallback = function(err, data) {
+    this._statusCallback = null;
+    this._socket.pause();
+    callback(err, data);
+  }.bind(this);
+  this._socket.write(Status.request());
+}
+// Turns the UFO on.
+//
+// Callback is optional and accepts no arguments.
+Client.prototype.on = function(callback) {
+  if (this._dead) return;
+  this._write(Power.on(), callback);
+}
+// Turns the UFO off.
+//
+// Callback is optional and accepts no arguments.
+Client.prototype.off = function(callback) {
+  if (this._dead) return;
+  this._write(Power.off(), callback);
 }
 
 /*
  * Standard control methods
  */
+// Sets the RGBW output values of the UFO.
+//
+// Callback is optional and accepts no arguments.
 Client.prototype.rgbw = function(red, green, blue, white, callback) {
   if (this._dead) return;
   // 0x31 rr gg bb ww 0x00
@@ -164,8 +201,12 @@ Client.prototype.rgbw = function(red, green, blue, white, callback) {
   buf.writeUInt8(TCPUtils.clampRGBW(blue), 3);
   buf.writeUInt8(TCPUtils.clampRGBW(white), 4);
   buf.writeUInt8(0, 5);
-  this._socket.write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TCPUtils.prepareBytes(buf), callback);
 }
+// Enables one of the UFO's built-in functions.
+// Speed ranges from 0 (slow) to 100 (fast), inclusive.
+//
+// Callback is optional and accepts no arguments.
 Client.prototype.builtin = function(name, speed, callback) {
   if (this._dead) return;
   // 0x61 id speed
@@ -174,8 +215,17 @@ Client.prototype.builtin = function(name, speed, callback) {
   buf.writeUInt8(Builtins.getFunctionId(name), 1);
   // This function accepts a speed from 0 (slow) to 100 (fast).
   buf.writeUInt8(Builtins.flipSpeed(speed), 2);
-  this._socket.write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TCPUtils.prepareBytes(buf), callback);
 }
+// Starts a custom function.
+// Speed ranges from 0 (slow) to 30 (fast).
+// Mode is one of 'gradual', 'jumping' or 'strobe'.
+//
+// Steps is an array of objects; each object must define 'red', 'green' and 'blue' attributes whose values range from 0 to 255, inclusive.
+// The array should not be more than 16 objects in size; only the first 16 objects will be used.
+// Step objects defined as { red: 1, green: 2, blue: 3 } are invalid and dropped from the input array.
+//
+// Callback is optional and accepts no arguments.
 Client.prototype.custom = function(speed, mode, steps, callback) {
   if (this._dead) return;
   // Validate the mode.
@@ -234,7 +284,7 @@ Client.prototype.custom = function(speed, mode, steps, callback) {
   index++;
   // Add terminator and write.
   buf.writeUInt8(0xFF, index);
-  this._socket.write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TCPUtils.prepareBytes(buf), callback);
 }
 
 /*

@@ -1,13 +1,11 @@
-// All UFOs use this port for UDP.
-const ufoPort = 48899;
-// This string is used to discover UFOs and to start talking to a specific UFO.
-const udpHello = 'HF-A11ASSISTHREAD';
+// All messages received in command mode from the UFO have this suffix.
+const recvSuffix = '\r\n\r\n';
 // The standard acknowledgement message sent by both parties.
 const ack = '+ok';
-// All messages received in command mode from the UFO have this suffix.
-const receiveSuffix = '\r\n\r\n';
+// The acknowledgement message prefix when a message has arguments.
+const ackArgs = ack + '=';
 // This is the constant response for commands that do not return any data.
-const receiveNoData = ack + receiveSuffix;
+const ackNoArgs = ack + recvSuffix;
 // A map of commands to their send/receive syntax.
 const commandSet = Object.freeze({
   ok: { send: ack },
@@ -21,17 +19,17 @@ const commandSet = Object.freeze({
   reboot: { send: 'AT+Z\r' },
   factoryReset: {
     send: 'AT+RELD\r',
-    receive: '+ok=rebooting...' + receiveSuffix
+    receive: ackArgs + 'rebooting...' + recvSuffix
   },
   wifiMode: {
     // arg: one of 'AP', 'STA' or 'APSTA'
     send: 'AT+WMODE=%s\r',
-    receive: receiveNoData
+    receive: ackNoArgs
   },
   wifiClientSsid: {
     // arg: SSID (32 characters or less)
     send: 'AT+WSSSID=%s\r',
-    receive: receiveNoData
+    receive: ackNoArgs
   },
   wifiClientAuth: {
     // arg #1 (auth): one of 'OPEN', 'SHARED', 'WPAPSK' or 'WPA2PSK'
@@ -46,14 +44,16 @@ const commandSet = Object.freeze({
     // - if encryption is 'WEP-A', must be an ASCII string of length 5 or 13
     // - if encryption is 'TKIP' or 'AES', must be an ASCII string between 8 and 63 characters, inclusive
     send: 'AT+WSKEY=%s,%s,%s\r',
-    receive: receiveNoData
+    receive: ackNoArgs
   }
 });
 // Export all of the above.
 module.exports = Object.freeze({
-  ufoPort: ufoPort,
-  udpHello: udpHello,
-  receiveSuffix: receiveSuffix,
-  receiveNoData: receiveNoData,
+  // All UFOs use this port for UDP.
+  port: 48899,
+  // This string is used to discover UFOs and to start talking to a specific UFO.
+  hello: 'HF-A11ASSISTHREAD',
+  // This is the prefix of error responses.
+  errAck: '+ERR',
   commandSet: commandSet
 });

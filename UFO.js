@@ -12,6 +12,22 @@ const UFOError = lufoRequire('misc/UFOError');
 /*
  * Constructor
  */
+/* Options object:
+{
+  // required IP address of the UFO
+  host: '192.168.1.10',
+  // optional local UDP port number; if not specified or non-positive, a random port is used
+  udpPort: 0,
+  // optional local TCP port number; if not specified or non-positive, a random port is used
+  tcpPort: 0,
+  // true (default) or false, tells the TCP socket (RGBW control) whether to send data right away or buffer
+  sendImmediately: true,
+  // optional callback w/ error argument invoked when this UFO object disconnects from its host
+  disconnectCallback: function(err) {}
+}
+*/
+// If the optional callback is provided, the UFO object's connect() method will
+// be invoked immediately after construction. The callback takes no arguments.
 var UFO = module.exports = function(options, callback) {
   // Flag that tracks the state of this UFO object.
   this._dead = false;
@@ -66,7 +82,7 @@ UFO.prototype.getHost = function() {
  * Connect/disconnect methods
  */
 UFO.prototype.connect = function(callback) {
-  this._udpClient.hello(function() {
+  this._udpClient.connect(function() {
     this._tcpClient.connect(callback);
   }.bind(this));
 }
@@ -110,13 +126,29 @@ UFO.prototype.zeroOutput = function(callback) {
 }
 
 /*
+ * Control methods
+ */
+// Reboots the UFO. This method invalidates the owning UFO object.
+//
+// Callback is optional and overrides any already-defined disconnect callback.
+UFO.prototype.reboot = function(callback) {
+  this._udpClient.reboot(callback);
+}
+
+/*
  * Reconfiguration methods
  */
+// Resets the UFO to factory defaults. This object can no longer be used after this method is called.
+//
+// Callback is optional and overrides any already-defined disconnect callback.
 UFO.prototype.factoryReset = function(callback) {
   this._tcpClient._time(function() {
     this._udpClient.factoryReset(callback);
   }.bind(this));
 }
+// Set the UFO in WiFi client mode and configures connection parameters.
+//
+// Callback is optional and has no arguments.
 UFO.prototype.asWifiClient = function(options, callback) {
   this._tcpClient._time(function() {
     this._udpClient.asWifiClient(options, callback);

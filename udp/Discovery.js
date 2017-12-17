@@ -39,9 +39,9 @@ module.exports = function(callback, timeout, port) {
     if (!error) {
       var message = msg.toString('utf8');
       // The socket sends itself the request message. Ignore this.
-      if (message !== Constants.udpHello) {
+      if (message !== Constants.hello) {
         // Add the result to our array.
-        data.push(UDPUtils.getHelloResponse(message));
+        data.push(UDPUtils.parseHelloResponse(message));
       }
     }
   });
@@ -49,7 +49,7 @@ module.exports = function(callback, timeout, port) {
   const closeSocket = function() { socket.close(); };
   socket.on('listening', function() {
     socket.setBroadcast(true);
-    socket.send(Constants.udpHello, Constants.ufoPort, '255.255.255.255', function(err) {
+    socket.send(Constants.hello, Constants.port, '255.255.255.255', function(err) {
       if (err) socket.emit('error', err);
       else stopDiscover = setTimeout(closeSocket, timeout);
     });
