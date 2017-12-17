@@ -9,13 +9,10 @@ const ackNoArgs = ack + recvSuffix;
 // A map of commands to their send/receive syntax.
 const commandSet = Object.freeze({
   ok: { send: ack },
-  // Not documented, nor does it show up in AT+H output, but probably
-  // means "quiet mode off". It gets used a lot by the Android app,
-  // particularly when doing a factory reset or WiFi reconfiguration.
-  //
-  // It doesn't seem to be strictly necessary for other functions, so
-  // it is declared here only for completeness.
-  quiet: { send: 'AT+Q\r' },
+  // Not documented, nor does it show up in AT+H output, but it seems to
+  // ease sending multiple commands in sequence. It appears to be some sort
+  // of command terminator.
+  endCmd: { send: 'AT+Q\r' },
   reboot: { send: 'AT+Z\r' },
   factoryReset: {
     send: 'AT+RELD\r',

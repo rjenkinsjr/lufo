@@ -109,6 +109,17 @@ Client.prototype._commandMode = function(callback) {
     }
   }.bind(this));
 }
+// Sends the "AT+Q\r" message, ending command transmission and preparing for
+// future commands to be sent.
+//
+// Callback is required and accepts no arguments.
+Client.prototype._endCommand = function(callback) {
+  if (this._dead) return;
+  this._send(Constants.commandSet.endCmd.send, function(err) {
+    if (err) this._socket.emit('error', err);
+    else callback();
+  }.bind(this));
+}
 // Sends the given message to the UFO and runs the callback once a response is received and verified.
 // If the command fails or verification fails, the UFO object is disconnected with an error.
 //
@@ -253,8 +264,8 @@ Client.prototype.asWifiClient = function(options, callback) {
         // Set the UFO to client (STA) mode.
         const modeCmd = util.format(Constants.commandSet.wifiMode.send, 'STA');
         this._sendAndRequire(modeCmd, Constants.commandSet.wifiMode.receive, function(msg) {
-          // Fire the callback.
-          callback();
+          // End the command and fire the callback.
+          this._endCommand(callback);
         }.bind(this));
       }.bind(this));
     }.bind(this, finalOptions));
