@@ -5,7 +5,8 @@ Utils.prototype.macAddress = function(mac) {
 }
 // Converts a UDP "hello" response to an object containing the IP, MAC and model of the UFO.
 Utils.prototype.parseHelloResponse = function(response) {
-  var splitResponse = response.split(',');
+  var splitResponse = response;
+  if (!Array.isArray(splitResponse)) splitResponse = splitResponse.split(',');
   return {
     ip: splitResponse[0],
     mac: this.macAddress(splitResponse[1]),

@@ -20,6 +20,7 @@ var Client = module.exports = function(ufo, options) {
   this._error = null;
   // Route received messages to whatever the current callback is.
   this._receiveCallback = null;
+  this._receiveParser = null;
   this._socket.on('message', function(msg, rinfo) {
     // Don't do anything if we've had a socket error.
     if (!this._error) {
@@ -54,6 +55,14 @@ var Client = module.exports = function(ufo, options) {
           }
           atError = new Error(util.format(errorMsg, code));
           message = null;
+        } else {
+          // Parse this message and collapse it if possible.
+          message = this._receiveParser(message);
+          if (message.length === 0) {
+            message = '';
+          } else if (message.length === 1) {
+            message = message[0];
+          }
         }
         // Invoke the callback.
         callback(atError, message);
@@ -87,7 +96,8 @@ Client.discover = require('./Discovery.js');
 Client.prototype._commandMode = function(callback) {
   if (this._dead) return;
   // Say hello.
-  this._sendAndWait(Constants.hello, function(err, msg) {
+  // TODO allow different password
+  this._sendAndWait(Constants.command('hello'), function(err, msg) {
     if (err) {
       // Give up if we couldn't say hello.
       if (err) this._socket.emit('error', err);
@@ -97,7 +107,7 @@ Client.prototype._commandMode = function(callback) {
       // TODO 0.0.0.0 seems to be valid only when it's in AP mode, we should check for that
       if (ufo.ip === this._options.host || ufo.ip === '0.0.0.0') {
         // Switch to command mode.
-        this._send(Constants.commandSet.ok.send, function(err) {
+        this._send(Constants.command('helloAck'), function(err) {
           // Give up if we couldn't switch to command mode.
           // Otherwise fire the callback.
           if (err) this._socket.emit('error', err);
@@ -115,7 +125,7 @@ Client.prototype._commandMode = function(callback) {
 // Callback is required and accepts no arguments.
 Client.prototype._endCommand = function(callback) {
   if (this._dead) return;
-  this._send(Constants.commandSet.endCmd.send, function(err) {
+  this._send(Constants.command('endCmd'), function(err) {
     if (err) this._socket.emit('error', err);
     else callback();
   }.bind(this));
@@ -124,8 +134,8 @@ Client.prototype._endCommand = function(callback) {
 // If the command fails or verification fails, the UFO object is disconnected with an error.
 //
 // Callback is required and accepts a message argument.
-Client.prototype._sendAndRequire = function(msg, expected, callback) {
-  this._sendAndVerify(msg, expected, function(err, resp, matches) {
+Client.prototype._sendAndRequire = function(cmd, expected, callback) {
+  this._sendAndVerify(cmd, expected, function(err, resp, matches) {
     // Emit the receive error, or...
     // Emit an error if the response did not match, or...
     // Fire the callback with the response.
@@ -134,7 +144,7 @@ Client.prototype._sendAndRequire = function(msg, expected, callback) {
     } else if (matches) {
       callback(resp);
     } else {
-      this._socket_emit('error', new Error(`Unexpected response: ${resp}`));
+      this._socket.emit('error', new Error(`Unexpected response: ${resp}`));
     }
   }.bind(this));
 }
@@ -144,9 +154,16 @@ Client.prototype._sendAndRequire = function(msg, expected, callback) {
 // Callback is required and accepts error, message and boolean "matches" arguments.
 // Either the error or message argument is null, but never both.
 // The "matches" argument is never null, and is always false if error is not null.
-Client.prototype._sendAndVerify = function(msg, expected, callback) {
-  this._sendAndWait(msg, function(err, resp) {
-    var matches = !err && (expected || '') === resp;
+Client.prototype._sendAndVerify = function(cmd, expected, callback) {
+  this._sendAndWait(cmd, function(err, resp) {
+    var matches = false;
+    if (!err) {
+      if (Array.isArray(expected)) {
+        matches = MiscUtils.arrayEquals(resp, expected);
+      } else {
+        matches = resp === expected;
+      }
+    }
     callback(err, resp, matches);
   }.bind(this));
 }
@@ -154,9 +171,10 @@ Client.prototype._sendAndVerify = function(msg, expected, callback) {
 //
 // Callback is required and accepts error and message arguments.
 // Either one or the other argument is null, but never both.
-Client.prototype._sendAndWait = function(msg, callback) {
+Client.prototype._sendAndWait = function(cmd, callback) {
   this._receiveCallback = callback;
-  this._socket.send(msg, Constants.port, this._options.host, function(err) {
+  this._receiveParser = cmd.recv;
+  this._socket.send(cmd.send, Constants.port, this._options.host, function(err) {
     if (err) callback(err, null);
   });
 }
@@ -164,8 +182,8 @@ Client.prototype._sendAndWait = function(msg, callback) {
 // This method is suitable for commands that do not send responses.
 //
 // Callback is required and accepts an error argument.
-Client.prototype._send = function(msg, callback) {
-  this._socket.send(msg, Constants.port, this._options.host, callback);
+Client.prototype._send = function(cmd, callback) {
+  this._socket.send(cmd.send, Constants.port, this._options.host, callback);
 }
 
 /*
@@ -203,7 +221,7 @@ Client.prototype.reboot = function(callback) {
   if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
   // Reboot and disconnect.
   this._commandMode(function() {
-    this._send(Constants.commandSet.reboot.send, function(err) {
+    this._send(Constants.command('reboot'), function(err) {
       if (err) this._socket.emit('error', err);
       else this._ufo.disconnect();
     }.bind(this));
@@ -222,8 +240,9 @@ Client.prototype.factoryReset = function(callback) {
   // Request a factory reset.
   // This command implies a reboot, so no explicit reboot command is needed.
   this._commandMode(function() {
-    const command = Constants.commandSet.factoryReset;
-    this._sendAndRequire(command.send, command.receive, function(msg) {
+    const cmd = Constants.command('factoryReset');
+    const expected = Constants.commandsRaw.factoryReset.recv;
+    this._sendAndRequire(cmd, expected, function(msg) {
       this._ufo.disconnect();
     }.bind(this));
   }.bind(this));
@@ -256,14 +275,14 @@ Client.prototype.asWifiClient = function(options, callback) {
       passphrase: options.passphrase
     }
     // Set the SSID.
-    const ssidCmd = util.format(Constants.commandSet.wifiClientSsid.send, finalOptions.ssid);
-    this._sendAndRequire(ssidCmd, Constants.commandSet.wifiClientSsid.receive, function(finalOptions, msg) {
+    const ssidCmd = Constants.command('wifiClientSsid', 'set', finalOptions.ssid);
+    this._sendAndRequire(ssidCmd, '', function(finalOptions, msg) {
       // Set the passphrase/auth configuration.
-      const authCmd = util.format(Constants.commandSet.wifiClientAuth.send, finalOptions.auth, finalOptions.encryption, finalOptions.passphrase);
-      this._sendAndRequire(authCmd, Constants.commandSet.wifiClientAuth.receive, function(msg) {
+      const authCmd = Constants.command('wifiClientAuth', 'set', finalOptions.auth, finalOptions.encryption, finalOptions.passphrase);
+      this._sendAndRequire(authCmd, '', function(msg) {
         // Set the UFO to client (STA) mode.
-        const modeCmd = util.format(Constants.commandSet.wifiMode.send, 'STA');
-        this._sendAndRequire(modeCmd, Constants.commandSet.wifiMode.receive, function(msg) {
+        const modeCmd = Constants.command('wifiMode', 'set', 'STA');
+        this._sendAndRequire(modeCmd, '', function(msg) {
           // End the command and fire the callback.
           this._endCommand(callback);
         }.bind(this));

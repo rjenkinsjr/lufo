@@ -1,3 +1,4 @@
+// TODO allow for custom hello password
 const dgram = require('dgram');
 const Constants = lufoRequire('udp/Constants');
 const UDPUtils = lufoRequire('udp/Utils');
@@ -39,7 +40,7 @@ module.exports = function(callback, timeout, port) {
     if (!error) {
       var message = msg.toString('utf8');
       // The socket sends itself the request message. Ignore this.
-      if (message !== Constants.hello) {
+      if (message !== Constants.defaultHello) {
         // Add the result to our array.
         data.push(UDPUtils.parseHelloResponse(message));
       }
@@ -49,7 +50,7 @@ module.exports = function(callback, timeout, port) {
   const closeSocket = function() { socket.close(); };
   socket.on('listening', function() {
     socket.setBroadcast(true);
-    socket.send(Constants.hello, Constants.port, '255.255.255.255', function(err) {
+    socket.send(Constants.defaultHello, Constants.port, '255.255.255.255', function(err) {
       if (err) socket.emit('error', err);
       else stopDiscover = setTimeout(closeSocket, timeout);
     });
