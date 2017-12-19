@@ -1,51 +1,43 @@
 const Strings = lufoRequire('udp/model/Strings');
 module.exports = Object.freeze({
   hello: {
-    send: Strings.defaultHello,
-    sendLiteral: true,
+    // getter-only
     // arg 1 is IP address
     // arg 2 is MAC address
     // arg 3 is model number
-    recv: []
+    cmd: Strings.defaultHello,
+    literal: true,
+    get: []
   },
-  // The "hello" command client-side acknowledgement message.
   helloAck: {
-    send: Strings.ack,
-    sendLiteral: true
+    // getter-only
+    cmd: Strings.ack,
+    literal: true
   },
-  // Not documented, nor does it show up in AT+H output, but it seems to
-  // ease sending multiple commands in sequence. It appears to be some sort
-  // of command terminator.
-  endCmd: 'Q',
-  reboot: 'Z',
+  reboot: {
+    // getter-only
+    cmd: 'Z'
+  },
   factoryReset: {
-    send: 'RELD',
-    recv: 'rebooting...'
+    // getter-only
+    cmd: 'RELD',
+    get: 'rebooting...'
   },
   moduleVersion: {
-    send: 'VER',
+    // getter-only
     // arbitrary string
-    recv: []
+    cmd: 'VER',
+    get: []
   },
   ntp: {
-    // IP address, default is 61.164.36.105
-    get: {
-      send: 'NTPSER',
-      recv: []
-    },
-    set: {
-      send: 'NTPSER=%s'
-    }
+    // arg 1 is IP address, default is 61.164.36.105
+    cmd: 'NTPSER',
+    get: []
   },
   udpPassword: {
     // password must be 20 characters or less
-    get: {
-      send: 'ASWD',
-      recv: []
-    },
-    set: {
-      send: 'ASWD=%s'
-    }
+    cmd: 'ASWD',
+    get: []
   },
   tcpServer: {
     // arg 1 is "TCP" or "UDP"
@@ -53,38 +45,30 @@ module.exports = Object.freeze({
     // arg 3 is port number
     // arg 4 is IP address
     // TODO IP address probably should not change
-    get: {
-      send: 'NETP',
-      recv: []
-    },
-    set: {
-      send: 'NETP=%s,%s,%s,%s'
-    }
+    cmd: 'NETP',
+    get: []
   },
   wifiAutoSwitch: {
     // Determines how long the module will wait with no client WiFi connection
-    // before it switches to AP mode.
+    // before it switches to AP mode. Exactly 1 argument.
     //
     // "off": disabled; AP mode will never be turned on
     // "on" 1 minute
     // "auto": 10 minutes
     // 3-120: X minutes
-    get: {
-      send: 'WADHCP',
-      recv: []
-    },
-    set: {
-      send: 'WADHCP=%s,%s,%s'
-    }
+    cmd: 'MDCH',
+    get: []
   },
   wifiMode: {
-    // one of "AP", "STA" or "APSTA"
-    get: {
-      send: 'WMODE',
-      recv: []
-    },
-    set: {
-      send: 'WMODE=%s'
-    }
+    // arg 1 is "AP", "STA" or "APSTA"
+    cmd: 'WMODE',
+    get: []
+  },
+  // Not documented, nor does it show up in AT+H output, but it seems to
+  // ease sending multiple commands in sequence. It appears to be some sort
+  // of command terminator.
+  endCmd: {
+    // getter-only
+    cmd: 'Q'
   }
 });

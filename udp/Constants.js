@@ -18,26 +18,29 @@ module.exports = Object.freeze(Object.assign({
   commands: commands,
   // Function that returns command syntaxes. An object with keys "send" and
   // "recv" is returned, both of which are never null.
-  // - "send" is always a string. Any send arguments provided to getCmd/setCmd
-  // are applied to the "send" command string using util.format(); all of these
-  // arguments must be strings.
+  // - "send" is always a string; this is the command that will be sent to the
+  // UFO's UDP socket. It contains all the set arguments provided to this method.
   // - "recv" is a function that accepts the command's response and returns an
   // array with the args from the response. This array is never null, and will
   // be empty for commands whose responses have no arguments.
-  command: function(name, getOrSet, ...sendArgs) {
+  command: function(name, getOrSet, ...setArgs) {
     // Define the command object.
-    var cmd = commands[name];
-    if (MiscUtils.isString(cmd)) {
-      cmd = {
-        send: cmd
-      };
-    } else if (cmd.hasOwnProperty('get') || cmd.hasOwnProperty('set')) {
-      cmd = cmd[getOrSet];
+    var command = commands[name];
+    var cmdString = command.cmd;
+    var mode = getOrSet === 'set' ? 'set' : 'get';
+    // Commands flagged at literal have no syntax translation whatsoever.
+    if (!command.literal) {
+      // Non-literal commands are wrapped in the send prefix/suffix.
+      cmdString = Strings.sendPrefix + cmdString;
+      // Set commands have their argument list prior to the send suffix.
+      if (mode === 'set') {
+        cmdString += '=' + setArgs.join(',');
+      }
+      cmdString += Strings.sendSuffix;
     }
-    // Apply the send prefix/suffix if applicable.
-    if (!cmd.sendLiteral) cmd.send = Strings.sendPrefix + cmd.send + Strings.sendSuffix;
+    // Return the send and receive schema.
     return Object.freeze({
-      send: MiscUtils.format(cmd.send, sendArgs),
+      send: cmdString,
       recv: function(response) {
         var result = response;
         // Chop response prefix/suffix, if they exist.
@@ -54,7 +57,7 @@ module.exports = Object.freeze(Object.assign({
         } else {
           return [];
         }
-      }.bind(cmd.recv)
+      }.bind(command[mode] || false)
     });
   }
 }, Strings));
