@@ -241,7 +241,7 @@ Client.prototype.factoryReset = function(callback) {
   // This command implies a reboot, so no explicit reboot command is needed.
   this._commandMode(function() {
     const cmd = Constants.command('factoryReset');
-    const expected = Constants.commandsRaw.factoryReset.recv;
+    const expected = Constants.commands.factoryReset.recv;
     this._sendAndRequire(cmd, expected, function(msg) {
       this._ufo.disconnect();
     }.bind(this));
