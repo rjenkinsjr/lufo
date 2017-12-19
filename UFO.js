@@ -78,6 +78,9 @@ UFO.discover = UdpClient.discover;
 UFO.prototype.getHost = function() {
   return this._options.host;
 }
+UFO.prototype.getVersion = function(callback) {
+  this._udpClient.version(callback);
+}
 /*
  * Connect/disconnect methods
  */

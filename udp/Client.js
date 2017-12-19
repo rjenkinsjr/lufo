@@ -213,6 +213,15 @@ Client.prototype.disconnect = function() {
 /*
  * Core methods
  */
+// Returns the version of the module.
+//
+// Callback is required and accepts error and version arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.version = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('moduleVersion'), callback);
+  }.bind(this));
+}
 // Reboots the UFO. This method invalidates the owning UFO object.
 //
 // Callback is optional and overrides any already-defined disconnect callback.
@@ -227,10 +236,6 @@ Client.prototype.reboot = function(callback) {
     }.bind(this));
   }.bind(this));
 }
-
-/*
- * Reconfiguration methods
- */
 // Resets the UFO to factory defaults. This method invalidates the owning UFO object.
 //
 // Callback is optional and overrides any already-defined disconnect callback.
@@ -247,6 +252,10 @@ Client.prototype.factoryReset = function(callback) {
     }.bind(this));
   }.bind(this));
 }
+
+/*
+ * Client WiFi methods
+ */
 // Set the UFO in WiFi client mode and configures connection parameters.
 //
 // Callback is optional and has no arguments.
