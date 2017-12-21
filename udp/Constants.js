@@ -23,11 +23,11 @@ module.exports = Object.freeze(Object.assign({
   // - "recv" is a function that accepts the command's response and returns an
   // array with the args from the response. This array is never null, and will
   // be empty for commands whose responses have no arguments.
-  command: function(name, getOrSet, ...setArgs) {
+  command: function(name, ...setArgs) {
     // Define the command object.
     var command = commands[name];
     var cmdString = command.cmd;
-    var mode = getOrSet === 'set' ? 'set' : 'get';
+    var mode = setArgs.length > 0 ? 'set' : 'get';
     // Commands flagged at literal have no syntax translation whatsoever.
     if (!command.literal) {
       // Non-literal commands are wrapped in the send prefix/suffix.

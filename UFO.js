@@ -81,6 +81,13 @@ UFO.prototype.getHost = function() {
 UFO.prototype.getVersion = function(callback) {
   this._udpClient.version(callback);
 }
+UFO.prototype.getNtpServer = function(callback) {
+  this._udpClient.getNtp(callback);
+}
+UFO.prototype.setNtpServer = function(ipAddress, callback) {
+  this._udpClient.setNtp(ipAddress, callback);
+}
+
 /*
  * Connect/disconnect methods
  */

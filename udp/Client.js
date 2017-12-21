@@ -219,7 +219,11 @@ Client.prototype.disconnect = function() {
 // Either one or the other argument is null, but never both.
 Client.prototype.version = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(Constants.command('moduleVersion'), callback);
+    this._sendAndWait(Constants.command('moduleVersion'), function(err, version) {
+      this._endCommand(function(err, version) {
+        this(err, version);
+      }.bind(callback, err, version));
+    }.bind(this));
   }.bind(this));
 }
 // Reboots the UFO. This method invalidates the owning UFO object.
@@ -249,6 +253,29 @@ Client.prototype.factoryReset = function(callback) {
     const expected = Constants.commands.factoryReset.get;
     this._sendAndRequire(cmd, expected, function(msg) {
       this._ufo.disconnect();
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the NTP server the UFO uses to obtain the current time.
+//
+// Callback is required and accepts error and IP address arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getNtp = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('ntp'), function(err, ipAddress) {
+      this._endCommand(function(err, ipAddress) {
+        this(err, ipAddress);
+      }.bind(callback, err, ipAddress));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the NTP server the UFO uses to obtain the current time.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setNtp = function(ipAddress, callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('ntp', ipAddress), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
 }
@@ -284,13 +311,13 @@ Client.prototype.asWifiClient = function(options, callback) {
       passphrase: options.passphrase
     }
     // Set the SSID.
-    const ssidCmd = Constants.command('wifiClientSsid', 'set', finalOptions.ssid);
+    const ssidCmd = Constants.command('wifiClientSsid', finalOptions.ssid);
     this._sendAndRequire(ssidCmd, '', function(finalOptions, msg) {
       // Set the passphrase/auth configuration.
-      const authCmd = Constants.command('wifiClientAuth', 'set', finalOptions.auth, finalOptions.encryption, finalOptions.passphrase);
+      const authCmd = Constants.command('wifiClientAuth', finalOptions.auth, finalOptions.encryption, finalOptions.passphrase);
       this._sendAndRequire(authCmd, '', function(msg) {
         // Set the UFO to client (STA) mode.
-        const modeCmd = Constants.command('wifiMode', 'set', 'STA');
+        const modeCmd = Constants.command('wifiMode', 'STA');
         this._sendAndRequire(modeCmd, '', function(msg) {
           // End the command and fire the callback.
           this._endCommand(callback);
