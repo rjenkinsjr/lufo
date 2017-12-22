@@ -1,13 +1,8 @@
-// require() specific to this module.
-// https://gist.github.com/branneman/8048520#7-the-wrapper
-global.lufoRequire = function(name) {
-  return require(__dirname + '/' + name);
-}
-
+require('./LufoGlobal');
 const events = require('events');
-const TcpClient = lufoRequire('tcp/Client');
-const UdpClient = lufoRequire('udp/Client');
-const UFOError = lufoRequire('misc/UFOError');
+const TcpClient = lufo.require('tcp/Client');
+const UdpClient = lufo.require('udp/Client');
+const UFOError = lufo.require('misc/UFOError');
 
 /*
  * Constructor

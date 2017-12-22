@@ -1,4 +1,4 @@
-const MiscUtils = lufoRequire('misc/Utils');
+const MiscUtils = lufo.require('misc/Utils');
 
 /*
  * Exports

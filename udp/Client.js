@@ -1,8 +1,8 @@
 const util = require('util');
 const dgram = require('dgram');
-const Constants = lufoRequire('udp/Constants');
-const UDPUtils = lufoRequire('udp/Utils');
-const MiscUtils = lufoRequire('misc/Utils');
+const Constants = lufo.require('udp/Constants');
+const UDPUtils = lufo.require('udp/Utils');
+const MiscUtils = lufo.require('misc/Utils');
 
 /*
  * Exports

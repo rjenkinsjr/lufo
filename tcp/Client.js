@@ -1,9 +1,9 @@
 const net = require('net');
-const Builtins = lufoRequire('tcp/model/Builtins');
-const Customs = lufoRequire('tcp/model/Customs');
-const Power = lufoRequire('tcp/model/Power');
-const Status = lufoRequire('tcp/model/Status');
-const TCPUtils = lufoRequire('tcp/Utils');
+const Builtins = lufo.require('tcp/model/Builtins');
+const Customs = lufo.require('tcp/model/Customs');
+const Power = lufo.require('tcp/model/Power');
+const Status = lufo.require('tcp/model/Status');
+const TCPUtils = lufo.require('tcp/Utils');
 
 // TCP socket creation method. Must be bound to a tcp/Client instance.
 const createSocket = function() {

@@ -1,4 +1,4 @@
-const MiscUtils = lufoRequire('misc/Utils');
+const MiscUtils = lufo.require('misc/Utils');
 
 const Utils = function() {};
 // Clamps RGBW values within the accepted range (0 <= value <= 255).

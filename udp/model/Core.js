@@ -1,4 +1,4 @@
-const Strings = lufoRequire('udp/model/Strings');
+const Strings = lufo.require('udp/model/Strings');
 module.exports = Object.freeze({
   hello: {
     // getter-only
