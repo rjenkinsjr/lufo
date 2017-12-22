@@ -87,6 +87,30 @@ UFO.prototype.getNtpServer = function(callback) {
 UFO.prototype.setNtpServer = function(ipAddress, callback) {
   this._udpClient.setNtp(ipAddress, callback);
 }
+UFO.prototype.getUdpPassword = function(callback) {
+  this._udpClient.getUdpPassword(callback);
+}
+UFO.prototype.setUdpPassword = function(password, callback) {
+  this._udpClient.setUdpPassword(password, callback);
+}
+UFO.prototype.getTcpPort = function(callback) {
+  this._udpClient.getTcpPort(callback);
+}
+UFO.prototype.setTcpPort = function(port, callback) {
+  this._udpClient.setTcpPort(port, callback);
+}
+UFO.prototype.getWifiAutoSwitch = function(callback) {
+  this._udpClient.getWifiAutoSwitch(callback);
+}
+UFO.prototype.setWifiAutoSwitch = function(value, callback) {
+  this._udpClient.setWifiAutoSwitch(value, callback);
+}
+UFO.prototype.getWifiMode = function(callback) {
+  this._udpClient.getWifiMode(callback);
+}
+UFO.prototype.setWifiMode = function(mode, callback) {
+  this._udpClient.setWifiMode(mode, callback);
+}
 
 /*
  * Connect/disconnect methods

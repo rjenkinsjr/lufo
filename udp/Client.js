@@ -256,7 +256,7 @@ Client.prototype.factoryReset = function(callback) {
     }.bind(this));
   }.bind(this));
 }
-// Returns the NTP server the UFO uses to obtain the current time.
+// Returns the NTP server used to obtain the current time.
 //
 // Callback is required and accepts error and IP address arguments.
 // Either one or the other argument is null, but never both.
@@ -269,12 +269,140 @@ Client.prototype.getNtp = function(callback) {
     }.bind(this));
   }.bind(this));
 }
-// Sets the NTP server the UFO uses to obtain the current time.
+// Sets the NTP server used to obtain the current time.
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setNtp = function(ipAddress, callback) {
   this._commandMode(function() {
     this._sendAndWait(Constants.command('ntp', ipAddress), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the UDP password.
+//
+// Callback is required and accepts error and password arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getUdpPassword = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('udpPassword'), function(err, password) {
+      this._endCommand(function(err, password) {
+        this(err, password);
+      }.bind(callback, err, password));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the UDP password.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setUdpPassword = function(password, callback) {
+  if (password.length > 20) {
+    callback(new Error(`Password is ${password.length} characters long, exceeding limit of 20.`));
+    return;
+  }
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('udpPassword', password), function(err) {
+      // TODO update UFO object
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the TCP port where RGBW commands are sent.
+//
+// Callback is required and accepts error and port arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getTcpPort = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('tcpServer'), function(err, tcpServer) {
+      this._endCommand(function(err, port) {
+        this(err, port);
+      }.bind(callback, err, tcpServer[2]));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the TCP port where RGBW commands are sent.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setTcpPort = function(port, callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('tcpServer'), function(err, tcpServer) {
+      if (err) callback(err);
+      else this._sendAndWait(Constants.command('tcpServer', tcpServer[0], tcpServer[1], port, tcpServer[3]), function(err) {
+        this._endCommand(function(err) { this(err); }.bind(callback, err));
+      }.bind(this));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the WiFi "auto-switch" setting.
+//
+// Callback is required and accepts error and value arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiAutoSwitch = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiAutoSwitch'), function(err, value) {
+      this._endCommand(function(err, value) {
+        this(err, value);
+      }.bind(callback, err, value));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the WiFi "auto-switch" setting.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiAutoSwitch = function(value, callback) {
+  var error = false;
+  var intValue = parseInt(value);
+  if (isNaN(intValue)) {
+    switch (value) {
+      case "off":
+      case "on":
+      case "auto":
+        break;
+      default:
+        error = true;
+        break;
+    }
+  } else {
+    error = intValue < 3 || intValue > 120;
+  }
+  if (error) {
+    callback(new Error(`Invalid value ${value}, must be "off", "on", "auto" or 3-120 inclusive.`));
+    return;
+  }
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiAutoSwitch', value), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the WiFi mode.
+//
+// Callback is required and accepts error and mode arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiMode = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiMode'), function(err, mode) {
+      this._endCommand(function(err, mode) {
+        this(err, mode);
+      }.bind(callback, err, mode));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the WiFi mode.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiMode = function(mode, callback) {
+  switch (value) {
+    case "AP":
+    case "STA":
+    case "APSTA":
+      break;
+    default:
+      callback(new Error(`Invalid mode ${mode}, must be "AP", "STA" or "APSTA".`));
+      return;
+  }
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiMode', mode), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
