@@ -320,7 +320,7 @@ Client.prototype.getTcpPort = function(callback) {
     this._sendAndWait(Constants.command('tcpServer'), function(err, tcpServer) {
       this._endCommand(function(err, port) {
         this(err, port);
-      }.bind(callback, err, tcpServer[2]));
+      }.bind(callback, err, parseInt(tcpServer[2])));
     }.bind(this));
   }.bind(this));
 }
