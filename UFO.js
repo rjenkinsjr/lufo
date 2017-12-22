@@ -72,47 +72,6 @@ var UFO = module.exports = function(options, callback) {
 UFO.prototype = new events.EventEmitter;
 
 /*
- * Query methods
- */
-UFO.discover = UdpClient.discover;
-UFO.prototype.getHost = function() {
-  return this._options.host;
-}
-UFO.prototype.getVersion = function(callback) {
-  this._udpClient.version(callback);
-}
-UFO.prototype.getNtpServer = function(callback) {
-  this._udpClient.getNtp(callback);
-}
-UFO.prototype.setNtpServer = function(ipAddress, callback) {
-  this._udpClient.setNtp(ipAddress, callback);
-}
-UFO.prototype.getUdpPassword = function(callback) {
-  this._udpClient.getUdpPassword(callback);
-}
-UFO.prototype.setUdpPassword = function(password, callback) {
-  this._udpClient.setUdpPassword(password, callback);
-}
-UFO.prototype.getTcpPort = function(callback) {
-  this._udpClient.getTcpPort(callback);
-}
-UFO.prototype.setTcpPort = function(port, callback) {
-  this._udpClient.setTcpPort(port, callback);
-}
-UFO.prototype.getWifiAutoSwitch = function(callback) {
-  this._udpClient.getWifiAutoSwitch(callback);
-}
-UFO.prototype.setWifiAutoSwitch = function(value, callback) {
-  this._udpClient.setWifiAutoSwitch(value, callback);
-}
-UFO.prototype.getWifiMode = function(callback) {
-  this._udpClient.getWifiMode(callback);
-}
-UFO.prototype.setWifiMode = function(mode, callback) {
-  this._udpClient.setWifiMode(mode, callback);
-}
-
-/*
  * Connect/disconnect methods
  */
 UFO.prototype.connect = function(callback) {
@@ -125,18 +84,72 @@ UFO.prototype.disconnect = function() {
   this._tcpClient.disconnect();
   this._udpClient.disconnect();
 }
+
 /*
- * Status/power methods
+ * Query methods
  */
+UFO.discover = UdpClient.discover;
+UFO.prototype.getHost = function() {
+  return this._options.host;
+}
 UFO.prototype.getStatus = function(callback) {
   this._tcpClient.status(callback);
 }
-UFO.prototype.setPower = function(onOff, callback) {
-  onOff ? this.turnOn(callback) : this.turnOff(callback);
+UFO.prototype.getVersion = function(callback) {
+  this._udpClient.version(callback);
 }
+UFO.prototype.getNtpServer = function(callback) {
+  this._udpClient.getNtpServer(callback);
+}
+UFO.prototype.getUdpPassword = function(callback) {
+  this._udpClient.getUdpPassword(callback);
+}
+UFO.prototype.getTcpPort = function(callback) {
+  this._udpClient.getTcpPort(callback);
+}
+UFO.prototype.getWifiAutoSwitch = function(callback) {
+  this._udpClient.getWifiAutoSwitch(callback);
+}
+UFO.prototype.getWifiMode = function(callback) {
+  this._udpClient.getWifiMode(callback);
+}
+UFO.prototype.getWifiApIp = function(callback) {
+  this._udpClient.getWifiApIp(callback);
+}
+UFO.prototype.getWifiApBroadcast = function(callback) {
+  this._udpClient.getWifiApBroadcast(callback);
+}
+UFO.prototype.getWifiApPassphrase = function(callback) {
+  this._udpClient.getWifiApPassphrase(callback);
+}
+UFO.prototype.getWifiApLed = function(callback) {
+  this._udpClient.getWifiApLed(callback);
+}
+UFO.prototype.getWifiApDhcp = function(callback) {
+  this._udpClient.getWifiApDhcp(callback);
+}
+UFO.prototype.getWifiClientApInfo = function(callback) {
+  this._udpClient.getWifiClientApInfo(callback);
+}
+UFO.prototype.getWifiClientApSignal = function(callback) {
+  this._udpClient.getWifiClientApSignal(callback);
+}
+UFO.prototype.getWifiClientIp = function(callback) {
+  this._udpClient.getWifiClientIp(callback);
+}
+UFO.prototype.getWifiClientSsid = function(callback) {
+  this._udpClient.getWifiClientSsid(callback);
+}
+UFO.prototype.getWifiClientAuth = function(callback) {
+  this._udpClient.getWifiClientAuth(callback);
+}
+
 /*
  * RGBW control methods
  */
+UFO.prototype.setPower = function(onOff, callback) {
+  onOff ? this.turnOn(callback) : this.turnOff(callback);
+}
 UFO.prototype.turnOn = function(callback) {
   this._tcpClient.on(callback);
 }
@@ -170,7 +183,7 @@ UFO.prototype.reboot = function(callback) {
 }
 
 /*
- * Reconfiguration methods
+ * Core reconfiguration methods
  */
 // Resets the UFO to factory defaults. This object can no longer be used after this method is called.
 //
@@ -180,11 +193,56 @@ UFO.prototype.factoryReset = function(callback) {
     this._udpClient.factoryReset(callback);
   }.bind(this));
 }
-// Set the UFO in WiFi client mode and configures connection parameters.
-//
-// Callback is optional and has no arguments.
-UFO.prototype.asWifiClient = function(options, callback) {
-  this._tcpClient._time(function() {
-    this._udpClient.asWifiClient(options, callback);
-  }.bind(this));
+UFO.prototype.setNtpServer = function(ipAddress, callback) {
+  this._udpClient.setNtpServer(ipAddress, callback);
+}
+UFO.prototype.setUdpPassword = function(password, callback) {
+  this._udpClient.setUdpPassword(password, callback);
+}
+UFO.prototype.setTcpPort = function(port, callback) {
+  this._udpClient.setTcpPort(port, callback);
+}
+UFO.prototype.setWifiAutoSwitch = function(value, callback) {
+  this._udpClient.setWifiAutoSwitch(value, callback);
+}
+UFO.prototype.setWifiMode = function(mode, callback) {
+  this._udpClient.setWifiMode(mode, callback);
+}
+
+/*
+ * WiFi AP reconfiguration methods
+ */
+UFO.prototype.setWifiApIp = function(ip, mask, callback) {
+  this._udpClient.setWifiApIp(ip, mask, callback);
+}
+UFO.prototype.setWifiApBroadcast = function(ip, mask, callback) {
+  this._udpClient.setWifiApBroadcast(ip, mask, callback);
+}
+UFO.prototype.setWifiApPassphrase = function(passphrase, callback) {
+  this._udpClient.setWifiApPassphrase(passphrase, callback);
+}
+UFO.prototype.setWifiApLed = function(onOff, callback) {
+  this._udpClient.setWifiApLed(onOff, callback);
+}
+UFO.prototype.setWifiApDhcp = function(start, end, callback) {
+  this._udpClient.setWifiApDhcp(start, end, callback);
+}
+UFO.prototype.disableWifiApDhcp = function(callback) {
+  this._udpClient.disableWifiApDhcp(callback);
+}
+
+/*
+ * WiFi client reconfiguration methods
+ */
+UFO.prototype.setWifiClientIpDhcp = function(callback) {
+  this._udpClient.setWifiClientIpDhcp(callback);
+}
+UFO.prototype.setWifiClientIpStatic = function(ip, mask, gateway, callback) {
+  this._udpClient.setWifiClientIpStatic(ip, mask, gateway, callback);
+}
+UFO.prototype.setWifiClientSsid = function(ssid, callback) {
+  this._udpClient.setWifiClientSsid(ssid, callback);
+}
+UFO.prototype.setWifiClientAuth = function(auth, encryption, passphrase, callback) {
+  this._udpClient.setWifiClientAuth(auth, encryption, passphrase, callback);
 }

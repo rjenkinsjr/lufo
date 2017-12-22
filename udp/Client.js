@@ -260,7 +260,7 @@ Client.prototype.factoryReset = function(callback) {
 //
 // Callback is required and accepts error and IP address arguments.
 // Either one or the other argument is null, but never both.
-Client.prototype.getNtp = function(callback) {
+Client.prototype.getNtpServer = function(callback) {
   this._commandMode(function() {
     this._sendAndWait(Constants.command('ntp'), function(err, ipAddress) {
       this._endCommand(function(err, ipAddress) {
@@ -272,7 +272,8 @@ Client.prototype.getNtp = function(callback) {
 // Sets the NTP server used to obtain the current time.
 //
 // Callback is optional and accepts an error argument.
-Client.prototype.setNtp = function(ipAddress, callback) {
+Client.prototype.setNtpServer = function(ipAddress, callback) {
+  // TODO validate input
   this._commandMode(function() {
     this._sendAndWait(Constants.command('ntp', ipAddress), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
@@ -324,6 +325,7 @@ Client.prototype.getTcpPort = function(callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setTcpPort = function(port, callback) {
+  // TODO validate port
   this._commandMode(function() {
     this._sendAndWait(Constants.command('tcpServer'), function(err, tcpServer) {
       if (err) callback(err);
@@ -409,48 +411,406 @@ Client.prototype.setWifiMode = function(mode, callback) {
 }
 
 /*
+ * AP WiFi methods
+ */
+// Returns the IP address and netmask of the AP.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiApIp = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApIp'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, {
+          ip: result[0],
+          mask: result[1]
+        });
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the IP address and netmask of the AP.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiApIp = function(ip, mask, callback) {
+  // TODO validate syntax
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApIp', ip, mask), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the AP broadcast information.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiApBroadcast = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApBroadcast'), function(err, result) {
+      this._endCommand(function(err, result) {
+        var mode;
+        switch (result[0]) {
+          case '11b':
+            mode = 'b';
+            break;
+          case '11bg':
+            mode = 'bg';
+            break;
+          case '11bgn':
+            mode = 'bgn';
+            break;
+          default:
+            mode = 'unknown'
+            break;
+        }
+        var ssid = result[1];
+        var channel = parseInt(result[2].substring(2));
+        this(err, {
+          mode: mode,
+          ssid: ssid,
+          channel: channel
+        });
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the AP broadcast information.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiApBroadcast = function(mode, ssid, channel, callback) {
+  switch (mode) {
+    case 'b':
+    case 'bg':
+    case 'bgn':
+      break;
+    default:
+      callback(new Error(`Invalid mode ${mode}, must be "b", "bg" or "bgn".`));
+      return;
+  }
+  if (ssid.length > 32) {
+    callback(new Error(`SSID is ${ssid.length} characters long, exceeding limit of 32.`));
+    return;
+  }
+  var intChannel = parseInt(channel);
+  var channelError = isNaN(intChannel);
+  channelError = !channelError && (intChannel < 1 || intChannel > 11);
+  if (channelError) {
+    callback(new Error(`Invalid channel ${channel}, must be 1-11 inclusive.`));
+    return;
+  }
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApBroadcast', `11${mode}`, ssid, `CH${channel}`), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the passphrase of the AP.
+//
+// Callback is required and accepts error and passphrase arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiApPassphrase = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApAuth'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, result[0] === "OPEN" ? false : result[2]);
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the passphrase of the AP.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiApPassphrase = function(passphrase, callback) {
+  var cmd;
+  if (passphrase === false) {
+    cmd = Constants.command('wifiApAuth', 'OPEN', 'NONE');
+  } else if (passphrase.length < 8 || passphrase.length > 63) {
+    callback(new Error(`Passphrase is ${passphrase.length} characters long, must be 8-63 characters inclusive.`));
+    return;
+  } else {
+    cmd = Constants.command('wifiApAuth', 'WPA2PSK', 'AES', passphrase);
+  }
+  this._commandMode(function() {
+    this._sendAndWait(cmd, function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the LED enable/disable flag of the AP.
+//
+// Callback is required and accepts error and onOff arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiApLed = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApLed'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, result === 'on');
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the LED enable/disable flag of the AP.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiApLed = function(onOff, callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApLed', onOff ? 'on' : 'off'), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the DHCP server settings of the AP.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiApDhcp = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApDhcp'), function(err, result) {
+      this._endCommand(function(err, result) {
+        var dhcp = { on: result[0] === 'on' }
+        if (dhcp.on) {
+          dhcp.start = parseInt(result[1]);
+          dhcp.end = parseInt(result[2]);
+        }
+        this(err, dhcp);
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the DHCP server settings of the AP.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiApDhcp = function(start, end, callback) {
+  var intStart = parseInt(start);
+  var startError = isNaN(intStart);
+  startError = !startError && (intStart < 0 || intStart > 254);
+  if (startError) {
+    callback(new Error(`Invalid start octet ${start}, must be 0-254 inclusive.`));
+    return;
+  }
+  var intEnd = parseInt(end);
+  var endError = isNaN(intEnd);
+  endError = !endError && (intEnd < 0 || intEnd > 254);
+  if (endError) {
+    callback(new Error(`Invalid end octet ${end}, must be 0-254 inclusive.`));
+    return;
+  }
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApDhcp', 'on', start, end), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Disables the DHCP server of the AP.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.disableWifiApDhcp = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiApDhcp', 'off'), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+
+/*
  * Client WiFi methods
  */
-// Set the UFO in WiFi client mode and configures connection parameters.
+// Returns the client's AP info.
 //
-// Callback is optional and has no arguments.
-Client.prototype.asWifiClient = function(options, callback) {
-  // Switch to command mode.
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiClientApInfo = function(callback) {
   this._commandMode(function() {
-    // Parse options.
-    const auth = MiscUtils.checkWithDefault(options.auth, ['OPEN', 'SHARED', 'WPAPSK', 'WPA2PSK'], 'OPEN');
-    switch (auth) {
-      case 'WPAPSK':
-      case 'WPA2PSK':
-        var encryption = MiscUtils.checkWithDefault(options.encryption, ['TKIP', 'AES'], 'AES');
+    this._sendAndWait(Constants.command('wifiClientApInfo'), function(err, result) {
+      this._endCommand(function(err, result) {
+        var info = {
+          ssid: null,
+          mac: null
+        };
+        if (result !== "Disconnected") {
+          var match = result.match(/(.{1,32})\(([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})\)/i);
+          info.ssid = match[1];
+          info.mac = UDPUtils.macAddress(match[2]);
+        }
+        this(err, info);
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the client's AP signal strength.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiClientApSignal = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientApSignal'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, result === "Disconnected" ? false : result.join(','));
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the client's IP settings.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiClientIp = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientIp'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, {
+          dhcp: result[0] === "DHCP",
+          ip: result[1],
+          mask: result[2],
+          gateway: result[3]
+        });
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the client's IP settings to use DHCP.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiClientIpDhcp = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientIp', 'DHCP'), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the client's IP settings to use static assignment.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiClientIpStatic = function(ip, mask, gateway, callback) {
+  // TODO validate input
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientIp', 'static', ip, mask, gateway), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the client's AP SSID.
+//
+// Callback is required and accepts error and SSID arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiClientSsid = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientSsid'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, result);
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the client's AP SSID.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiClientSsid = function(ssid, callback) {
+  if (ssid.length > 32) {
+    callback(new Error(`SSID is ${ssid.length} characters long, exceeding limit of 32.`));
+    return;
+  }
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientSsid', ssid), function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
+  }.bind(this));
+}
+// Returns the client's AP auth parameters.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.getWifiClientAuth = function(callback) {
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiClientAuth'), function(err, result) {
+      this._endCommand(function(err, result) {
+        this(err, {
+          auth: result[0],
+          encryption: result[1],
+          passphrase: result[2] || null
+        });
+      }.bind(callback, err, result));
+    }.bind(this));
+  }.bind(this));
+}
+// Sets the client's AP auth parameters.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.setWifiClientAuth = function(auth, encryption, passphrase, callback) {
+  var cmd;
+  if (auth === "OPEN") {
+    switch (encryption) {
+      case "NONE":
+      case "WEP-H":
+      case "WEP-A":
         break;
-      case 'SHARED':
-        var encryption = MiscUtils.checkWithDefault(options.encryption, ['WEP-H', 'WEP-A'], 'WEP-A');
-        break;
-      default: // OPEN
-        var encryption = MiscUtils.checkWithDefault(options.encryption, ['NONE', 'WEP-H', 'WEP-A'], 'NONE');
-        break;
+      case "TKIP":
+      case "AES":
+        callback(new Error(`Invocation error: auth is OPEN but unsupported encryption ${encryption} provided.`));
+        return;
+      default:
+        callback(new Error(`Invocation error: no such encryption ${encryption}.`));
+        return;
     }
-    // Assemble the final options object.
-    const finalOptions = {
-      ssid: options.ssid,
-      auth: auth,
-      encryption: encryption,
-      passphrase: options.passphrase
+  } else if (auth === "SHARED") {
+    switch (encryption) {
+      case "WEP-H":
+      case "WEP-A":
+        break;
+      case "NONE":
+      case "TKIP":
+      case "AES":
+        callback(new Error(`Invocation error: auth is SHARED but unsupported encryption ${encryption} provided.`));
+        return;
+      default:
+        callback(new Error(`Invocation error: no such encryption ${encryption}.`));
+        return;
     }
-    // Set the SSID.
-    const ssidCmd = Constants.command('wifiClientSsid', finalOptions.ssid);
-    this._sendAndRequire(ssidCmd, '', function(finalOptions, msg) {
-      // Set the passphrase/auth configuration.
-      const authCmd = Constants.command('wifiClientAuth', finalOptions.auth, finalOptions.encryption, finalOptions.passphrase);
-      this._sendAndRequire(authCmd, '', function(msg) {
-        // Set the UFO to client (STA) mode.
-        const modeCmd = Constants.command('wifiMode', 'STA');
-        this._sendAndRequire(modeCmd, '', function(msg) {
-          // End the command and fire the callback.
-          this._endCommand(callback);
-        }.bind(this));
-      }.bind(this));
-    }.bind(this, finalOptions));
+  } else if (auth === "WPAPSK" || auth === "WPA2PSK") {
+    switch (encryption) {
+      case "TKIP":
+      case "AES":
+        break;
+      case "NONE":
+      case "WEP-H":
+      case "WEP-A":
+        callback(new Error(`Invocation error: auth is SHARED but unsupported encryption ${encryption} provided.`));
+        return;
+      default:
+        callback(new Error(`Invocation error: no such encryption ${encryption}.`));
+        return;
+    }
+  } else {
+    callback(new Error(`Invocation error: no such auth ${auth}.`));
+    return;
+  }
+  if (encryption === "NONE" && passphrase !== null) {
+    callback(new Error(`Invocation error: encryption is NONE but passphrase is not null.`));
+    return;
+  } else if (encryption === "WEP-H") {
+    // TODO support WEP-H by validating/constructing passphrase correctly
+    callback(new Error('Invocation error: WEP-H is not yet supported by this library.'));
+    return;
+  } else if (encryption === "WEP-A") {
+    if (passphrase.length !== 5 && passphrase.length !== 13) {
+      callback(new Error(`Invocation error: encryption is WEP-A but passphrase length is ${passphrase.length} characters and must be either 5 or 13 characters.`));
+      return;
+    }
+  } else if (encryption === "TKIP" || encryption === "AES") {
+    if (passphrase.length < 8 || passphrase.length > 63) {
+      callback(new Error(`Invocation error: encryption is ${encryption} but passphrase length is ${passphrase.length} characters and must be 8-63 inclusive.`));
+      return;
+    }
+  }
+  var cmd;
+  if (encryption === "NONE") {
+    cmd = Constants.command('wifiClientAuth', 'OPEN', 'NONE');
+  } else {
+    cmd = Constants.command('wifiClientAuth', auth, encryption, passphrase);
+  }
+  this._commandMode(function() {
+    this._sendAndWait(cmd, function(err) {
+      this._endCommand(function(err) { this(err); }.bind(callback, err));
+    }.bind(this));
   }.bind(this));
 }

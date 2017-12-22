@@ -5,7 +5,7 @@ module.exports = Object.freeze({
     cmd: 'LANN',
     get: []
   },
-  wifiApParams: {
+  wifiApBroadcast: {
     // arg 1 is "11B", "11BG" or "11BGN"
     // arg 2 is SSID, 32 characters or less
     // arg 3 is "CH1" thru "CH11"
