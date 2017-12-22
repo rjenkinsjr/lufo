@@ -103,7 +103,6 @@ Client.prototype._commandMode = function(callback) {
     } else {
       // Give up if the response did not come from the expected IP.
       var ufo = UDPUtils.parseHelloResponse(msg);
-      // TODO 0.0.0.0 seems to be valid only when it's in AP mode, we should check for that
       if (ufo.ip === this._options.host || ufo.ip === '0.0.0.0') {
         // Switch to command mode.
         this._send(Constants.command('helloAck'), function(err) {
