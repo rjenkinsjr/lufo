@@ -1,0 +1,24 @@
+{
+  "name": "ledenet-ufo",
+  "version": "0.1.0",
+  "description": "API/CLI for LEDENET UFO WiFi RGBW controllers.",
+  "main": "UFO.js",
+  "dependencies": {
+    "ip-address": "^5.8.9",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjenkinsjr/ledenet-ufo.git"
+  },
+  "author": "Ronald J. Jenkins Jr.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rjenkinsjr/ledenet-ufo/issues"
+  },
+  "homepage": "https://github.com/rjenkinsjr/ledenet-ufo#readme"
+}

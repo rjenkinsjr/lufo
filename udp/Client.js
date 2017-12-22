@@ -3,6 +3,7 @@ const dgram = require('dgram');
 const Constants = lufo.require('udp/Constants');
 const UDPUtils = lufo.require('udp/Utils');
 const MiscUtils = lufo.require('misc/Utils');
+const IPv4 = require('ip-address').Address4;
 
 /*
  * Exports
@@ -271,7 +272,9 @@ Client.prototype.getNtpServer = function(callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setNtpServer = function(ipAddress, callback) {
-  // TODO validate input
+  if (!new IPv4(ipAddress).isValid()) {
+    callback(new Error(`Invalid IP address provided: ${ipAddress}.`));
+  }
   this._commandMode(function() {
     this._sendAndWait(Constants.command('ntp', ipAddress), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
@@ -293,16 +296,18 @@ Client.prototype.getUdpPassword = function(callback) {
 }
 // Sets the UDP password.
 //
-// Callback is optional and accepts an error argument.
+// Callback is optional and overrides any already-defined disconnect callback.
 Client.prototype.setUdpPassword = function(password, callback) {
   if (password.length > 20) {
     callback(new Error(`Password is ${password.length} characters long, exceeding limit of 20.`));
     return;
   }
+  // Override the callback if requested.
+  if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
   this._commandMode(function() {
     this._sendAndWait(Constants.command('udpPassword', password), function(err) {
-      // TODO update UFO object
-      this._endCommand(function(err) { this(err); }.bind(callback, err));
+      if (err) this._socket.emit('error', err);
+      else this._ufo.disconnect();
     }.bind(this));
   }.bind(this));
 }
@@ -321,14 +326,22 @@ Client.prototype.getTcpPort = function(callback) {
 }
 // Sets the TCP port where RGBW commands are sent.
 //
-// Callback is optional and accepts an error argument.
+// Callback is optional and overrides any already-defined disconnect callback.
 Client.prototype.setTcpPort = function(port, callback) {
-  // TODO validate port
+  var intPort = parseInt(port);
+  var portError = isNaN(intPort);
+  portError = portError || (intPort < 0 || intPort > 65535);
+  if (portError) {
+    callback(new Error(`Invalid port ${port}, must 0-65535 inclusive.`));
+  }
+  // Override the callback if requested.
+  if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
   this._commandMode(function() {
     this._sendAndWait(Constants.command('tcpServer'), function(err, tcpServer) {
       if (err) callback(err);
       else this._sendAndWait(Constants.command('tcpServer', tcpServer[0], tcpServer[1], port, tcpServer[3]), function(err) {
-        this._endCommand(function(err) { this(err); }.bind(callback, err));
+        if (err) this._socket.emit('error', err);
+        else this._ufo.disconnect();
       }.bind(this));
     }.bind(this));
   }.bind(this));
@@ -468,7 +481,12 @@ Client.prototype.getWifiApIp = function(callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiApIp = function(ip, mask, callback) {
-  // TODO validate syntax
+  if (!new IPv4(ip).isValid()) {
+    callback(new Error(`Invalid IP address provided: ${ip}.`));
+  }
+  if (!new IPv4(mask).isValid()) {
+    callback(new Error(`Invalid subnet mask provided: ${mask}.`));
+  }
   this._commandMode(function() {
     this._sendAndWait(Constants.command('wifiApIp', ip, mask), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
@@ -528,7 +546,7 @@ Client.prototype.setWifiApBroadcast = function(mode, ssid, channel, callback) {
   }
   var intChannel = parseInt(channel);
   var channelError = isNaN(intChannel);
-  channelError = !channelError && (intChannel < 1 || intChannel > 11);
+  channelError = channelError || (intChannel < 1 || intChannel > 11);
   if (channelError) {
     callback(new Error(`Invalid channel ${channel}, must be 1-11 inclusive.`));
     return;
@@ -618,14 +636,14 @@ Client.prototype.getWifiApDhcp = function(callback) {
 Client.prototype.setWifiApDhcp = function(start, end, callback) {
   var intStart = parseInt(start);
   var startError = isNaN(intStart);
-  startError = !startError && (intStart < 0 || intStart > 254);
+  startError = startError || (intStart < 0 || intStart > 254);
   if (startError) {
     callback(new Error(`Invalid start octet ${start}, must be 0-254 inclusive.`));
     return;
   }
   var intEnd = parseInt(end);
   var endError = isNaN(intEnd);
-  endError = !endError && (intEnd < 0 || intEnd > 254);
+  endError = endError || (intEnd < 0 || intEnd > 254);
   if (endError) {
     callback(new Error(`Invalid end octet ${end}, must be 0-254 inclusive.`));
     return;
@@ -717,7 +735,15 @@ Client.prototype.setWifiClientIpDhcp = function(callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiClientIpStatic = function(ip, mask, gateway, callback) {
-  // TODO validate input
+  if (!new IPv4(ip).isValid()) {
+    callback(new Error(`Invalid IP address provided: ${ip}.`));
+  }
+  if (!new IPv4(mask).isValid()) {
+    callback(new Error(`Invalid subnet mask provided: ${mask}.`));
+  }
+  if (!new IPv4(gateway).isValid()) {
+    callback(new Error(`Invalid gateway provided: ${gateway}.`));
+  }
   this._commandMode(function() {
     this._sendAndWait(Constants.command('wifiClientIp', 'static', ip, mask, gateway), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
