@@ -1,4 +1,3 @@
-// TODO allow for custom hello password
 const dgram = require('dgram');
 const Constants = lufoRequire('udp/Constants');
 const UDPUtils = lufoRequire('udp/Utils');
@@ -16,10 +15,12 @@ const UDPUtils = lufoRequire('udp/Utils');
 //
 // The port argument specifies which port is used on this machine to send the
 // UDP broadcast. If unspecified or non-positive, a random port is used.
-module.exports = function(callback, timeout, port) {
+module.exports = function(callback, timeout, password, port) {
   // Return variables.
   var error = null;
   var data = [];
+  // Set the default password if none was given.
+  var hello = password ? password : Constants.defaultHello;
   // Set the default timeout if none was given.
   const discoverTimeout = 3000; // milliseconds
   if (!timeout || timeout < 0) timeout = discoverTimeout;
@@ -40,7 +41,7 @@ module.exports = function(callback, timeout, port) {
     if (!error) {
       var message = msg.toString('utf8');
       // The socket sends itself the request message. Ignore this.
-      if (message !== Constants.defaultHello) {
+      if (message !== hello) {
         // Add the result to our array.
         data.push(UDPUtils.parseHelloResponse(message));
       }
@@ -50,7 +51,7 @@ module.exports = function(callback, timeout, port) {
   const closeSocket = function() { socket.close(); };
   socket.on('listening', function() {
     socket.setBroadcast(true);
-    socket.send(Constants.defaultHello, Constants.port, '255.255.255.255', function(err) {
+    socket.send(hello, Constants.port, '255.255.255.255', function(err) {
       if (err) socket.emit('error', err);
       else stopDiscover = setTimeout(closeSocket, timeout);
     });

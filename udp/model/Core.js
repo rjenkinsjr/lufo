@@ -44,7 +44,6 @@ module.exports = Object.freeze({
     // arg 2 is "Client" or "Server"
     // arg 3 is port number
     // arg 4 is IP address
-    // TODO IP address probably should not change
     cmd: 'NETP',
     get: []
   },
