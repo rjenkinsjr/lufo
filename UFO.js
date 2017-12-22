@@ -110,6 +110,9 @@ UFO.prototype.getWifiAutoSwitch = function(callback) {
 UFO.prototype.getWifiMode = function(callback) {
   this._udpClient.getWifiMode(callback);
 }
+UFO.prototype.doWifiScan = function(callback) {
+  this._udpClient.doWifiScan(callback);
+}
 UFO.prototype.getWifiApIp = function(callback) {
   this._udpClient.getWifiApIp(callback);
 }

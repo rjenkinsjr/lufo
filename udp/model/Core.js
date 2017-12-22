@@ -63,6 +63,12 @@ module.exports = Object.freeze({
     cmd: 'WMODE',
     get: []
   },
+  wifiScan: {
+    // getter-only
+    // This command actually returns multiple lines, but no special handling is required for that.
+    cmd: 'WSCAN',
+    get: []
+  },
   // Not documented, nor does it show up in AT+H output, but it seems to
   // ease sending multiple commands in sequence. It appears to be some sort
   // of command terminator.

@@ -408,6 +408,43 @@ Client.prototype.setWifiMode = function(mode, callback) {
     }.bind(this));
   }.bind(this));
 }
+// Performs a WiFi network scan and returns the results.
+//
+// Callback is required and accepts error and result arguments.
+// Either one or the other argument is null, but never both.
+Client.prototype.doWifiScan = function(callback) {
+  var resultArray = [];
+  var headerReceived = false;
+  var errorReceived = false;
+  this._commandMode(function() {
+    this._sendAndWait(Constants.command('wifiScan'), function(err, result) {
+      if (!errorReceived) {
+        if (err) {
+          errorReceived = true;
+          this._endCommand(function(err) {
+            this(err, null);
+          }.bind(callback, err));
+        } else if (!headerReceived) {
+          headerReceived = true;
+        } else if (Array.isArray(result)) {
+          // Each line in the output has a \n. It appears to be silently swallowed
+          // by the receiver function, which is fine because we don't want it anyway.
+          resultArray.push({
+            channel: parseInt(result[0]),
+            ssid: result[1] || null,
+            mac: UDPUtils.macAddress(result[2]),
+            security: result[3],
+            strength: parseInt(result[4])
+          })
+        } else {
+          this._endCommand(function(result) {
+            this(null, result);
+          }.bind(callback, resultArray));
+        }
+      }
+    }.bind(this));
+  }.bind(this));
+}
 
 /*
  * AP WiFi methods
