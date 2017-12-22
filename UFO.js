@@ -1,4 +1,4 @@
-require('./LufoGlobal');
+require('./misc/LufoGlobal');
 const events = require('events');
 const TcpClient = lufo.require('tcp/Client');
 const UdpClient = lufo.require('udp/Client');
