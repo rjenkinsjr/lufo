@@ -96,8 +96,7 @@ Client.discover = require('./Discovery.js');
 Client.prototype._commandMode = function(callback) {
   if (this._dead) return;
   // Say hello.
-  // TODO allow different password
-  this._sendAndWait(Constants.command('hello'), function(err, msg) {
+  this._sendAndWait(this._options.password || Constants.command('hello'), function(err, msg) {
     if (err) {
       // Give up if we couldn't say hello.
       if (err) this._socket.emit('error', err);

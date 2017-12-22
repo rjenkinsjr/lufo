@@ -16,6 +16,8 @@ const UFOError = lufoRequire('misc/UFOError');
 {
   // required IP address of the UFO
   host: '192.168.1.10',
+  // optional UDP password; if not specified, the default is used
+  password: 'blah'
   // optional local UDP port number; if not specified or non-positive, a random port is used
   udpPort: 0,
   // optional local TCP port number; if not specified or non-positive, a random port is used
