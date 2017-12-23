@@ -16,8 +16,8 @@ const quitError = function(obj) {
 
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
-const ufo = function(action) {
-  var ufo;
+var theUfo = null;
+const go = function(action) {
   if (cli.ufo) {
     if (new IPv4(cli.ufo).isValid()) {
       var ufoOptions = {
@@ -26,20 +26,18 @@ const ufo = function(action) {
           if (err) quitError(error);
         }
       }
-      ufo = new UFO(ufoOptions);
-      ufo.connect(action.bind(ufo));
+      theUfo = new UFO(ufoOptions);
+      theUfo.connect(action.bind(theUfo));
     } else {
       quitError(`Invalid UFO IP address provided: ${cli.ufo}.`);
     }
   } else {
     quitError('No UFO IP address provided.');
   }
-  return ufo;
 }
-
-// Helper function to reduce disconnect boilerplate code.
-const ufoQuit = function(ufo) {
-  return function() { this.disconnect(); }.bind(ufo);
+// Helper function to reduce boilerplate when disconnecting the UFO.
+const stop = function() {
+  return function() { this.disconnect(); }.bind(theUfo);
 }
 
 // Define core CLI options.
@@ -54,12 +52,76 @@ cli.version(require('^package.json').version)
 cli.command('rgbw <values...>')
   .alias('set')
   .description('Sets the UFO\'s output. Input values are R, G, B and W respectively, range 0-255.')
-  .action(function(values){
+  .action(function(values) {
     if (values.length !== 4) {
       quitError('RGBW takes exactly 4 arguments.');
     } else {
-      ufo(function() {
-        this.setColor(...values, ufoQuit(this));
+      go(function() {
+        this.setColor(...values, stop());
+      });
+    }
+  });
+cli.command('red <value>')
+  .alias('r')
+  .description('Sets the UFO\'s red output. Input range 0-255.')
+  .option('-s, --solo', 'Turn off all other outputs')
+  .action(function(value, options) {
+    if (!value) {
+      quitError('No value provided.');
+    } else {
+      go(function() {
+        this.setRed(value, options.solo, function(err, data) {
+          if (err) quitError(error);
+          else this.disconnect();
+        }.bind(this));
+      });
+    }
+  });
+cli.command('green <value>')
+  .alias('g')
+  .description('Sets the UFO\'s green output. Input range 0-255.')
+  .option('-s, --solo', 'Turn off all other outputs')
+  .action(function(value, options) {
+    if (!value) {
+      quitError('No value provided.');
+    } else {
+      go(function() {
+        this.setGreen(value, options.solo, function(err, data) {
+          if (err) quitError(error);
+          else this.disconnect();
+        }.bind(this));
+      });
+    }
+  });
+cli.command('blue <value>')
+  .alias('b')
+  .description('Sets the UFO\'s blue output. Input range 0-255.')
+  .option('-s, --solo', 'Turn off all other outputs')
+  .action(function(value, options) {
+    if (!value) {
+      quitError('No value provided.');
+    } else {
+      go(function() {
+        this.setBlue(value, options.solo, function(err, data) {
+          if (err) quitError(error);
+          else this.disconnect();
+        }.bind(this));
+      });
+    }
+  });
+cli.command('white <value>')
+  .alias('w')
+  .description('Sets the UFO\'s white output. Input range 0-255.')
+  .option('-s, --solo', 'Turn off all other outputs')
+  .action(function(value, options) {
+    if (!value) {
+      quitError('No value provided.');
+    } else {
+      go(function() {
+        this.setWhite(value, options.solo, function(err, data) {
+          if (err) quitError(error);
+          else this.disconnect();
+        }.bind(this));
       });
     }
   });

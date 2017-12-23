@@ -37,6 +37,7 @@ var UFO = module.exports = function(options, callback) {
   // Define the "client is dead" event handlers.
   this._tcpError = null;
   this.on('tcpDead', function(err) {
+    this._dead = true;
     this._tcpError = err;
     if (this._udpClient._dead) {
       this.emit('dead');
@@ -46,6 +47,7 @@ var UFO = module.exports = function(options, callback) {
   }.bind(this));
   this._udpError = null;
   this.on('udpDead', function(err) {
+    this._dead = true;
     this._udpError = err;
     if (this._tcpClient._dead) {
       this.emit('dead');
@@ -63,6 +65,8 @@ var UFO = module.exports = function(options, callback) {
     var callback = this._disconnectCallback;
     typeof callback === 'function' && callback(error);
   }.bind(this));
+  // Make sure this UFO disconnects before NodeJS exits.
+  process.on('exit', function(code) { this.disconnect(); }.bind(this));
   // Connect now, if a callback was requested.
   typeof callback === 'function' && this.connect(callback);
 };
@@ -77,6 +81,7 @@ UFO.prototype.connect = function(callback) {
   }.bind(this));
 }
 UFO.prototype.disconnect = function() {
+  if (this._dead) return;
   this._dead = true;
   this._tcpClient.disconnect();
   this._udpClient.disconnect();
@@ -158,6 +163,35 @@ UFO.prototype.turnOff = function(callback) {
 }
 UFO.prototype.setColor = function(red, green, blue, white, callback) {
   this._tcpClient.rgbw(red, green, blue, white, callback);
+}
+UFO.prototype.setRed = function(value, solo, callback) {
+  this._setSingle(0, value, solo, callback);
+}
+UFO.prototype.setGreen = function(value, solo, callback) {
+  this._setSingle(1, value, solo, callback);
+}
+UFO.prototype.setBlue = function(value, solo, callback) {
+  this._setSingle(2, value, solo, callback);
+}
+UFO.prototype.setWhite = function(value, solo, callback) {
+  this._setSingle(3, value, solo, callback);
+}
+UFO.prototype._setSingle = function(position, value, solo, callback) {
+  if (solo) {
+    var values = [0, 0, 0, 0];
+    values[position] = value;
+    this.setColor(...values, callback);
+  } else {
+    this.getStatus(function(err, data) {
+      if (err) {
+        callback(error);
+      } else {
+        var values = [data.red, data.green, data.blue, data.white];
+        values[position] = value;
+        this.setColor(...values, callback);
+      }
+    }.bind(this));
+  }
 }
 UFO.prototype.setBuiltin = function(name, speed, callback) {
   this._tcpClient.builtin(name, speed, callback);
