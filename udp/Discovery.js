@@ -1,6 +1,6 @@
 const dgram = require('dgram');
-const Constants = lufo.require('udp/Constants');
-const UDPUtils = lufo.require('udp/Utils');
+const Constants = require('^udp/Constants');
+const UDPUtils = require('^udp/Utils');
 
 // UFO discovery method.
 //

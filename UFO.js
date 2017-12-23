@@ -1,8 +1,8 @@
-require('./misc/LufoGlobal');
+const rooty = require('rooty'); rooty();
 const events = require('events');
-const TcpClient = lufo.require('tcp/Client');
-const UdpClient = lufo.require('udp/Client');
-const UFOError = lufo.require('misc/UFOError');
+const TcpClient = require('^tcp/Client');
+const UdpClient = require('^udp/Client');
+const UFOError = require('^misc/UFOError');
 
 /*
  * Constructor
