@@ -1,9 +1,9 @@
-const MiscUtils = lufo.require('misc/Utils');
+const _ = require('lodash');
 
 const Utils = function() {};
 // Clamps RGBW values within the accepted range (0 <= value <= 255).
 Utils.prototype.clampRGBW = function(num) {
-  return MiscUtils.clamp(num, 0, 255);
+  return _.clamp(num, 0, 255);
 }
 // Given a buffer of data destined for a UFO, expands the buffer by 2 and
 // inserts the last two bytes (the "local" constant 0x0f, and the checksum).

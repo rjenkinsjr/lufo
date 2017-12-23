@@ -1,6 +1,6 @@
 const util = require('util');
-const MiscUtils = lufo.require('misc/Utils');
 const Strings = lufo.require('udp/model/Strings');
+const _ = require('lodash');
 
 // Definition of all supported AT commands, including their send formats,
 // receive formats and number of receive arguments.
@@ -52,7 +52,7 @@ module.exports = Object.freeze(Object.assign({
           return [];
         } else if (Array.isArray(this)) {
           return result.split(',');
-        } else if (MiscUtils.isString(this)) {
+        } else if (_.isString(this)) {
           return [result];
         } else {
           return [];

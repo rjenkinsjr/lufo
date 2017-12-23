@@ -1,4 +1,4 @@
-const MiscUtils = lufo.require('misc/Utils');
+const _ = require('lodash');
 
 /*
  * Exports
@@ -38,7 +38,7 @@ Builtins.prototype.getFunctionId = function(name) {
 // Converts a built-in function speed value back/forth between what the
 // user inputs and what is transmitted in the byte array.
 Builtins.prototype.flipSpeed = function(speed) {
-  return Math.abs(MiscUtils.clamp(speed, 0, 100) - 100);
+  return Math.abs(_.clamp(speed, 0, 100) - 100);
 }
 
 module.exports = Object.freeze(new Builtins());

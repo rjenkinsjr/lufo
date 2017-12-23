@@ -1,4 +1,4 @@
-const MiscUtils = lufo.require('misc/Utils');
+const _ = require('lodash');
 
 /*
  * Exports
@@ -14,6 +14,6 @@ const Customs = function () {
 // Converts a custom command speed value back/forth between what the
 // user inputs and what is transmitted in the byte array.
 Customs.prototype.flipSpeed = function(speed) {
-  return Math.abs(MiscUtils.clamp(speed, 0, 30) - 30);
+  return Math.abs(_.clamp(speed, 0, 30) - 30);
 }
 module.exports = Object.freeze(new Customs());

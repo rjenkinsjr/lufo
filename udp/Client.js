@@ -2,7 +2,7 @@ const util = require('util');
 const dgram = require('dgram');
 const Constants = lufo.require('udp/Constants');
 const UDPUtils = lufo.require('udp/Utils');
-const MiscUtils = lufo.require('misc/Utils');
+const _ = require('lodash');
 const IPv4 = require('ip-address').Address4;
 
 /*
@@ -158,7 +158,7 @@ Client.prototype._sendAndVerify = function(cmd, expected, callback) {
     var matches = false;
     if (!err) {
       if (Array.isArray(expected)) {
-        matches = MiscUtils.arrayEquals(resp, expected);
+        matches = _.isEqual(resp, expected);
       } else {
         matches = resp === expected;
       }
