@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 const util = require('util');
-const UFO = require('../UFO');
+const UFO = require('./UFO');
 const _ = require('lodash');
 const IPv4 = require('ip-address').Address4;
 
@@ -44,7 +44,7 @@ const ufoQuit = function(ufo) {
 
 // Define core CLI options.
 var cli = require('commander');
-cli.version(require('../package.json').version)
+cli.version(require('^package.json').version)
   .usage('[options] <command> [command-options ...]')
   .option('-u, --ufo <ip>', 'Specify UFO IP address');
 

@@ -1,4 +1,4 @@
-module.exports = function UFOError(message, udpError, tcpError) {
+module.exports = function UfoDisconnectError(message, udpError, tcpError) {
   Error.captureStackTrace(this, this.constructor);
   this.name = this.constructor.name;
   this.message = message;

@@ -2,7 +2,7 @@ const rooty = require('rooty'); rooty();
 const events = require('events');
 const TcpClient = require('^tcp/Client');
 const UdpClient = require('^udp/Client');
-const UFOError = require('^misc/UFOError');
+const UfoDisconnectError = require('^UfoDisconnectError');
 
 /*
  * Constructor
@@ -58,7 +58,7 @@ var UFO = module.exports = function(options, callback) {
     // Invoke the disconnect callback, if one is defined.
     var error = null;
     if (this._udpError || this._tcpError) {
-      error = new UFOError("UFO disconnected due to an error.", this._udpError, this._tcpError);
+      error = new UfoDisconnectError("UFO disconnected due to an error.", this._udpError, this._tcpError);
     }
     var callback = this._disconnectCallback;
     typeof callback === 'function' && callback(error);
