@@ -15,7 +15,7 @@ const quitError = function(obj) {
 }
 
 // Helper function for assembling the UFO object based on the given args.
-// The ufo object created by this method is bound to "this" in the action function.
+// The UFO object created by this method is bound to "this" in the action callback.
 const ufo = function(action) {
   var ufo;
   if (cli.ufo) {
