@@ -4,7 +4,7 @@ const util = require('util');
 
 var cli = require('commander');
 cli.version(require('../package.json').version)
-  .option('-h, --host <host>', 'UFO host (IP address)')
+  .option('-u, --ufo <ip>', 'Specify UFO IP address')
   .parse(process.argv);
 
 if (cli.host) {
