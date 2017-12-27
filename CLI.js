@@ -249,6 +249,20 @@ cli.command('freeze')
       this.freezeOutput(stop());
     });
   });
+cli.command('wifi-scan')
+  .description('Scan for nearby WiFi networks with the UFO.')
+  .action(function() {
+    go(function() {
+      this.doWifiScan(function(err, result) {
+        if (err) {
+          quitError(err);
+        } else {
+          this.disconnect();
+          console.log(JSON.stringify(result, null, 2));
+        }
+      }.bind(this));
+    });
+  });
 
 // Do not execute subcommands as external processes; rely on defined actions.
 cli.executeSubCommand = () => false;
