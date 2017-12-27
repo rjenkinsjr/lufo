@@ -1,4 +1,8 @@
 #! /usr/bin/env node
+process.on('exit', function() {
+  // Mainly because help output needs an extra newline.
+  console.log('');
+});
 const util = require('util');
 const UFO = require('./UFO');
 const _ = require('lodash');
