@@ -154,6 +154,7 @@ Client.prototype.disconnect = function() {
   // Don't allow it to be used again.
   this._dead = true;
   this._socket.end();
+  this._socket.emit('close');
 }
 // Returns a JSON object describing the status of the UFO.
 //

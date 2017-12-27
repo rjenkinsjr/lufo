@@ -53,6 +53,12 @@ cli.version(require('^package.json').version)
 /*
  * CLI command definitions
  */
+const discover = function(args) {
+  UFO.discover(args, function(err, data) {
+    if (err) quitError(err);
+    else console.log(JSON.stringify(data, null, 2));
+  });
+}
 cli.command('discover [timeout]')
   .alias('d')
   .description('Searches for UFOs on the network. Timeout is in milliseconds.')
@@ -84,12 +90,20 @@ cli.command('discover [timeout]')
       discover(discoverArgs);
     }
   });
-const discover = function(args) {
-  UFO.discover(args, function(err, data) {
-    if (err) quitError(err);
-    else console.log(JSON.stringify(data, null, 2));
+cli.command('reboot')
+  .description('Reboots the UFO.')
+  .action(function() {
+    go(function() {
+      this.reboot();
+    });
   });
-}
+cli.command('factory-reset')
+  .description('Resets the UFO to factory settings. No confirmation prompt will occur; USE CAUTION.')
+  .action(function() {
+    go(function() {
+      this.factoryReset();
+    });
+  });
 cli.command('status')
   .alias('s')
   .description('Returns the UFO\'s current status.')
