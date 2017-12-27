@@ -33,7 +33,7 @@ var Client = module.exports = function(ufo, options) {
         // Determine if we had an error.
         var atError = null;
         if (message.startsWith(Constants.errAck)) {
-          var code = message.substring(message.indexOf('=') + 1);
+          var code = message.substring(message.indexOf('=') + 1).trim();
           var errorMsg = 'Unknown error';
           switch (code) {
             case '-1':
