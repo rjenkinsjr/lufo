@@ -291,9 +291,6 @@ cli.command('wifi-client-auth <auth> <encryption> [passphrase]')
           silent: true
         }
         promptly.prompt('Passphrase: ', promptOptions, function(err, value) {
-          console.log(auth);
-          console.log(encryption);
-          console.log(passphrase);
           this.setWifiClientAuth(auth, encryption, value, stop());
         }.bind(this));
       } else {

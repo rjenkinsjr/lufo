@@ -27,7 +27,8 @@ const Builtins = function () {
     purpleStrobeFlash: 0x36,
     whiteStrobeFlash: 0x37,
     sevenColorJumpingChange: 0x38,
-    noFunction: 0x61
+    noFunction: 0x61,
+    postReset: 0x63
   });
 };
 // Given a function name, returns its hex value.

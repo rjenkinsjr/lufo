@@ -85,7 +85,7 @@ const Status = function() {
             default:
               var found = false;
               for (const f in Builtins.functionIds) {
-                if (functionIds[f] === mode) {
+                if (Builtins.functionIds[f] === mode) {
                   data.mode = `function:${f}`;
                   found = true;
                   break;
