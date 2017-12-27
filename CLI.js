@@ -1,8 +1,4 @@
 #! /usr/bin/env node
-process.on('exit', function() {
-  // Mainly because help output needs an extra newline.
-  console.log('');
-});
 const util = require('util');
 const UFO = require('./UFO');
 const _ = require('lodash');
@@ -53,6 +49,8 @@ var cli = require('commander');
 cli.version(require('^package.json').version)
   .usage('[options] <command> [command-options ...]')
   .option('-u, --ufo <ip>', 'Specify UFO IP address');
+// Print a newline after printing help.
+cli.on('--help', function() { console.log(''); });
 
 /*
  * CLI command definitions
@@ -75,7 +73,7 @@ cli.command('discover [timeout]')
       password: options.password,
       localPort: options.localPort,
       remotePort: options.remotePort
-    }
+    };
     if (options.password === true) {
       var promptOptions = {
         validator: function (value) {
@@ -84,7 +82,7 @@ cli.command('discover [timeout]')
         },
         retry: true,
         silent: true
-      }
+      };
       promptly.prompt('Password: ', promptOptions, function(err, value) {
         discoverArgs.password = value;
         console.log('Searching...');
@@ -141,7 +139,6 @@ cli.command('off')
     });
   });
 cli.command('rgbw <values...>')
-  .alias('set')
   .alias('v')
   .description('Sets the UFO\'s output. Input values are R, G, B and W respectively, range 0-255.')
   .action(function(values) {
@@ -289,7 +286,7 @@ cli.command('wifi-client-auth <auth> <encryption> [passphrase]')
         var promptOptions = {
           retry: true,
           silent: true
-        }
+        };
         promptly.prompt('Passphrase: ', promptOptions, function(err, value) {
           this.setWifiClientAuth(auth, encryption, value, stop());
         }.bind(this));
