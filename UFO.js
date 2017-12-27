@@ -196,8 +196,8 @@ UFO.prototype._setSingle = function(position, value, solo, callback) {
 UFO.prototype.setBuiltin = function(name, speed, callback) {
   this._tcpClient.builtin(name, speed, callback);
 }
-UFO.prototype.setCustom = function(speed, mode, steps, callback) {
-  this._tcpClient.custom(speed, mode, steps, callback);
+UFO.prototype.setCustom = function(mode, speed, steps, callback) {
+  this._tcpClient.custom(mode, speed, steps, callback);
 }
 UFO.prototype.freezeOutput = function(callback) {
   this.setBuiltin('noFunction', 0, callback);

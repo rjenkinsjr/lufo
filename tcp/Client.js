@@ -226,7 +226,7 @@ Client.prototype.builtin = function(name, speed, callback) {
 // Step objects defined as { red: 1, green: 2, blue: 3 } are invalid and dropped from the input array.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype.custom = function(speed, mode, steps, callback) {
+Client.prototype.custom = function(mode, speed, steps, callback) {
   if (this._dead) return;
   // Validate the mode.
   var modeId;

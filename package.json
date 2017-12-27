@@ -10,6 +10,7 @@
     "commander": "^2.12.2",
     "ip-address": "^5.8.9",
     "lodash": "^4.17.4",
+    "promptly": "^2.2.0",
     "rooty": "^2.0.0"
   },
   "devDependencies": {},

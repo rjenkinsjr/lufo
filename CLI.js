@@ -2,21 +2,12 @@
 const util = require('util');
 const UFO = require('./UFO');
 const _ = require('lodash');
+const promptly = require('promptly');
 const IPv4 = require('ip-address').Address4;
 
-// Helper function for printing errors and setting the exit code.
-const quitError = function(obj) {
-  if (_.isError(obj)) {
-    console.error(obj);
-  } else {
-    console.error(`Error: ${obj}`);
-  }
-  process.exitCode = 1;
-}
-
+var theUfo = null;
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
-var theUfo = null;
 const go = function(action) {
   if (cli.ufo) {
     if (new IPv4(cli.ufo).isValid()) {
@@ -37,7 +28,20 @@ const go = function(action) {
 }
 // Helper function to reduce boilerplate when disconnecting the UFO.
 const stop = function() {
-  return function() { this.disconnect(); }.bind(theUfo);
+  return function(err) {
+    if (err) quitError(err);
+    else theUfo.disconnect();
+  };
+}
+// Helper function for printing errors and setting the exit code.
+const quitError = function(obj) {
+  if (_.isError(obj)) {
+    console.error(obj);
+  } else {
+    console.error(`Error: ${obj}`);
+  }
+  if (theUfo) theUfo.disconnect();
+  process.exitCode = 1;
 }
 
 // Define core CLI options.
@@ -49,8 +53,78 @@ cli.version(require('^package.json').version)
 /*
  * CLI command definitions
  */
+cli.command('discover [timeout]')
+  .alias('d')
+  .description('Searches for UFOs on the network. Timeout is in milliseconds.')
+  .option('-p, --password [password]', 'The UDP password used to search for UFOs.')
+  .option('-l, --local-port <localPort>', 'The UDP port to use on this computer to search.')
+  .option('-r, --remote-port <remotePort>', 'The UDP port to which expected UFOs are bound.')
+  .action(function(timeout, options) {
+    var discoverArgs = {
+      timeout: timeout,
+      password: options.password,
+      localPort: options.localPort,
+      remotePort: options.remotePort
+    }
+    if (options.password === true) {
+      var promptOptions = {
+        validator: function (value) {
+          if (value.length > 20) throw new Error('Length must be less than 20 characters.');
+          return value;
+        },
+        retry: true,
+        silent: true
+      }
+      promptly.prompt('Password: ', promptOptions, function(err, value) {
+        discoverArgs.password = value;
+        console.log('Searching...');
+        discover(discoverArgs);
+      });
+    } else {
+      discover(discoverArgs);
+    }
+  });
+const discover = function(args) {
+  UFO.discover(args, function(err, data) {
+    if (err) quitError(err);
+    else console.log(JSON.stringify(data, null, 2));
+  });
+}
+cli.command('status')
+  .alias('s')
+  .description('Returns the UFO\'s current status.')
+  .action(function() {
+    go(function() {
+      this.getStatus(function(err, data) {
+        if (err) {
+          quitError(err);
+        } else {
+          console.log(JSON.stringify(data, function(k, v) {
+            if (k === 'raw') return undefined;
+            else return v;
+          }, 2));
+          this.disconnect();
+        }
+      }.bind(this));
+    });
+  });
+cli.command('on')
+  .description('Turns on UFO output.')
+  .action(function() {
+    go(function() {
+      this.turnOn(stop());
+    });
+  });
+cli.command('off')
+  .description('Turns off UFO output.')
+  .action(function() {
+    go(function() {
+      this.turnOff(stop());
+    });
+  });
 cli.command('rgbw <values...>')
   .alias('set')
+  .alias('v')
   .description('Sets the UFO\'s output. Input values are R, G, B and W respectively, range 0-255.')
   .action(function(values) {
     if (values.length !== 4) {
@@ -64,71 +138,107 @@ cli.command('rgbw <values...>')
 cli.command('red <value>')
   .alias('r')
   .description('Sets the UFO\'s red output. Input range 0-255.')
-  .option('-s, --solo', 'Turn off all other outputs')
+  .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
       quitError('No value provided.');
     } else {
       go(function() {
-        this.setRed(value, options.solo, function(err, data) {
-          if (err) quitError(error);
-          else this.disconnect();
-        }.bind(this));
+        this.setRed(value, options.solo, stop());
       });
     }
   });
 cli.command('green <value>')
   .alias('g')
   .description('Sets the UFO\'s green output. Input range 0-255.')
-  .option('-s, --solo', 'Turn off all other outputs')
+  .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
       quitError('No value provided.');
     } else {
       go(function() {
-        this.setGreen(value, options.solo, function(err, data) {
-          if (err) quitError(error);
-          else this.disconnect();
-        }.bind(this));
+        this.setGreen(value, options.solo, stop());
       });
     }
   });
 cli.command('blue <value>')
   .alias('b')
   .description('Sets the UFO\'s blue output. Input range 0-255.')
-  .option('-s, --solo', 'Turn off all other outputs')
+  .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
       quitError('No value provided.');
     } else {
       go(function() {
-        this.setBlue(value, options.solo, function(err, data) {
-          if (err) quitError(error);
-          else this.disconnect();
-        }.bind(this));
+        this.setBlue(value, options.solo, stop());
       });
     }
   });
 cli.command('white <value>')
   .alias('w')
   .description('Sets the UFO\'s white output. Input range 0-255.')
-  .option('-s, --solo', 'Turn off all other outputs')
+  .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
       quitError('No value provided.');
     } else {
       go(function() {
-        this.setWhite(value, options.solo, function(err, data) {
-          if (err) quitError(error);
-          else this.disconnect();
-        }.bind(this));
+        this.setWhite(value, options.solo, stop());
       });
     }
+  });
+cli.command('function <name> <speed>')
+  .alias('x')
+  .description('Plays one of the UFO\'s built-in functions. Speed is 0-100 inclusive.')
+  .action(function(name, speed, options) {
+    go(function() {
+      this.setBuiltin(name, speed, stop());
+    });
+  });
+cli.command('custom <type> <speed> [steps...]')
+  .alias('c')
+  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 inclusive. Steps are space-separated RGB triplets; total number of values must be divisible by 3.')
+  .action(function(type, speed, values, options) {
+    var truncatedValues = values.slice(0, 48);
+    if (truncatedValues.length % 3 != 0) {
+      quitError('Number of step values provided is not divisible by 3.');
+    } else {
+      var steps = [];
+      while (truncatedValues.length) {
+        steps.push(truncatedValues.splice(0, 3));
+      }
+      steps = steps.map(function(step) {
+        return {
+          red: step[0],
+          green: step[1],
+          blue: step[2]
+        };
+      });
+      go(function() {
+        this.setCustom(type, speed, steps, stop());
+      });
+    }
+  });
+cli.command('zero')
+  .alias('z')
+  .description('Sets all UFO outputs to zero.')
+  .action(function() {
+    go(function() {
+      this.zeroOutput(stop());
+    });
+  });
+cli.command('freeze')
+  .alias('f')
+  .description('Stops whatever builtin/custom is playing.')
+  .action(function() {
+    go(function() {
+      this.freezeOutput(stop());
+    });
   });
 
 // Do not execute subcommands as external processes; rely on defined actions.
 cli.executeSubCommand = () => false;
 // Parse the CLI args and execute whatever was requested.
-cli.parse(process.argv);
+var parsedCli = cli.parse(process.argv);
 // Show help if no arguments were provided.
-if (!process.argv.slice(2).length) cli.help();
+if (!parsedCli.args.length) cli.help();
