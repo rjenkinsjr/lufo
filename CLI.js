@@ -263,6 +263,40 @@ cli.command('wifi-scan')
       }.bind(this));
     });
   });
+cli.command('wifi-mode <mode>')
+  .description('Sets the WiFi mode of the UFO.')
+  .action(function(mode) {
+    go(function() {
+      this.setWifiMode(mode, stop());
+    });
+  });
+cli.command('wifi-client-ssid <ssid>')
+  .description('Sets the SSID of the UFO when in client mode.')
+  .action(function(ssid) {
+    go(function() {
+      this.setWifiClientSsid(ssid, stop());
+    });
+  });
+cli.command('wifi-client-auth <auth> <encryption> [passphrase]')
+  .description('Sets the authentication parameters of the UFO when in client mode.')
+  .action(function(auth, encryption, passphrase) {
+    go(function() {
+      if (!passphrase) {
+        var promptOptions = {
+          retry: true,
+          silent: true
+        }
+        promptly.prompt('Passphrase: ', promptOptions, function(err, value) {
+          console.log(auth);
+          console.log(encryption);
+          console.log(passphrase);
+          this.setWifiClientAuth(auth, encryption, value, stop());
+        }.bind(this));
+      } else {
+        this.setWifiClientAuth(auth, encryption, passphrase, stop());
+      }
+    });
+  });
 
 // Do not execute subcommands as external processes; rely on defined actions.
 cli.executeSubCommand = () => false;

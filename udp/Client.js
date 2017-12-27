@@ -405,7 +405,7 @@ Client.prototype.getWifiMode = function(callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiMode = function(mode, callback) {
-  switch (value) {
+  switch (mode) {
     case "AP":
     case "STA":
     case "APSTA":
