@@ -203,7 +203,7 @@ cli.command('white <value>')
     }
   });
 cli.command('function <name> <speed>')
-  .alias('x')
+  .alias('f')
   .description('Plays one of the UFO\'s built-in functions. Speed is 0-100 inclusive.')
   .action(function(name, speed, options) {
     go(function() {
@@ -235,7 +235,7 @@ cli.command('custom <type> <speed> [steps...]')
     }
   });
 cli.command('zero')
-  .alias('z')
+  .alias('0')
   .description('Sets all UFO outputs to zero.')
   .action(function() {
     go(function() {
@@ -243,7 +243,7 @@ cli.command('zero')
     });
   });
 cli.command('freeze')
-  .alias('f')
+  .alias('z')
   .description('Stops whatever builtin/custom is playing.')
   .action(function() {
     go(function() {
