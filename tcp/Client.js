@@ -289,8 +289,8 @@ Client.prototype.custom = function(mode, speed, steps, callback) {
 }
 
 /*
-Disco and camera modes:
+Music, disco and camera modes:
   0x41 ?? ?? ?? ?? ?? 0x0F checksum
-irrelevant mode because it's dependent on the device's microphone or camera; individual transmissions just set the color
+irrelevant mode because it's dependent on the device's audio, microphone or camera; individual transmissions just set the color
 only relevant observation is that 41 is the header
 */
