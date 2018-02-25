@@ -67,11 +67,16 @@ cli.version(require('^package.json').version)
   .usage('[options] <command> [command-options ...]')
   .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover"');
 // Print a newline after printing help.
-cli.on('--help', function() { console.log(''); });
+cli.on('--help', function() {
+  console.log('');
+  console.log('Commands marked [json] return well-formed JSON to stdout; no commands accept JSON input.');
+  console.log('');
+});
 
 /*
  * CLI command definitions
  */
+// Discover command
 const discover = function(args) {
   UFO.discover(args, function(err, data) {
     if (err) quitError(err);
@@ -80,10 +85,10 @@ const discover = function(args) {
 }
 cli.command('discover [timeout]')
   .alias('d')
-  .description('Searches for UFOs on the network. Timeout is in milliseconds.')
-  .option('-p, --password [password]', 'The UDP password used to search for UFOs.')
-  .option('-l, --local-port <localPort>', 'The UDP port to use on this computer to search.')
-  .option('-r, --remote-port <remotePort>', 'The UDP port to which expected UFOs are bound.')
+  .description('Searches for UFOs on the network. Timeout is in milliseconds [json].')
+  .option('-p, --password [password]', 'The UDP password used to search for UFOs. If this option is set but has no value, you will be prompted for a password (not suitable for programmatic JSON consumption).')
+  .option('-l, --local-port <localPort>', 'The UDP port to use on this computer to search. If unspecified, a random port is used.')
+  .option('-r, --remote-port <remotePort>', 'The UDP port to which expected UFOs are bound. Default is 48899.')
   .on('--help', function() { console.log(); })
   .action(function(timeout, options) {
     var discoverArgs = {
@@ -110,9 +115,11 @@ cli.command('discover [timeout]')
       discover(discoverArgs);
     }
   });
+
+// Output commands
 cli.command('status')
   .alias('s')
-  .description('Returns the UFO\'s current status.')
+  .description('Returns the UFO\'s current status [json].')
   .action(function() {
     go(function() {
       this.getStatus(function(err, data) {
@@ -126,13 +133,6 @@ cli.command('status')
           this.disconnect();
         }
       }.bind(this));
-    });
-  });
-cli.command('version')
-  .description('Returns the UFO\'s firmware version.')
-  .action(function() {
-    go(function() {
-      this.getVersion(getAndStop());
     });
   });
 cli.command('on')
@@ -269,6 +269,15 @@ cli.command('freeze')
       this.freezeOutput(stop());
     });
   });
+
+// Generic management commands
+cli.command('version')
+  .description('Returns the UFO\'s firmware version.')
+  .action(function() {
+    go(function() {
+      this.getVersion(getAndStop());
+    });
+  });
 cli.command('ntp [server]')
   .description('Gets/sets the NTP server.')
   .action(function(server) {
@@ -290,57 +299,61 @@ cli.command('port [port]')
       port ? this.setTcpPort(port, stop()) : this.getTcpPort(getAndStop());
     });
   });
+
+// Generic WiFi commands
 cli.command('wifi-scan')
-  .description('Scan for nearby WiFi networks with the UFO.')
+  .description('Scans for nearby WiFi networks and returns their channel, SSID, AP MAC address, security config and signal strength [json].')
   .action(function() {
     go(function() {
       this.doWifiScan(getAndStop(true));
     });
   });
 cli.command('wifi-auto-switch [mode]')
-  .description('Gets/sets the WiFi auto-switch setting.')
+  .description('Gets/sets the WiFi auto-switch setting. Possible values are (no quotes): "off" (AP mode will never turn on), "on" (AP mode will turn on after 1 minute), "auto" (after 10 minutes), or integers 3-120 inclusive (after X minutes).')
   .action(function(mode) {
     go(function() {
       mode ? this.setWifiAutoSwitch(mode, stop()) : this.getWifiAutoSwitch(getAndStop());
     });
   });
 cli.command('wifi-mode [mode]')
-  .description('Gets/sets the WiFi mode.')
+  .description('Gets/sets the WiFi mode. Possible values are (no quotes): "AP", "STA" or "APSTA".')
   .action(function(mode) {
     go(function() {
       mode ? this.setWifiMode(mode, stop()) : this.getWifiMode(getAndStop());
     });
   });
+
+// WiFi AP commands
 cli.command('wifi-ap-ip [ip] [mask]')
-  .description('Gets/sets the IP address/netmask when in AP mode.')
+  .description('Gets/sets the IP address/netmask when in AP mode [json].')
   .action(function(ip) {
     go(function() {
       ip ? this.setWifiApIp(ip, mask, stop()) : this.getWifiApIp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
-  .description('Gets/sets the WiFi broadcast info when in AP mode.')
+  .description('Gets/sets the WiFi broadcast info when in AP mode [json]. Mode is one of "b", "bg" or "bgn" (no quotes, case insensitive). SSID is 32 characters or less, ASCII only. Channel is 1-11 inclusive.')
   .action(function(mode, ssid, channel) {
     go(function() {
-      mode ? this.setWifiApBroadcast(mode, ssid, channel, stop()) : this.getWifiApBroadcast(getAndStop(true));
+      mode ? this.setWifiApBroadcast('11'+mode.toUpperCase(), ssid, 'CH'+_.clamp(channel, 1, 11), stop()) : this.getWifiApBroadcast(getAndStop(true));
     });
   });
 cli.command('wifi-ap-passphrase [pwd]')
-  .description('Gets/sets the WiFi passphrase when in AP mode. Use "false" (no quotes) to disable security and configure the AP as an open network.')
+  .description('Gets/sets the WiFi passphrase when in AP mode. 8-63 characters inclusive. Use "false" (no quotes) to disable security and configure the AP as an open network.')
   .action(function(pwd) {
     go(function() {
       pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, function(value) { return value === false ? '<No passphrase, open network>' : value; }));
     });
   });
 cli.command('wifi-ap-led [value]')
-  .description('Gets/sets the WiFi passphrase when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
+  .description('Gets/sets the connection LED state when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
   .action(function(value) {
     go(function() {
       value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop(false, function(value) { return value ? 'on' : 'off'; }));
     });
   });
 cli.command('wifi-ap-dhcp [start] [end]')
-  .description('Gets/sets the DHCP range when in AP mode. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
+  .description('Gets/sets the DHCP range when in AP mode. Ranges are 0-254 inclusive. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
   .action(function(start, end) {
     go(function() {
       start ? this.setWifiApDhcp(start, end, stop()) : this.getWifiApDhcp(getAndStop(true));
@@ -353,8 +366,10 @@ cli.command('wifi-ap-dhcp-disable')
       this.disableWifiApDhcp(stop());
     });
   });
+
+// WiFi client commands
 cli.command('wifi-client-ap-info')
-  .description('Shows the connected AP info when in client mode.')
+  .description('Shows the connected AP info when in client mode [json].')
   .action(function() {
     go(function() {
       this.getWifiClientApInfo(getAndStop(true));
@@ -368,7 +383,7 @@ cli.command('wifi-client-ap-signal')
     });
   });
 cli.command('wifi-client-ip [ip] [mask] [gateway]')
-  .description('Sets the IP configuration when in client mode. To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
+  .description('Gets/sets the IP configuration when in client mode [json]. To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
   .action(function(ip, mask, gateway) {
     go(function() {
       if (ip) {
@@ -379,14 +394,14 @@ cli.command('wifi-client-ip [ip] [mask] [gateway]')
     });
   });
 cli.command('wifi-client-ssid [ssid]')
-  .description('Sets the SSID when in client mode.')
+  .description('Gets/sets the SSID when in client mode.')
   .action(function(ssid) {
     go(function() {
       ssid ? this.setWifiClientSsid(ssid, stop()) : this.getWifiClientSsid(getAndStop());
     });
   });
 cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
-  .description('Gets/sets the authentication parameters when in client mode. WARNING: when getting, credentials are printed in plaintext!')
+  .description('Gets/sets the authentication parameters when in client mode [json]. WARNING: when getting, credentials are printed in plaintext!')
   .action(function(auth, encryption, passphrase) {
     go(function() {
       if (!auth) {
@@ -406,6 +421,8 @@ cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
       }
     });
   });
+
+// Miscellaneous commands
 cli.command('reboot')
   .description('Reboots the UFO.')
   .action(function() {
