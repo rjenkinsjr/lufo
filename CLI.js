@@ -135,13 +135,13 @@ cli.command('status')
       }.bind(this));
     });
   });
-  cli.command('version')
-    .description('Returns the UFO\'s firmware version.')
-    .action(function() {
-      go(function() {
-        this.getVersion(getAndStop());
-      });
+cli.command('version')
+  .description('Returns the UFO\'s firmware version.')
+  .action(function() {
+    go(function() {
+      this.getVersion(getAndStop());
     });
+  });
 cli.command('on')
   .description('Turns on UFO output.')
   .action(function() {
