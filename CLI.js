@@ -282,6 +282,13 @@ cli.command('password [pwd]')
       pwd ? this.setUdpPassword(pwd, stop()) : this.getUdpPassword(getAndStop());
     });
   });
+cli.command('port [port]')
+  .description('Gets/sets the TCP port of the UFO.')
+  .action(function(port) {
+    go(function() {
+      port ? this.setTcpPort(port, stop()) : this.getTcpPort(getAndStop());
+    });
+  });
 cli.command('wifi-scan')
   .description('Scan for nearby WiFi networks with the UFO.')
   .action(function() {
