@@ -34,12 +34,18 @@ const stop = function() {
   };
 }
 // Helper function to reduce boilerplate when running getter commands.
-const getAndStop = function(isJson) {
+const getAndStop = function(isJson, transformer) {
   return function(err, value) {
     if (err) {
       quitError(err);
     } else {
-      isJson ? console.log(JSON.stringify(value, null, 2)) : console.log(value);
+      if (isJson) {
+        console.log(JSON.stringify(value, null, 2));
+      } else if (typeof transformer === 'function') {
+        console.log(transformer(value));
+      } else {
+        console.log(value);
+      }
       theUfo.disconnect();
     }
   }
@@ -335,7 +341,7 @@ cli.command('wifi-ap-led [value]')
   .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Any argument supplied other than "on" implies "off".')
   .action(function(value) {
     go(function() {
-      value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop());
+      value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop(false, function(value) { return value ? 'on' : 'off' }));
     });
   });
 cli.command('wifi-client-ssid [ssid]')
