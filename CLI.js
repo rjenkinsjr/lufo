@@ -9,6 +9,9 @@ var theUfo = null;
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
 const go = function(action) {
+  if (!cli.ufo) {
+    cli.ufo = process.env.LUFO_ADDRESS;
+  }
   if (cli.ufo) {
     if (new IPv4(cli.ufo).isValid()) {
       var ufoOptions = {
@@ -65,7 +68,7 @@ const quitError = function(obj) {
 var cli = require('commander');
 cli.version(require('^package.json').version)
   .usage('[options] <command> [command-options ...]')
-  .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover"');
+  .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover". If unspecified, the LUFO_ADDRESS environment variable is used.');
 // Print a newline after printing help.
 cli.on('--help', function() {
   console.log('');

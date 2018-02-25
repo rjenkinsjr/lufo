@@ -9,9 +9,10 @@ npm install -g ledenet-ufo # CLI
 ```
 
 ## CLI Usage
-All commands except `discover|d` require the `--ufo` or `-u` option, which specifies the IP address of the UFO. This is omitted in the examples on this page.
+All commands except `discover|d` require the `--ufo` or `-u` option, which specifies the IP address of the UFO. You can also use the `LUFO_ADDRESS` environment variable.
 
 ```
+export LUFO_ADDRESS=1.2.3.4 # Use your UFO's IP address here
 lufo on
 lufo rgbw 255 0 0 0 # Red, 100%
 lufo rgbw 0 127 0 0 # Green, 50%
@@ -47,6 +48,8 @@ After connecting, follow the steps below.
 ```
 # Discover the UFO's IP address.
 lufo d
+# Export the environment variable for simpler CLI syntax below.
+export LUFO_ADDRESS=1.2.3.4
 # (MOST IMPORTANT) Change the UDP password so attackers cannot use the default password to discover/manage the UFO.
 lufo password <password>
 # Change the TCP port.
