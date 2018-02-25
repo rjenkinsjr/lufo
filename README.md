@@ -55,7 +55,7 @@ lufo port <port-number>
 lufo wifi-auto-switch off
 # Use client mode only.
 lufo wifi-mode STA
-# Configure the client to use DHCP or static IP assignment.
+# Configure the client to use DHCP or static IP assignment. Configuring reserved DHCP on your router for each UFO's MAC address would be a good strategy here.
 lufo wifi-client-ip dhcp
 lufo wifi-client-ip <desired-ip> <netmask> <gateway-ip>
 # Set the router's SSID and auth so the UFO can connect.
@@ -66,6 +66,9 @@ lufo ntp <server-ip>
 # Reboot the UFO so these changes take effect.
 # If you screwed up, you'll have to factory reset using the instructions included with the UFO and start over.
 lufo reboot
+# Your UFO should now connect to the wireless network whose SSID you specified. Connect to that network and discover it to verify it connected.
+# You can also observe the UFO and wait for the blue LED to turn on, indicating that it is connected to the wireless network.
+lufo d
 ```
 
 ## Unimplemented Features
