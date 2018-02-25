@@ -346,14 +346,14 @@ cli.command('wifi-ap-led [value]')
   });
 cli.command('wifi-ap-dhcp [start] [end]')
   .description('Gets/sets the DHCP range of the UFO when in AP mode. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
-  .action(function(value) {
+  .action(function(start, end) {
     go(function() {
       start ? this.setWifiApDhcp(start, end, stop()) : this.getWifiApDhcp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-dhcp-disable')
   .description('Disables the DHCP server of the UFO when in AP mode.')
-  .action(function(value) {
+  .action(function() {
     go(function() {
       this.disableWifiApDhcp(stop());
     });
