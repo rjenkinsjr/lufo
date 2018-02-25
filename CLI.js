@@ -296,6 +296,13 @@ cli.command('wifi-scan')
       this.doWifiScan(getAndStop(true));
     });
   });
+cli.command('wifi-auto-switch [mode]')
+  .description('Gets/sets the WiFi auto-switch setting of the UFO.')
+  .action(function(mode) {
+    go(function() {
+      mode ? this.setWifiAutoSwitch(mode, stop()) : this.getWifiAutoSwitch(getAndStop());
+    });
+  });
 cli.command('wifi-mode [mode]')
   .description('Gets/sets the WiFi mode of the UFO.')
   .action(function(mode) {
