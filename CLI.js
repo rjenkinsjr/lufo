@@ -110,20 +110,6 @@ cli.command('discover [timeout]')
       discover(discoverArgs);
     }
   });
-cli.command('reboot')
-  .description('Reboots the UFO.')
-  .action(function() {
-    go(function() {
-      this.reboot();
-    });
-  });
-cli.command('factory-reset')
-  .description('Resets the UFO to factory settings. No confirmation prompt will occur; USE CAUTION.')
-  .action(function() {
-    go(function() {
-      this.factoryReset();
-    });
-  });
 cli.command('status')
   .alias('s')
   .description('Returns the UFO\'s current status.')
@@ -418,6 +404,20 @@ cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
       } else {
         this.setWifiClientAuth(auth, encryption, passphrase, stop());
       }
+    });
+  });
+cli.command('reboot')
+  .description('Reboots the UFO.')
+  .action(function() {
+    go(function() {
+      this.reboot();
+    });
+  });
+cli.command('factory-reset')
+  .description('Resets the UFO to factory settings. No confirmation prompt will occur; USE CAUTION.')
+  .action(function() {
+    go(function() {
+      this.factoryReset();
     });
   });
 
