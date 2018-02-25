@@ -161,6 +161,9 @@ UFO.prototype.turnOn = function(callback) {
 UFO.prototype.turnOff = function(callback) {
   this._tcpClient.off(callback);
 }
+UFO.prototype.toggle = function(callback) {
+  this._tcpClient.toggle(callback);
+}
 UFO.prototype.setColor = function(red, green, blue, white, callback) {
   this._tcpClient.rgbw(red, green, blue, white, callback);
 }

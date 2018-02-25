@@ -162,6 +162,14 @@ cli.command('off')
       this.turnOff(stop());
     });
   });
+cli.command('toggle')
+  .alias('t')
+  .description('Toggles UFO output on/off.')
+  .action(function() {
+    go(function() {
+      this.toggle(stop());
+    });
+  });
 cli.command('rgbw <values...>')
   .alias('v')
   .description('Sets the UFO\'s output. Input values are R, G, B and W respectively, range 0-255.')

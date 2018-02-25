@@ -184,6 +184,21 @@ Client.prototype.off = function(callback) {
   if (this._dead) return;
   this._write(Power.off(), callback);
 }
+// Toggles the UFO.
+//
+// Callback is optional and accepts an error argument.
+Client.prototype.toggle = function(callback) {
+  if (this._dead) return;
+  this.status(function(err, status) {
+    if (err) {
+      typeof callback === 'function' && callback(err);
+    } else if (status.power === 'on') {
+      this.off(callback);
+    } else {
+      this.on(callback);
+    }
+  })
+}
 
 /*
  * Standard control methods
