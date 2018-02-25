@@ -365,6 +365,13 @@ cli.command('wifi-client-ap-info')
       this.getWifiClientApInfo(getAndStop(true));
     });
   });
+cli.command('wifi-client-ap-signal')
+  .description('Shows the connected AP signal strength of the UFO when in client mode.')
+  .action(function() {
+    go(function() {
+      this.getWifiClientApSignal(getAndStop(true));
+    });
+  });
 cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
