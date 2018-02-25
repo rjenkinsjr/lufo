@@ -128,7 +128,7 @@ cli.command('status')
     .description('Returns the UFO\'s firmware version.')
     .action(function() {
       go(function() {
-        this.getStatus(function(err, version) {
+        this.getVersion(function(err, version) {
           if (err) {
             quitError(err);
           } else {
