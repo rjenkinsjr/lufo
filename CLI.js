@@ -84,6 +84,7 @@ cli.command('discover [timeout]')
   .option('-p, --password [password]', 'The UDP password used to search for UFOs.')
   .option('-l, --local-port <localPort>', 'The UDP port to use on this computer to search.')
   .option('-r, --remote-port <remotePort>', 'The UDP port to which expected UFOs are bound.')
+  .on('--help', function() { console.log(); })
   .action(function(timeout, options) {
     var discoverArgs = {
       timeout: timeout,
