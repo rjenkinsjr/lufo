@@ -334,7 +334,7 @@ cli.command('wifi-ap-passphrase [pwd]')
   .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Use "false" to disable security and configure the AP as an open network.')
   .action(function(pwd) {
     go(function() {
-      pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, function(value) { return value === false ? '<Open network>' : value; }));
+      pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, function(value) { return value === false ? '<No passphrase, open network>' : value; }));
     });
   });
 cli.command('wifi-ap-led [value]')
