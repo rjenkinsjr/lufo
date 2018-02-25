@@ -275,6 +275,13 @@ cli.command('ntp [server]')
       server ? this.setNtpServer(server, stop()) : this.getNtpServer(getAndStop());
     });
   });
+cli.command('password [pwd]')
+  .description('Gets/sets the UDP password of the UFO.')
+  .action(function(pwd) {
+    go(function() {
+      pwd ? this.setUdpPassword(pwd, stop()) : this.getUdpPassword(getAndStop());
+    });
+  });
 cli.command('wifi-scan')
   .description('Scan for nearby WiFi networks with the UFO.')
   .action(function() {
