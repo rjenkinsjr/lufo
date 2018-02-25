@@ -282,18 +282,18 @@ cli.command('wifi-scan')
       this.doWifiScan(getAndStop(true));
     });
   });
-cli.command('wifi-mode <mode>')
-  .description('Sets the WiFi mode of the UFO.')
+cli.command('wifi-mode [mode]')
+  .description('Gets/sets the WiFi mode of the UFO.')
   .action(function(mode) {
     go(function() {
-      this.setWifiMode(mode, stop());
+      mode ? this.setWifiMode(mode, stop()) : this.getWifiMode(getAndStop());
     });
   });
-cli.command('wifi-client-ssid <ssid>')
+cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
     go(function() {
-      this.setWifiClientSsid(ssid, stop());
+      ssid ? this.setWifiClientSsid(ssid, stop()) : this.getWifiClientSsid(getAndStop());
     });
   });
 cli.command('wifi-client-auth <auth> <encryption> [passphrase]')
