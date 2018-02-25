@@ -236,7 +236,7 @@ cli.command('custom <type> <speed> [steps...]')
   });
 cli.command('zero')
   .alias('0')
-  .description('Sets all UFO outputs to zero.')
+  .description('Sets all UFO outputs to zero. Does not alter the flag (see "on"/"off" commands).')
   .action(function() {
     go(function() {
       this.zeroOutput(stop());
@@ -244,7 +244,7 @@ cli.command('zero')
   });
 cli.command('freeze')
   .alias('z')
-  .description('Stops whatever builtin/custom is playing.')
+  .description('Stops whatever builtin/custom is playing. Output will remain on; use "zero" to stop and turn off output simultaneously.')
   .action(function() {
     go(function() {
       this.freezeOutput(stop());
