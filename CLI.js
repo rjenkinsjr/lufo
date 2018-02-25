@@ -212,7 +212,7 @@ cli.command('function <name> <speed>')
   });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')
-  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 inclusive. Steps are space-separated RGB triplets; total number of values must be divisible by 3.')
+  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 inclusive. Steps are space-separated RGB triplets; maximum of 16 steps (extras are ignored).')
   .action(function(type, speed, values, options) {
     var truncatedValues = values.slice(0, 48);
     if (truncatedValues.length % 3 != 0) {
