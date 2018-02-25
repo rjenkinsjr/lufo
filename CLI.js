@@ -310,11 +310,11 @@ cli.command('wifi-mode [mode]')
       mode ? this.setWifiMode(mode, stop()) : this.getWifiMode(getAndStop());
     });
   });
-cli.command('wifi-ap-ip [ip]')
-  .description('Gets/sets the IP address of the UFO when in AP mode.')
+cli.command('wifi-ap-ip [ip] [mask]')
+  .description('Gets/sets the IP address/netmask of the UFO when in AP mode.')
   .action(function(ip) {
     go(function() {
-      ip ? this.setWifiApIp(ip, stop()) : this.getWifiApIp(getAndStop());
+      ip ? this.setWifiApIp(ip, mask, stop()) : this.getWifiApIp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
