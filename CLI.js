@@ -296,10 +296,14 @@ cli.command('wifi-client-ssid [ssid]')
       ssid ? this.setWifiClientSsid(ssid, stop()) : this.getWifiClientSsid(getAndStop());
     });
   });
-cli.command('wifi-client-auth <auth> <encryption> [passphrase]')
-  .description('Sets the authentication parameters of the UFO when in client mode.')
+cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
+  .description('Gets/sets the authentication parameters of the UFO when in client mode.')
   .action(function(auth, encryption, passphrase) {
     go(function() {
+      if (!auth) {
+        this.getWifiClientAuth(getAndStop());
+        return;
+      }
       if (!passphrase) {
         var promptOptions = {
           retry: true,
