@@ -575,7 +575,7 @@ Client.prototype.getWifiApPassphrase = function(callback) {
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiApPassphrase = function(passphrase, callback) {
   var cmd;
-  if (passphrase === false) {
+  if (passphrase === false || passphrase === 'false') {
     cmd = Constants.command('wifiApAuth', 'OPEN', 'NONE');
   } else if (passphrase.length < 8 || passphrase.length > 63) {
     callback(new Error(`Passphrase is ${passphrase.length} characters long, must be 8-63 characters inclusive.`));
