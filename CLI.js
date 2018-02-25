@@ -272,11 +272,7 @@ cli.command('ntp-server [server]')
   .description('Gets/sets the NTP server of the UFO.')
   .action(function(server) {
     go(function() {
-      if (server) {
-        this.setNtpServer(server, stop());
-      } else {
-        this.getNtpServer(getAndStop());
-      }
+      server ? this.setNtpServer(server, stop()) : this.getNtpServer(getAndStop());
     });
   });
 cli.command('wifi-scan')
