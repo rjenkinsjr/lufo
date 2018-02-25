@@ -358,6 +358,13 @@ cli.command('wifi-ap-dhcp-disable')
       this.disableWifiApDhcp(stop());
     });
   });
+cli.command('wifi-client-ap-info')
+  .description('Shows the connected AP info of the UFO when in client mode.')
+  .action(function() {
+    go(function() {
+      this.getWifiClientApInfo(getAndStop(true));
+    });
+  });
 cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
