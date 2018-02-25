@@ -268,7 +268,7 @@ cli.command('freeze')
       this.freezeOutput(stop());
     });
   });
-cli.command('ntp-server [server]')
+cli.command('ntp [server]')
   .description('Gets/sets the NTP server of the UFO.')
   .action(function(server) {
     go(function() {
