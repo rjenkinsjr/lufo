@@ -48,7 +48,7 @@ const quitError = function(obj) {
 var cli = require('commander');
 cli.version(require('^package.json').version)
   .usage('[options] <command> [command-options ...]')
-  .option('-u, --ufo <ip>', 'Specify UFO IP address');
+  .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover"');
 // Print a newline after printing help.
 cli.on('--help', function() { console.log(''); });
 
