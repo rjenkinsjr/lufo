@@ -34,12 +34,12 @@ const stop = function() {
   };
 }
 // Helper function to reduce boilerplate when running getter commands.
-const getAndStop = function() {
+const getAndStop = function(isJson) {
   return function(err, value) {
     if (err) {
       quitError(err);
     } else {
-      console.log(value);
+      isJson ? console.log(JSON.stringify(value, null, 2)) : console.log(value);
       theUfo.disconnect();
     }
   }
@@ -279,14 +279,7 @@ cli.command('wifi-scan')
   .description('Scan for nearby WiFi networks with the UFO.')
   .action(function() {
     go(function() {
-      this.doWifiScan(function(err, result) {
-        if (err) {
-          quitError(err);
-        } else {
-          this.disconnect();
-          console.log(JSON.stringify(result, null, 2));
-        }
-      }.bind(this));
+      this.doWifiScan(getAndStop(true));
     });
   });
 cli.command('wifi-mode <mode>')
