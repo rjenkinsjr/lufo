@@ -33,6 +33,17 @@ const stop = function() {
     else theUfo.disconnect();
   };
 }
+// Helper function to reduce boilerplate when running getter commands.
+const getAndStop = function() {
+  return function(err, value) {
+    if (err) {
+      quitError(err);
+    } else {
+      console.log(value);
+      theUfo.disconnect();
+    }
+  }
+}
 // Helper function for printing errors and setting the exit code.
 const quitError = function(obj) {
   if (_.isError(obj)) {
@@ -128,14 +139,7 @@ cli.command('status')
     .description('Returns the UFO\'s firmware version.')
     .action(function() {
       go(function() {
-        this.getVersion(function(err, version) {
-          if (err) {
-            quitError(err);
-          } else {
-            console.log(version);
-            this.disconnect();
-          }
-        }.bind(this));
+        this.getVersion(getAndStop());
       });
     });
 cli.command('on')
@@ -262,6 +266,17 @@ cli.command('freeze')
   .action(function() {
     go(function() {
       this.freezeOutput(stop());
+    });
+  });
+cli.command('ntp-server [server]')
+  .description('Gets/sets the NTP server of the UFO.')
+  .action(function(server) {
+    go(function() {
+      if (server) {
+        this.setNtpServer(server, stop());
+      } else {
+        this.getNtpServer(getAndStop());
+      }
     });
   });
 cli.command('wifi-scan')
