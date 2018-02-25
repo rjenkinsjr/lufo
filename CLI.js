@@ -297,11 +297,11 @@ cli.command('wifi-client-ssid [ssid]')
     });
   });
 cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
-  .description('Gets/sets the authentication parameters of the UFO when in client mode.')
+  .description('Gets/sets the authentication parameters of the UFO when in client mode. WARNING: when getting, credentials are printed in plaintext!')
   .action(function(auth, encryption, passphrase) {
     go(function() {
       if (!auth) {
-        this.getWifiClientAuth(getAndStop());
+        this.getWifiClientAuth(getAndStop(true));
         return;
       }
       if (!passphrase) {
