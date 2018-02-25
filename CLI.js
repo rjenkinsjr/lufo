@@ -143,7 +143,7 @@ cli.command('on')
     });
   });
 cli.command('off')
-  .description('Turns off UFO output.')
+  .description('Turns off UFO output. Does not stop running builtin/custom functions; see "zero" and "freeze" commands.')
   .action(function() {
     go(function() {
       this.turnOff(stop());
@@ -159,7 +159,7 @@ cli.command('toggle')
   });
 cli.command('rgbw <values...>')
   .alias('v')
-  .description('Sets the UFO\'s output. Input values are R, G, B and W respectively, range 0-255.')
+  .description('Sets the UFO\'s output. Input values are R, G, B and W respectively, range 0-255 inclusive.')
   .action(function(values) {
     if (values.length !== 4) {
       quitError('RGBW takes exactly 4 arguments.');
@@ -171,7 +171,7 @@ cli.command('rgbw <values...>')
   });
 cli.command('red <value>')
   .alias('r')
-  .description('Sets the UFO\'s red output. Input range 0-255.')
+  .description('Sets the UFO\'s red output. Input range 0-255 inclusive.')
   .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
@@ -184,7 +184,7 @@ cli.command('red <value>')
   });
 cli.command('green <value>')
   .alias('g')
-  .description('Sets the UFO\'s green output. Input range 0-255.')
+  .description('Sets the UFO\'s green output. Input range 0-255 inclusive.')
   .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
@@ -197,7 +197,7 @@ cli.command('green <value>')
   });
 cli.command('blue <value>')
   .alias('b')
-  .description('Sets the UFO\'s blue output. Input range 0-255.')
+  .description('Sets the UFO\'s blue output. Input range 0-255 inclusive.')
   .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
@@ -210,7 +210,7 @@ cli.command('blue <value>')
   });
 cli.command('white <value>')
   .alias('w')
-  .description('Sets the UFO\'s white output. Input range 0-255.')
+  .description('Sets the UFO\'s white output. Input range 0-255 inclusive.')
   .option('-s, --solo', 'Turn off all other outputs.')
   .action(function(value, options) {
     if (!value) {
@@ -223,7 +223,7 @@ cli.command('white <value>')
   });
 cli.command('function <name> <speed>')
   .alias('f')
-  .description('Plays one of the UFO\'s built-in functions. Speed is 0-100 inclusive.')
+  .description('Plays a built-in function. Speed is 0-100 (slow to fast) inclusive.')
   .action(function(name, speed, options) {
     go(function() {
       this.setBuiltin(name, speed, stop());
@@ -231,7 +231,7 @@ cli.command('function <name> <speed>')
   });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')
-  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 inclusive. Steps are space-separated RGB triplets; maximum of 16 steps (extras are ignored).')
+  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 (slow to fast) inclusive. Steps are space-separated RGB triplets (each value in the triplet ranges 0-255 inclusive); maximum of 16 steps (extras are ignored).')
   .action(function(type, speed, values, options) {
     var truncatedValues = values.slice(0, 48);
     if (truncatedValues.length % 3 != 0) {
@@ -255,7 +255,7 @@ cli.command('custom <type> <speed> [steps...]')
   });
 cli.command('zero')
   .alias('0')
-  .description('Sets all UFO outputs to zero. Does not alter the flag (see "on"/"off"/"toggle" commands).')
+  .description('Sets all UFO outputs to zero. Does not alter the power flag (see "on"/"off"/"toggle" commands).')
   .action(function() {
     go(function() {
       this.zeroOutput(stop());
@@ -270,21 +270,21 @@ cli.command('freeze')
     });
   });
 cli.command('ntp [server]')
-  .description('Gets/sets the NTP server of the UFO.')
+  .description('Gets/sets the NTP server.')
   .action(function(server) {
     go(function() {
       server ? this.setNtpServer(server, stop()) : this.getNtpServer(getAndStop());
     });
   });
 cli.command('password [pwd]')
-  .description('Gets/sets the UDP password of the UFO.')
+  .description('Gets/sets the UDP password.')
   .action(function(pwd) {
     go(function() {
       pwd ? this.setUdpPassword(pwd, stop()) : this.getUdpPassword(getAndStop());
     });
   });
 cli.command('port [port]')
-  .description('Gets/sets the TCP port of the UFO.')
+  .description('Gets/sets the TCP port.')
   .action(function(port) {
     go(function() {
       port ? this.setTcpPort(port, stop()) : this.getTcpPort(getAndStop());
@@ -298,77 +298,77 @@ cli.command('wifi-scan')
     });
   });
 cli.command('wifi-auto-switch [mode]')
-  .description('Gets/sets the WiFi auto-switch setting of the UFO.')
+  .description('Gets/sets the WiFi auto-switch setting.')
   .action(function(mode) {
     go(function() {
       mode ? this.setWifiAutoSwitch(mode, stop()) : this.getWifiAutoSwitch(getAndStop());
     });
   });
 cli.command('wifi-mode [mode]')
-  .description('Gets/sets the WiFi mode of the UFO.')
+  .description('Gets/sets the WiFi mode.')
   .action(function(mode) {
     go(function() {
       mode ? this.setWifiMode(mode, stop()) : this.getWifiMode(getAndStop());
     });
   });
 cli.command('wifi-ap-ip [ip] [mask]')
-  .description('Gets/sets the IP address/netmask of the UFO when in AP mode.')
+  .description('Gets/sets the IP address/netmask when in AP mode.')
   .action(function(ip) {
     go(function() {
       ip ? this.setWifiApIp(ip, mask, stop()) : this.getWifiApIp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
-  .description('Gets/sets the WiFi broadcast info of the UFO when in AP mode.')
+  .description('Gets/sets the WiFi broadcast info when in AP mode.')
   .action(function(mode, ssid, channel) {
     go(function() {
       mode ? this.setWifiApBroadcast(mode, ssid, channel, stop()) : this.getWifiApBroadcast(getAndStop(true));
     });
   });
 cli.command('wifi-ap-passphrase [pwd]')
-  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Use "false" (no quotes) to disable security and configure the AP as an open network.')
+  .description('Gets/sets the WiFi passphrase when in AP mode. Use "false" (no quotes) to disable security and configure the AP as an open network.')
   .action(function(pwd) {
     go(function() {
       pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, function(value) { return value === false ? '<No passphrase, open network>' : value; }));
     });
   });
 cli.command('wifi-ap-led [value]')
-  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
+  .description('Gets/sets the WiFi passphrase when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
   .action(function(value) {
     go(function() {
       value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop(false, function(value) { return value ? 'on' : 'off'; }));
     });
   });
 cli.command('wifi-ap-dhcp [start] [end]')
-  .description('Gets/sets the DHCP range of the UFO when in AP mode. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
+  .description('Gets/sets the DHCP range when in AP mode. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
   .action(function(start, end) {
     go(function() {
       start ? this.setWifiApDhcp(start, end, stop()) : this.getWifiApDhcp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-dhcp-disable')
-  .description('Disables the DHCP server of the UFO when in AP mode.')
+  .description('Disables the DHCP server when in AP mode.')
   .action(function() {
     go(function() {
       this.disableWifiApDhcp(stop());
     });
   });
 cli.command('wifi-client-ap-info')
-  .description('Shows the connected AP info of the UFO when in client mode.')
+  .description('Shows the connected AP info when in client mode.')
   .action(function() {
     go(function() {
       this.getWifiClientApInfo(getAndStop(true));
     });
   });
 cli.command('wifi-client-ap-signal')
-  .description('Shows the connected AP signal strength of the UFO when in client mode.')
+  .description('Shows the connected AP signal strength when in client mode.')
   .action(function() {
     go(function() {
       this.getWifiClientApSignal(getAndStop(true));
     });
   });
 cli.command('wifi-client-ip [ip] [mask] [gateway]')
-  .description('Sets the IP configuration of the UFO when in client mode. To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
+  .description('Sets the IP configuration when in client mode. To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
   .action(function(ip, mask, gateway) {
     go(function() {
       if (ip) {
@@ -379,14 +379,14 @@ cli.command('wifi-client-ip [ip] [mask] [gateway]')
     });
   });
 cli.command('wifi-client-ssid [ssid]')
-  .description('Sets the SSID of the UFO when in client mode.')
+  .description('Sets the SSID when in client mode.')
   .action(function(ssid) {
     go(function() {
       ssid ? this.setWifiClientSsid(ssid, stop()) : this.getWifiClientSsid(getAndStop());
     });
   });
 cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
-  .description('Gets/sets the authentication parameters of the UFO when in client mode. WARNING: when getting, credentials are printed in plaintext!')
+  .description('Gets/sets the authentication parameters when in client mode. WARNING: when getting, credentials are printed in plaintext!')
   .action(function(auth, encryption, passphrase) {
     go(function() {
       if (!auth) {
