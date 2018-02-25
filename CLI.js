@@ -377,7 +377,7 @@ cli.command('wifi-client-ip [ip] [mask] [gateway]')
   .action(function(ip, mask, gateway) {
     go(function() {
       if (ip) {
-        (ip === 'dhcp' || ip === 'DHCP') ? this.setWifiClientIpDhcp(stop()) ? this.setWifiClientIpStatic(ip, mask, gateway, stop());
+        (ip === 'dhcp' || ip === 'DHCP') ? this.setWifiClientIpDhcp(stop()) : this.setWifiClientIpStatic(ip, mask, gateway, stop());
       } else {
         this.getWifiClientIp(getAndStop(true));
       }
