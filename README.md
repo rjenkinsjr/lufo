@@ -68,6 +68,12 @@ lufo ntp <server-ip>
 lufo reboot
 ```
 
+## Unimplemented Features
+The following features from the mobile app are not implemented and are unlikely to be implemented in the future:
+- Remote access and device naming (these are cloud features; this module is intended to be used in closed/controlled environments)
+- Device grouping and timers (you can use the API and write your own code to implement these features if you need them)
+- Music/disco/camera modes (these features rely on your mobile device's hardware, making it impossible to replicate them)
+
 ## Credits
 - [sidoh](https://github.com/sidoh) for developing the [Ruby implementation](https://github.com/sidoh/ledenet_api) that gave me the inspiration (and a reference to compare against!) to write this module.
 - [vikstrous](https://github.com/vikstrous) for developing a [Golang implementation](https://github.com/vikstrous/zengge-lightcontrol) for similar products under different brands, whose documentation on the UDP command protocol proved very useful. Here's [a blog post](https://blog.viktorstanchev.com/2015/12/20/the-many-attacks-on-zengge-wifi-lightbulbs/) from the author describing ways to hack LED light bulbs made by the same manufacturer (command set is very similar).
