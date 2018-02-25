@@ -344,6 +344,20 @@ cli.command('wifi-ap-led [value]')
       value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop(false, function(value) { return value ? 'on' : 'off'; }));
     });
   });
+cli.command('wifi-ap-dhcp [start] [end]')
+  .description('Gets/sets the DHCP range of the UFO when in AP mode. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
+  .action(function(value) {
+    go(function() {
+      start ? this.setWifiApDhcp(start, end, stop()) : this.getWifiApDhcp(getAndStop(true));
+    });
+  });
+cli.command('wifi-ap-dhcp-disable')
+  .description('Disables the DHCP server of the UFO when in AP mode.')
+  .action(function(value) {
+    go(function() {
+      this.disableWifiApDhcp(stop());
+    });
+  });
 cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
