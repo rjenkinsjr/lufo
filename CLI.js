@@ -331,6 +331,13 @@ cli.command('wifi-ap-passphrase [pwd]')
       pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop());
     });
   });
+cli.command('wifi-ap-led [value]')
+  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Any argument supplied other than "on" implies "off".')
+  .action(function(value) {
+    go(function() {
+      pwd ? this.setWifiApLed(pwd === 'on', stop()) : this.getWifiApLed(getAndStop());
+    });
+  });
 cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
