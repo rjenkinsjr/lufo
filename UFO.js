@@ -249,8 +249,8 @@ UFO.prototype.setWifiMode = function(mode, callback) {
 UFO.prototype.setWifiApIp = function(ip, mask, callback) {
   this._udpClient.setWifiApIp(ip, mask, callback);
 }
-UFO.prototype.setWifiApBroadcast = function(ip, mask, callback) {
-  this._udpClient.setWifiApBroadcast(ip, mask, callback);
+UFO.prototype.setWifiApBroadcast = function(mode, ssid, channel, callback) {
+  this._udpClient.setWifiApBroadcast(mode, ssid, channel, callback);
 }
 UFO.prototype.setWifiApPassphrase = function(passphrase, callback) {
   this._udpClient.setWifiApPassphrase(passphrase, callback);

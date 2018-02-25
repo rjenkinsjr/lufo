@@ -310,6 +310,20 @@ cli.command('wifi-mode [mode]')
       mode ? this.setWifiMode(mode, stop()) : this.getWifiMode(getAndStop());
     });
   });
+cli.command('wifi-ap-ip [ip]')
+  .description('Gets/sets the IP address of the UFO when in AP mode.')
+  .action(function(ip) {
+    go(function() {
+      ip ? this.setWifiApIp(ip, stop()) : this.getWifiApIp(getAndStop());
+    });
+  });
+cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
+  .description('Gets/sets the WiFi broadcast info of the UFO when in AP mode.')
+  .action(function(mode, ssid, channel) {
+    go(function() {
+      mode ? this.setWifiApBroadcast(mode, ssid, channel, stop()) : this.getWifiApBroadcast(getAndStop(true));
+    });
+  });
 cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
