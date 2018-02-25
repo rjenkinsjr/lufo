@@ -268,7 +268,7 @@ cli.command('custom <type> <speed> [steps...]')
   });
 cli.command('zero')
   .alias('0')
-  .description('Sets all UFO outputs to zero. Does not alter the flag (see "on"/"off" commands).')
+  .description('Sets all UFO outputs to zero. Does not alter the flag (see "on"/"off"/"toggle" commands).')
   .action(function() {
     go(function() {
       this.zeroOutput(stop());
@@ -339,14 +339,14 @@ cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
     });
   });
 cli.command('wifi-ap-passphrase [pwd]')
-  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Use "false" to disable security and configure the AP as an open network.')
+  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Use "false" (no quotes) to disable security and configure the AP as an open network.')
   .action(function(pwd) {
     go(function() {
       pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, function(value) { return value === false ? '<No passphrase, open network>' : value; }));
     });
   });
 cli.command('wifi-ap-led [value]')
-  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Any argument supplied other than "on" implies "off".')
+  .description('Gets/sets the WiFi passphrase of the UFO when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
   .action(function(value) {
     go(function() {
       value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop(false, function(value) { return value ? 'on' : 'off'; }));
