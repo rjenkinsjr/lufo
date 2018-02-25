@@ -197,7 +197,7 @@ Client.prototype.toggle = function(callback) {
     } else {
       this.on(callback);
     }
-  }).bind(this);
+  }.bind(this));
 }
 
 /*
