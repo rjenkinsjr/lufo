@@ -372,6 +372,17 @@ cli.command('wifi-client-ap-signal')
       this.getWifiClientApSignal(getAndStop(true));
     });
   });
+cli.command('wifi-client-ip [ip] [mask] [gateway]')
+  .description('Sets the IP configuration of the UFO when in client mode. To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
+  .action(function(ip, mask, gateway) {
+    go(function() {
+      if (ip) {
+        ip === 'dhcp' || ip === 'DHCP' ? this.setWifiClientIpDhcp(stop()) ? this.setWifiClientIpStatic(ip, mask, gateway, stop());
+      } else {
+        this.getWifiClientIp(getAndStop(true));
+      }
+    });
+  });
 cli.command('wifi-client-ssid [ssid]')
   .description('Sets the SSID of the UFO when in client mode.')
   .action(function(ssid) {
