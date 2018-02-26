@@ -552,7 +552,7 @@ Client.prototype.setWifiApBroadcast = function(mode, ssid, channel, callback) {
     return;
   }
   this._commandMode(function() {
-    this._sendAndWait(Constants.command('wifiApBroadcast', `11${mode}`, ssid, `CH${channel}`), function(err) {
+    this._sendAndWait(Constants.command('wifiApBroadcast', `11${mode.toUpperCase()}`, ssid, `CH${channel}`), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));

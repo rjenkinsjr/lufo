@@ -187,7 +187,7 @@ Client.prototype.off = function(callback) {
 // Toggles the UFO.
 //
 // Callback is optional and accepts an error argument.
-Client.prototype.toggle = function(callback) {
+Client.prototype.togglePower = function(callback) {
   if (this._dead) return;
   this.status(function(err, status) {
     if (err) {
@@ -258,7 +258,7 @@ Client.prototype.custom = function(mode, speed, steps, callback) {
       break;
     default:
       typeof callback === 'function' && callback(new Error(`Invalid mode '${mode}'.`));
-      break;
+      return;
   }
   // 0x51 steps(16xUInt8) speed mode 0xFF
   // 0xFF seems to be a constant terminator for the data.

@@ -161,8 +161,8 @@ UFO.prototype.turnOn = function(callback) {
 UFO.prototype.turnOff = function(callback) {
   this._tcpClient.off(callback);
 }
-UFO.prototype.toggle = function(callback) {
-  this._tcpClient.toggle(callback);
+UFO.prototype.togglePower = function(callback) {
+  this._tcpClient.togglePower(callback);
 }
 UFO.prototype.setColor = function(red, green, blue, white, callback) {
   this._tcpClient.rgbw(red, green, blue, white, callback);
@@ -210,7 +210,7 @@ UFO.prototype.zeroOutput = function(callback) {
 }
 
 /*
- * Control methods
+ * Core reconfiguration methods
  */
 // Reboots the UFO. This method invalidates the owning UFO object.
 //
@@ -218,10 +218,6 @@ UFO.prototype.zeroOutput = function(callback) {
 UFO.prototype.reboot = function(callback) {
   this._udpClient.reboot(callback);
 }
-
-/*
- * Core reconfiguration methods
- */
 // Resets the UFO to factory defaults. This object can no longer be used after this method is called.
 //
 // Callback is optional and overrides any already-defined disconnect callback.

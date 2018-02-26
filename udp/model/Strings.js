@@ -8,7 +8,7 @@ module.exports = Object.freeze({
   sendSuffix: '\r',
   // This is the prefix of all AT command responses that are not errors.
   recvPrefix: ack,
-  // This is the suffic of all AT command responses that are not errors.
+  // This is the suffix of all AT command responses that are not errors.
   recvSuffix: '\r\n\r\n',
   // This is the default UDP password.
   defaultHello: 'HF-A11ASSISTHREAD',

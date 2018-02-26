@@ -69,7 +69,6 @@ var cli = require('commander');
 cli.version(require('^package.json').version)
   .usage('[options] <command> [command-options ...]')
   .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover". If unspecified, the LUFO_ADDRESS environment variable is used.');
-// Print a newline after printing help.
 cli.on('--help', function() {
   console.log('');
   console.log('Commands marked [json] return well-formed JSON to stdout; no commands accept JSON input.');
@@ -157,7 +156,7 @@ cli.command('toggle')
   .description('Toggles UFO output on/off.')
   .action(function() {
     go(function() {
-      this.toggle(stop());
+      this.togglePower(stop());
     });
   });
 cli.command('rgbw <values...>')

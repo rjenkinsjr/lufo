@@ -3,6 +3,8 @@ const Customs = require('^tcp/model/Customs');
 
 // The status response payload is always the same size.
 const statusResponseSize = 14;
+// The header for status requests and responses.
+const statusHeader = 0x81;
 
 const Status = function() {
   // Handler for receiving status bytes. Must be bound to a TcpClient instance.
@@ -22,7 +24,7 @@ const Status = function() {
         var err = null;
         var data = {};
         // Verify the response's integrity.
-        if (responseBytes.readUInt8(0) === 0x81) {
+        if (responseBytes.readUInt8(0) === statusHeader) {
           // Compute the actual checksum.
           var lastIndex = statusResponseSize - 1;
           var expectedChecksum = responseBytes.readUInt8(lastIndex);
@@ -124,7 +126,7 @@ const Status = function() {
 };
 // 0x81 0x8A 0x8B 0x96, always.
 // No local flag or checksum; do not pass to tcp/Utils.
-Status.prototype.request = function() { return Buffer.from([0x81, 0x8A, 0x8B, 0x96]); };
+Status.prototype.request = function() { return Buffer.from([statusHeader, 0x8A, 0x8B, 0x96]); };
 Status.prototype.responseSize = function() { return statusResponseSize; };
 Status.prototype.responseHandler = function(ufoTcp) { return this.statusResponseHandler.bind(ufoTcp); };
 module.exports = Object.freeze(new Status());
