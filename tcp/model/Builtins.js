@@ -30,10 +30,18 @@ const Builtins = function () {
     noFunction: 0x61,
     postReset: 0x63
   });
+  this.specialFunctionIds = [
+    'noFunction',
+    'postReset'
+  ];
 };
+// Returns an array of valid function names.
+Builtins.prototype.getFunctionNames = function() {
+  return _.keys(this.functionIds).filter(function(name) { return !this.specialFunctionIds.includes(name); }.bind(this));
+}
 // Given a function name, returns its hex value.
 Builtins.prototype.getFunctionId = function(name) {
-  if (!this.functionIds.hasOwnProperty(name)) throw new Error(`No such built-in function '${name}'.`);
+  if (!_.has(this.functionIds, name)) throw new Error(`No such built-in function '${name}'.`);
   return this.functionIds[name];
 };
 // Converts a built-in function speed value back/forth between what the
