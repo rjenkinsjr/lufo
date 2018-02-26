@@ -30,6 +30,7 @@ const Builtins = function () {
     noFunction: 0x61,
     postReset: 0x63
   });
+  // Functions that should not be listed as available to API users (internal use only).
   this.specialFunctionIds = [
     'noFunction',
     'postReset'
