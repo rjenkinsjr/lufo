@@ -1,13 +1,13 @@
 const util = require('util');
-const Strings = require('^udp/model/Strings');
+const Strings = require('^src/udp/model/Strings');
 const _ = require('lodash');
 
 // Definition of all supported AT commands, including their send formats,
 // receive formats and number of receive arguments.
 const commands = Object.freeze(Object.assign({},
-  require('^udp/model/Core'),
-  require('^udp/model/WifiClient'),
-  require('^udp/model/WifiAp')
+  require('^src/udp/model/Core'),
+  require('^src/udp/model/WifiClient'),
+  require('^src/udp/model/WifiAp')
 ));
 
 // Export all of the above.

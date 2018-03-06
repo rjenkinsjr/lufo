@@ -1,8 +1,8 @@
 const rooty = require('rooty'); rooty();
 const events = require('events');
-const TcpClient = require('^tcp/Client');
-const UdpClient = require('^udp/Client');
-const UfoDisconnectError = require('^UfoDisconnectError');
+const TcpClient = require('^src/tcp/Client');
+const UdpClient = require('^src/udp/Client');
+const UfoDisconnectError = require('^src/UfoDisconnectError');
 
 /*
  * Constructor

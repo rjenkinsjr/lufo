@@ -1,7 +1,7 @@
 const util = require('util');
 const dgram = require('dgram');
-const Constants = require('^udp/Constants');
-const UDPUtils = require('^udp/Utils');
+const Constants = require('^src/udp/Constants');
+const UDPUtils = require('^src/udp/Utils');
 const _ = require('lodash');
 const IPv4 = require('ip-address').Address4;
 
