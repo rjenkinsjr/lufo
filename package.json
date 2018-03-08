@@ -2,9 +2,8 @@
   "name": "ledenet-ufo",
   "version": "0.1.0",
   "description": "API/CLI for LEDENET UFO WiFi RGBW controllers.",
-  "main": "UFO.js",
   "bin": {
-    "lufo": "CLI.js"
+    "lufo": "src/Cli.js"
   },
   "dependencies": {
     "commander": "^2.12.2",
