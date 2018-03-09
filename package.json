@@ -12,7 +12,10 @@
     "promptly": "^2.2.0",
     "rooty": "^2.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "documentation": "^6.1.0",
+    "flow-bin": "^0.67.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
