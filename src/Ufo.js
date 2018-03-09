@@ -1,8 +1,10 @@
-const rooty = require('rooty'); rooty();
+global.lufoRequire = function(name) {
+    return require(__dirname + '/' + name);
+}
 const events = require('events');
-const TcpClient = require('^src/tcp/Client');
-const UdpClient = require('^src/udp/Client');
-const UfoDisconnectError = require('^src/UfoDisconnectError');
+const TcpClient = lufoRequire('tcp/Client');
+const UdpClient = lufoRequire('udp/Client');
+const UfoDisconnectError = lufoRequire('UfoDisconnectError');
 
 /*
  * Constructor

@@ -1,3 +1,4 @@
+// @flow
 const Power = function() {};
 // 0x71 0x23 0x0F 0xA3, always.
 // This includes local flag and checksum; do not pass to tcp/Utils.

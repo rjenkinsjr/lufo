@@ -1,8 +1,5 @@
+// @flow
 const _ = require('lodash');
-
-/*
- * Exports
- */
 
 const Builtins = function () {
   // Function name/id map.
@@ -41,13 +38,13 @@ Builtins.prototype.getFunctionNames = function() {
   return _.keys(this.functionIds).filter(function(name) { return !this.specialFunctionIds.includes(name); }.bind(this));
 }
 // Given a function name, returns its hex value.
-Builtins.prototype.getFunctionId = function(name) {
+Builtins.prototype.getFunctionId = function(name: string) {
   if (!_.has(this.functionIds, name)) throw new Error(`No such built-in function '${name}'.`);
   return this.functionIds[name];
 };
 // Converts a built-in function speed value back/forth between what the
 // user inputs and what is transmitted in the byte array.
-Builtins.prototype.flipSpeed = function(speed) {
+Builtins.prototype.flipSpeed = function(speed: number) {
   return Math.abs(_.clamp(speed, 0, 100) - 100);
 }
 

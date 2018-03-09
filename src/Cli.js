@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 const util = require('util');
-const UFO = require('../index.js');
+const UFO = require('./Ufo.js');
 const _ = require('lodash');
 const promptly = require('promptly');
 const IPv4 = require('ip-address').Address4;
@@ -66,7 +66,7 @@ const quitError = function(obj) {
 
 // Define core CLI options.
 var cli = require('commander');
-cli.version(require('^package.json').version)
+cli.version(lufoRequire('../package.json').version)
   .usage('[options] <command> [command-options ...]')
   .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover". If unspecified, the LUFO_ADDRESS environment variable is used.');
 cli.on('--help', function() {

@@ -2,23 +2,30 @@
   "name": "ledenet-ufo",
   "version": "0.1.0",
   "description": "API/CLI for LEDENET UFO WiFi RGBW controllers.",
+  "main": "lib/Ufo.js",
   "bin": {
-    "lufo": "src/Cli.js"
+    "lufo": "lib/Cli.js"
   },
   "dependencies": {
     "commander": "^2.12.2",
     "ip-address": "^5.8.9",
     "lodash": "^4.17.4",
-    "promptly": "^2.2.0",
-    "rooty": "^2.0.0"
+    "promptly": "^2.2.0"
   },
   "devDependencies": {
     "documentation": "^6.1.0",
     "flow-bin": "^0.67.1",
+    "flow-copy-source": "^1.3.0",
     "flow-remove-types": "^1.2.3"
   },
+  "files": [
+    "lib"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "bc": "yarn run build && yarn run cli",
+    "build": "flow-remove-types src/ -q -d lib/ ; flow-copy-source src lib ; chmod +x lib/Cli.js",
+    "cli": "./lib/Cli.js",
+    "test": "echo \"Error: no tests exist!\" && exit 1"
   },
   "repository": {
     "type": "git",

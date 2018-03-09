@@ -1,5 +1,6 @@
-const Builtins = require('^src/tcp/model/Builtins');
-const Customs = require('^src/tcp/model/Customs');
+// @flow
+const Builtins = lufoRequire('tcp/model/Builtins');
+const Customs = lufoRequire('tcp/model/Customs');
 
 // The status response payload is always the same size.
 const statusResponseSize = 14;
@@ -8,7 +9,7 @@ const statusHeader = 0x81;
 
 const Status = function() {
   // Handler for receiving status bytes. Must be bound to a TcpClient instance.
-  this.statusResponseHandler = function(data) {
+  this.statusResponseHandler = function(data: Buffer) {
     if (!this._error) {
       // Add the data to what we already have.
       var oldIndex = this._statusIndex;
@@ -22,7 +23,7 @@ const Status = function() {
         newIndex = 0;
         // Prepare callback variables.
         var err = null;
-        var data = {};
+        var result = {};
         // Verify the response's integrity.
         if (responseBytes.readUInt8(0) === statusHeader) {
           // Compute the actual checksum.
@@ -53,15 +54,16 @@ const Status = function() {
         */
 
         // Add raw bytes to the response.
-        data.raw = responseBytes;
+        result.raw = responseBytes;
         // ON_OFF is always either 0x23 or 0x24.
         if (!err) {
-          switch (responseBytes.readUInt8(2)) {
+          var power = responseBytes.readUInt8(2);
+          switch (power) {
             case 0x23:
-              data.power = 'on'
+              result.power = 'on'
               break;
             case 0x24:
-              data.power = 'off';
+              result.power = 'off';
               break;
             default:
               err = new Error(`Status check failed (impossible power value ${power}).`);
@@ -76,19 +78,19 @@ const Status = function() {
           var mode = responseBytes.readUInt8(3);
           switch (mode) {
             case 0x62:
-              data.mode = 'other';
+              result.mode = 'other';
               break;
             case 0x61:
-              data.mode = 'static';
+              result.mode = 'static';
               break;
             case 0x60:
-              data.mode = 'custom';
+              result.mode = 'custom';
               break;
             default:
               var found = false;
               for (const f in Builtins.functionIds) {
                 if (Builtins.functionIds[f] === mode) {
-                  data.mode = `function:${f}`;
+                  result.mode = `function:${f}`;
                   found = true;
                   break;
                 }
@@ -100,24 +102,24 @@ const Status = function() {
         // SPEED is evaluated based on MODE, and it does not apply to all modes.
         if (!err) {
           var speed = responseBytes.readUInt8(5);
-          if (data.mode === 'custom') {
+          if (result.mode === 'custom') {
             // The UFO seems to store/report the speed as 1 higher than what it really is.
-            data.speed = Customs.flipSpeed(speed - 1);
+            result.speed = Customs.flipSpeed(speed - 1);
           }
-          if (data.mode.startsWith('function')) {
-            data.speed = Builtins.flipSpeed(speed);
+          if (result.mode.startsWith('function')) {
+            result.speed = Builtins.flipSpeed(speed);
           }
         }
         // Capture RGBW values as-is.
         if (!err) {
-          data.red = responseBytes.readUInt8(6);
-          data.green = responseBytes.readUInt8(7);
-          data.blue = responseBytes.readUInt8(8);
-          data.white = responseBytes.readUInt8(9);
+          result.red = responseBytes.readUInt8(6);
+          result.green = responseBytes.readUInt8(7);
+          result.blue = responseBytes.readUInt8(8);
+          result.white = responseBytes.readUInt8(9);
         }
         // Transfer control to the user's callback.
-        if (err) data = null;
-        this._statusCallback(err, data);
+        if (err) result = null;
+        this._statusCallback(err, result);
       }
       // Update the status response index.
       this._statusIndex = newIndex;
@@ -128,5 +130,5 @@ const Status = function() {
 // No local flag or checksum; do not pass to tcp/Utils.
 Status.prototype.request = function() { return Buffer.from([statusHeader, 0x8A, 0x8B, 0x96]); };
 Status.prototype.responseSize = function() { return statusResponseSize; };
-Status.prototype.responseHandler = function(ufoTcp) { return this.statusResponseHandler.bind(ufoTcp); };
+Status.prototype.responseHandler = function(ufoTcp: Object) { return this.statusResponseHandler.bind(ufoTcp); };
 module.exports = Object.freeze(new Status());

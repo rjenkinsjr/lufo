@@ -1,8 +1,5 @@
+// @flow
 const _ = require('lodash');
-
-/*
- * Exports
- */
 
 const Customs = function () {
   // A single custom function command always contains exactly this many steps.
@@ -13,7 +10,7 @@ const Customs = function () {
 };
 // Converts a custom command speed value back/forth between what the
 // user inputs and what is transmitted in the byte array.
-Customs.prototype.flipSpeed = function(speed) {
+Customs.prototype.flipSpeed = function(speed: number) {
   return Math.abs(_.clamp(speed, 0, 30) - 30);
 }
 module.exports = Object.freeze(new Customs());
