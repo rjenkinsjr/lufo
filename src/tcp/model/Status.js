@@ -88,7 +88,7 @@ const Status = function() {
               break;
             default:
               var found = false;
-              for (const f in Builtins.functionIds) {
+              for (const f in Builtins.getFunctions().toObject()) {
                 if (Builtins.functionIds[f] === mode) {
                   result.mode = `function:${f}`;
                   found = true;
