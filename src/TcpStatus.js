@@ -1,6 +1,6 @@
 // @flow
-const Builtins = require('./TcpBuiltins');
-const Customs = require('./TcpCustoms');
+const TcpBuiltins = require('./TcpBuiltins');
+const TcpCustoms = require('./TcpCustoms');
 
 /* Private variables */
 const header = 0x81;
@@ -10,7 +10,7 @@ const responseSize = 14;
 /**
  * This class contains methods for parsing a UFO's status byte stream.
  */
-class Status {
+class TcpStatus {
   /**
    * Returns the bytes for the status request command. The returned buffer already
    * contains the "local" byte and the checksum byte; do not pass this value to tcp/Utils.
@@ -103,8 +103,8 @@ class Status {
                 break;
               default:
                 var found = false;
-                for (const f in Builtins.getFunctions().toObject()) {
-                  if (Builtins.getFunctionId(f) === mode) {
+                for (const f in TcpBuiltins.getFunctions().toObject()) {
+                  if (TcpBuiltins.getFunctionId(f) === mode) {
                     result.mode = `function:${f}`;
                     found = true;
                     break;
@@ -119,10 +119,10 @@ class Status {
             var speed = responseBytes.readUInt8(5);
             if (result.mode === 'custom') {
               // The UFO seems to store/report the speed as 1 higher than what it really is.
-              result.speed = Customs.flipSpeed(speed - 1);
+              result.speed = TcpCustoms.flipSpeed(speed - 1);
             }
             if (result.mode.startsWith('function')) {
-              result.speed = Builtins.flipSpeed(speed);
+              result.speed = TcpBuiltins.flipSpeed(speed);
             }
           }
           // Capture RGBW values as-is.
@@ -143,4 +143,4 @@ class Status {
   }
 }
 
-module.exports = Object.freeze(new Status());
+module.exports = Object.freeze(new TcpStatus());

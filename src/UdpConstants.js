@@ -1,5 +1,5 @@
 const util = require('util');
-const Strings = require('./UdpStrings');
+const UdpStrings = require('./UdpStrings');
 const _ = require('lodash');
 
 // Definition of all supported AT commands, including their send formats,
@@ -31,12 +31,12 @@ module.exports = Object.freeze(Object.assign({
     // Commands flagged at literal have no syntax translation whatsoever.
     if (!command.literal) {
       // Non-literal commands are wrapped in the send prefix/suffix.
-      cmdString = Strings.sendPrefix + cmdString;
+      cmdString = UdpStrings.sendPrefix + cmdString;
       // Set commands have their argument list prior to the send suffix.
       if (mode === 'set') {
         cmdString += '=' + setArgs.join(',');
       }
-      cmdString += Strings.sendSuffix;
+      cmdString += UdpStrings.sendSuffix;
     }
     // Return the send and receive schema.
     return Object.freeze({
@@ -44,9 +44,9 @@ module.exports = Object.freeze(Object.assign({
       recv: function(response) {
         var result = response;
         // Chop response prefix/suffix, if they exist.
-        if (result.startsWith(Strings.recvPrefix)) result = result.substring(Strings.recvPrefix.length);
+        if (result.startsWith(UdpStrings.recvPrefix)) result = result.substring(UdpStrings.recvPrefix.length);
         if (result.startsWith('=')) result = result.substring(1);
-        if (result.endsWith(Strings.recvSuffix)) result = result.substring(0, result.length - Strings.recvPrefix.length);
+        if (result.endsWith(UdpStrings.recvSuffix)) result = result.substring(0, result.length - UdpStrings.recvPrefix.length);
         result = result.trim();
         if (result === '') {
           return [];
@@ -60,4 +60,4 @@ module.exports = Object.freeze(Object.assign({
       }.bind(command[mode] || false)
     });
   }
-}, Strings));
+}, UdpStrings));

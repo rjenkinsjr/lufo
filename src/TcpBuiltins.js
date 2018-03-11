@@ -12,10 +12,10 @@ const maxSpeed = 100;
 /**
  * This class contains methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions.
  */
-class Builtins {
+class TcpBuiltins {
   /**
    * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.
-   * This map includes internal function names that are excluded by {@link Builtins#getFunctionNames}.
+   * This map includes internal function names that are excluded by {@link TcpBuiltins#getFunctionNames}.
    */
   getFunctions(): Map<string, number> { return functionMap; }
   /**
@@ -39,4 +39,4 @@ class Builtins {
   }
 }
 
-module.exports = Object.freeze(new Builtins());
+module.exports = Object.freeze(new TcpBuiltins());

@@ -1,17 +1,17 @@
-const Strings = require('./UdpStrings');
+const UdpStrings = require('./UdpStrings');
 module.exports = Object.freeze({
   hello: {
     // getter-only
     // arg 1 is IP address
     // arg 2 is MAC address
     // arg 3 is model number
-    cmd: Strings.defaultHello,
+    cmd: UdpStrings.defaultHello,
     literal: true,
     get: []
   },
   helloAck: {
     // getter-only
-    cmd: Strings.ack,
+    cmd: UdpStrings.ack,
     literal: true
   },
   reboot: {

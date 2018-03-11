@@ -1,15 +1,15 @@
 const _ = require('lodash');
 
-const Utils = function() {};
+const TcpUtils = function() {};
 // Clamps RGBW values within the accepted range (0 <= value <= 255).
-Utils.prototype.clampRGBW = function(num) {
+TcpUtils.prototype.clampRGBW = function(num) {
   return _.clamp(num, 0, 255);
 }
 // Given a buffer of data destined for a UFO, expands the buffer by 2 and
 // inserts the last two bytes (the "local" constant 0x0f, and the checksum).
 //
 // Returns a new buffer and leaves the input buffer unmodified.
-Utils.prototype.prepareBytes = function(buf) {
+TcpUtils.prototype.prepareBytes = function(buf) {
   var newBuf = Buffer.alloc(buf.length + 2);
   buf.copy(newBuf);
   this.finalizeBytes(newBuf);
@@ -24,13 +24,13 @@ Utils.prototype.prepareBytes = function(buf) {
 // library, so we always use "local".
 //
 // Expects a buffer from the prepareBytes method.
-Utils.prototype.finalizeBytes = function(buf) {
+TcpUtils.prototype.finalizeBytes = function(buf) {
   buf.writeUInt8(0x0f, buf.length - 2);
 }
 // Adds the checksum to the buffer.
 //
 // Expects a buffer from the prepareBytes method.
-Utils.prototype.checksumBytes = function(buf) {
+TcpUtils.prototype.checksumBytes = function(buf) {
   // Sanity.
   var lastIndex = buf.length - 1;
   buf.writeUInt8(0, lastIndex);
@@ -43,4 +43,4 @@ Utils.prototype.checksumBytes = function(buf) {
   checksum = checksum % 0x100;
   buf.writeUInt8(checksum, lastIndex);
 }
-module.exports = Object.freeze(new Utils());
+module.exports = Object.freeze(new TcpUtils());

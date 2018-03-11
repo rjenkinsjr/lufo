@@ -9,7 +9,7 @@ const maxSpeed = 30;
 /**
  * This class contains methods for working with UFO custom functions.
  */
-class Customs {
+class TcpCustoms {
   /**
    * Returns 16, the maximum number of steps allowed in a single custom function command.
    */
@@ -28,4 +28,4 @@ class Customs {
   }
 }
 
-module.exports = Object.freeze(new Customs());
+module.exports = Object.freeze(new TcpCustoms());

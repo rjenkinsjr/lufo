@@ -1,6 +1,6 @@
 const dgram = require('dgram');
-const Constants = require('./UdpConstants');
-const UDPUtils = require('./UdpUtils');
+const UdpConstants = require('./UdpConstants');
+const UdpUtils = require('./UdpUtils');
 
 // UFO discovery method.
 //
@@ -21,14 +21,14 @@ module.exports = function(options, callback) {
   var error = null;
   var data = [];
   // Set the default password if none was given.
-  var hello = options.password ? options.password : Constants.defaultHello;
+  var hello = options.password ? options.password : UdpConstants.defaultHello;
   // Set the default timeout if none was given.
   const discoverTimeout = 3000; // milliseconds
   var timeout = options.timeout;
   if (!timeout || timeout < 0) timeout = discoverTimeout;
   // Set the default remote port if none was given.
   var remotePort = options.remotePort;
-  if (!remotePort || remotePort < 0) remotePort = Constants.port;
+  if (!remotePort || remotePort < 0) remotePort = UdpConstants.port;
   // Setup the socket. Let Node exit if this socket is still active.
   var stopDiscover = null;
   const socket = dgram.createSocket('udp4').unref();
@@ -48,7 +48,7 @@ module.exports = function(options, callback) {
       // The socket sends itself the request message. Ignore this.
       if (message !== hello) {
         // Add the result to our array.
-        data.push(UDPUtils.parseHelloResponse(message));
+        data.push(UdpUtils.parseHelloResponse(message));
       }
     }
   });

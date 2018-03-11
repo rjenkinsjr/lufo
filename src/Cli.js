@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 const util = require('util');
-const UFO = require('./Ufo');
+const Ufo = require('./Ufo');
 const _ = require('lodash');
 const promptly = require('promptly');
 const IPv4 = require('ip-address').Address4;
@@ -20,7 +20,7 @@ const go = function(action) {
           if (err) quitError(error);
         }
       }
-      theUfo = new UFO(ufoOptions);
+      theUfo = new Ufo(ufoOptions);
       theUfo.connect(action.bind(theUfo));
     } else {
       quitError(`Invalid UFO IP address provided: ${cli.ufo}.`);

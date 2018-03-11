@@ -1,9 +1,9 @@
 const net = require('net');
-const Builtins = require('./TcpBuiltins');
-const Customs = require('./TcpCustoms');
-const Power = require('./TcpPower');
-const Status = require('./TcpStatus');
-const TCPUtils = require('./TcpUtils');
+const TcpBuiltins = require('./TcpBuiltins');
+const TcpCustoms = require('./TcpCustoms');
+const TcpPower = require('./TcpPower');
+const TcpStatus = require('./TcpStatus');
+const TcpUtils = require('./TcpUtils');
 
 // TCP socket creation method. Must be bound to a tcp/Client instance.
 const createSocket = function() {
@@ -16,7 +16,7 @@ const createSocket = function() {
   // any UFO control methods (e.g. rgbw).
   this._dead = false;
   // Storage/tracking for the status response.
-  this._statusArray = new Uint8Array(Status.getResponseSize());
+  this._statusArray = new Uint8Array(TcpStatus.getResponseSize());
   this._statusIndex = 0;
   // The TCP socket used to communicate with the UFO.
   this._socket = net.Socket();
@@ -32,7 +32,7 @@ const createSocket = function() {
   // Both sides have FIN'ed. No more communication is allowed on this socket.
   this._socket.on('close', closeSocket.bind(this));
   // Any TCP data received from the UFO is a status update.
-  this._socket.on('data', Status.getResponseHandler(this));
+  this._socket.on('data', TcpStatus.getResponseHandler(this));
   // Initially, ignore all received data.
   this._socket.pause();
 }
@@ -71,7 +71,7 @@ const closeSocket = function() {
  * Exports
  */
 
-var Client = module.exports = function(ufo, options) {
+var TcpClient = module.exports = function(ufo, options) {
   // Capture the parent UFO.
   this._ufo = ufo;
   // Capture the options provided by the user.
@@ -86,7 +86,7 @@ var Client = module.exports = function(ufo, options) {
 // Wraps the socket.write() method, handling the optional callback.
 //
 // callback is optional and accepts no arguments.
-Client.prototype._write = function(buffer, callback) {
+TcpClient.prototype._write = function(buffer, callback) {
   if (typeof callback === 'function') {
     this._socket.write(buffer, callback);
   } else {
@@ -101,7 +101,7 @@ Client.prototype._write = function(buffer, callback) {
 // Its response always seems to be 0x0f 0x10 0x00 0x1f.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype._time = function(callback) {
+TcpClient.prototype._time = function(callback) {
   if (this._dead) return;
   // 0x10 yy yy mm dd hh mm ss 0x07 0x00
   // The first "yy" is the first 2 digits of the year.
@@ -123,7 +123,7 @@ Client.prototype._time = function(callback) {
   buf.writeUInt8(now.getSeconds(), 7);
   buf.writeUInt8(0x07, 8);
   buf.writeUInt8(0, 9);
-  this._write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TcpUtils.prepareBytes(buf), callback);
 }
 
 
@@ -133,7 +133,7 @@ Client.prototype._time = function(callback) {
 // Binds the TCP socket on this machine.
 //
 // Callback is required and accepts no arguments.
-Client.prototype.connect = function(callback) {
+TcpClient.prototype.connect = function(callback) {
   if (this._dead) return;
   // Define options object.
   var options = {
@@ -148,7 +148,7 @@ Client.prototype.connect = function(callback) {
   this._socket.connect(options, callback);
 }
 // Closes the TCP socket on this machine.
-Client.prototype.disconnect = function() {
+TcpClient.prototype.disconnect = function() {
   if (this._dead) return;
   // We're intentionally closing this connection.
   // Don't allow it to be used again.
@@ -160,7 +160,7 @@ Client.prototype.disconnect = function() {
 //
 // Callback is required and accepts error and data arguments.
 // Either one or the other argument is null, but never both.
-Client.prototype.status = function(callback) {
+TcpClient.prototype.status = function(callback) {
   if (this._dead) return;
   this._socket.resume();
   this._statusCallback = function(err, data) {
@@ -168,26 +168,26 @@ Client.prototype.status = function(callback) {
     this._socket.pause();
     callback(err, data);
   }.bind(this);
-  this._socket.write(Status.getRequest());
+  this._socket.write(TcpStatus.getRequest());
 }
 // Turns the UFO on.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype.on = function(callback) {
+TcpClient.prototype.on = function(callback) {
   if (this._dead) return;
-  this._write(Power.on(), callback);
+  this._write(TcpPower.on(), callback);
 }
 // Turns the UFO off.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype.off = function(callback) {
+TcpClient.prototype.off = function(callback) {
   if (this._dead) return;
-  this._write(Power.off(), callback);
+  this._write(TcpPower.off(), callback);
 }
 // Toggles the UFO.
 //
 // Callback is optional and accepts an error argument.
-Client.prototype.togglePower = function(callback) {
+TcpClient.prototype.togglePower = function(callback) {
   if (this._dead) return;
   this.status(function(err, status) {
     if (err) {
@@ -206,32 +206,32 @@ Client.prototype.togglePower = function(callback) {
 // Sets the RGBW output values of the UFO.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype.rgbw = function(red, green, blue, white, callback) {
+TcpClient.prototype.rgbw = function(red, green, blue, white, callback) {
   if (this._dead) return;
   // 0x31 rr gg bb ww 0x00
   // 0x00 seems to be a constant terminator for the data.
   var buf = Buffer.alloc(6);
   buf.writeUInt8(0x31, 0);
-  buf.writeUInt8(TCPUtils.clampRGBW(red), 1);
-  buf.writeUInt8(TCPUtils.clampRGBW(green), 2);
-  buf.writeUInt8(TCPUtils.clampRGBW(blue), 3);
-  buf.writeUInt8(TCPUtils.clampRGBW(white), 4);
+  buf.writeUInt8(TcpUtils.clampRGBW(red), 1);
+  buf.writeUInt8(TcpUtils.clampRGBW(green), 2);
+  buf.writeUInt8(TcpUtils.clampRGBW(blue), 3);
+  buf.writeUInt8(TcpUtils.clampRGBW(white), 4);
   buf.writeUInt8(0, 5);
-  this._write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TcpUtils.prepareBytes(buf), callback);
 }
 // Enables one of the UFO's built-in functions.
 // Speed ranges from 0 (slow) to 100 (fast), inclusive.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype.builtin = function(name, speed, callback) {
+TcpClient.prototype.builtin = function(name, speed, callback) {
   if (this._dead) return;
   // 0x61 id speed
   var buf = Buffer.alloc(3);
   buf.writeUInt8(0x61, 0);
-  buf.writeUInt8(Builtins.getFunctionId(name), 1);
+  buf.writeUInt8(TcpBuiltins.getFunctionId(name), 1);
   // This function accepts a speed from 0 (slow) to 100 (fast).
-  buf.writeUInt8(Builtins.flipSpeed(speed), 2);
-  this._write(TCPUtils.prepareBytes(buf), callback);
+  buf.writeUInt8(TcpBuiltins.flipSpeed(speed), 2);
+  this._write(TcpUtils.prepareBytes(buf), callback);
 }
 // Starts a custom function.
 // Speed ranges from 0 (slow) to 30 (fast).
@@ -242,7 +242,7 @@ Client.prototype.builtin = function(name, speed, callback) {
 // Step objects defined as { red: 1, green: 2, blue: 3 } are invalid and dropped from the input array.
 //
 // Callback is optional and accepts no arguments.
-Client.prototype.custom = function(mode, speed, steps, callback) {
+TcpClient.prototype.custom = function(mode, speed, steps, callback) {
   if (this._dead) return;
   // Validate the mode.
   var modeId;
@@ -271,8 +271,8 @@ Client.prototype.custom = function(mode, speed, steps, callback) {
   // can only exist at the end of the array.
   //
   // While we're doing this, truncate the array to the correct size.
-  const nullStep = Customs.getNullStep();
-  const stepCount = Customs.getStepCount();
+  const nullStep = TcpCustoms.getNullStep();
+  const stepCount = TcpCustoms.getStepCount();
   var stepsCopy = steps.filter(function(s) {
     return !(s.red === nullStep.red &&
              s.green === nullStep.green &&
@@ -284,25 +284,25 @@ Client.prototype.custom = function(mode, speed, steps, callback) {
   // Each step consists of an RGB value and is translated into 4 bytes.
   // The 4th byte is always zero.
   for (const step of stepsCopy) {
-    buf.writeUInt8(TCPUtils.clampRGBW(step.red), index);
+    buf.writeUInt8(TcpUtils.clampRGBW(step.red), index);
     index++;
-    buf.writeUInt8(TCPUtils.clampRGBW(step.green), index);
+    buf.writeUInt8(TcpUtils.clampRGBW(step.green), index);
     index++;
-    buf.writeUInt8(TCPUtils.clampRGBW(step.blue), index);
+    buf.writeUInt8(TcpUtils.clampRGBW(step.blue), index);
     index++;
     buf.writeUInt8(0, index);
     index++;
   }
   // This function accepts a speed from 0 (slow) to 30 (fast).
   // The UFO seems to store/report the speed as 1 higher than what it really is.
-  buf.writeUInt8(Customs.flipSpeed(speed) + 1, index);
+  buf.writeUInt8(TcpCustoms.flipSpeed(speed) + 1, index);
   index++;
   // Set the mode.
   buf.writeUInt8(modeId, index);
   index++;
   // Add terminator and write.
   buf.writeUInt8(0xFF, index);
-  this._write(TCPUtils.prepareBytes(buf), callback);
+  this._write(TcpUtils.prepareBytes(buf), callback);
 }
 
 /*

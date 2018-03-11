@@ -7,7 +7,7 @@ const off = [0x71, 0x24, 0x0F, 0xA4];
 /**
  * This class contains methods for controlling a UFO's power flag.
  */
-class Power {
+class TcpPower {
   /**
    * Returns the bytes for the "on" flag. The returned buffer already contains
    * the "local" byte and the checksum byte; do not pass this value to tcp/Utils.
@@ -20,4 +20,4 @@ class Power {
   off(): Buffer { return Buffer.from(off); }
 }
 
-module.exports = Object.freeze(new Power());
+module.exports = Object.freeze(new TcpPower());
