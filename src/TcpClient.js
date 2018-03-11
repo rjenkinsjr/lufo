@@ -16,7 +16,7 @@ const createSocket = function() {
   // any UFO control methods (e.g. rgbw).
   this._dead = false;
   // Storage/tracking for the status response.
-  this._statusArray = new Uint8Array(Status.responseSize());
+  this._statusArray = new Uint8Array(Status.getResponseSize());
   this._statusIndex = 0;
   // The TCP socket used to communicate with the UFO.
   this._socket = net.Socket();
@@ -32,7 +32,7 @@ const createSocket = function() {
   // Both sides have FIN'ed. No more communication is allowed on this socket.
   this._socket.on('close', closeSocket.bind(this));
   // Any TCP data received from the UFO is a status update.
-  this._socket.on('data', Status.responseHandler(this));
+  this._socket.on('data', Status.getResponseHandler(this));
   // Initially, ignore all received data.
   this._socket.pause();
 }
@@ -168,7 +168,7 @@ Client.prototype.status = function(callback) {
     this._socket.pause();
     callback(err, data);
   }.bind(this);
-  this._socket.write(Status.request());
+  this._socket.write(Status.getRequest());
 }
 // Turns the UFO on.
 //
