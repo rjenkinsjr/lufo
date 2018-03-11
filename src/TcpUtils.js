@@ -26,16 +26,16 @@ class TcpUtils {
     // library, so we always use "local".
     newBuf.writeUInt8(0x0f, newBuf.length - 2);
     // Zero out the checksum field for safety.
-    var lastIndex = buf.length - 1;
-    buf.writeUInt8(0, lastIndex);
+    var lastIndex = newBuf.length - 1;
+    newBuf.writeUInt8(0, lastIndex);
     // Sum up all the values in the buffer, then divide by 256.
     // The checksum is the remainder.
     var checksum = 0;
-    for (const value of buf.values()) {
+    for (const value of newBuf.values()) {
       checksum += value;
     }
     checksum = checksum % 0x100;
-    buf.writeUInt8(checksum, lastIndex);
+    newBuf.writeUInt8(checksum, lastIndex);
     // Done.
     return newBuf;
   }
