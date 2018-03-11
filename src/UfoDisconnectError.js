@@ -1,8 +1,19 @@
-module.exports = function UfoDisconnectError(message, udpError, tcpError) {
-  Error.captureStackTrace(this, this.constructor);
-  this.name = this.constructor.name;
-  this.message = message;
-  this.udpError = udpError;
-  this.tcpError = tcpError;
-};
-require('util').inherits(module.exports, Error);
+// @flow
+
+/**
+ * Errors of this type are thrown when communication with a UFO fails. The error
+ * object contains a message and an optional error from the UDP and TCP sockets
+ * that may have contributed to this error.
+ */
+class UfoDisconnectError extends Error {
+  udpError: Error;
+  tcpError: Error;
+  constructor(message: string, udpError: Error, tcpError: Error) {
+    super(message);
+    Error.captureStackTrace(this, UfoDisconnectError);
+    this.udpError = udpError;
+    this.tcpError = tcpError;
+  }
+}
+
+module.exports = UfoDisconnectError;
