@@ -25,7 +25,7 @@
   "scripts": {
     "build": "rm -rf lib ; flow-remove-types src/ -q -d lib/ ; flow-copy-source src lib ; chmod +x lib/Cli.js",
     "cli": "yarn run build && ./lib/Cli.js",
-    "doc": "documentation build src/** -f html -o docs",
+    "doc": "rm -rf docs ; documentation build src/** -f html -o docs",
     "test": "echo \"Error: no tests exist!\" && exit 1"
   },
   "repository": {
