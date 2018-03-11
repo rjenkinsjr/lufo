@@ -234,7 +234,7 @@ cli.command('function <name> <speed>')
 cli.command('function-list')
   .description('Lists all possible built-in function names usable by the "function" command.')
   .action(function() {
-    console.log(require('./tcp/model/Builtins').getFunctionNames().join(', '));
+    console.log(require('./TcpBuiltins').getFunctionNames().join(', '));
   });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')
