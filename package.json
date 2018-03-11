@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "bc": "yarn run build && yarn run cli",
-    "build": "flow-remove-types src/ -q -d lib/ ; flow-copy-source src lib ; chmod +x lib/Cli.js",
+    "build": "flow-remove-types src/ -q -d lib/ ; flow-copy-source src lib ; chmod +x lib/Cli.js ; cd src ; find . -name '*.json' | cpio -pdum ../lib",
     "cli": "./lib/Cli.js",
     "doc": "documentation build src/** -f html -o docs",
     "test": "echo \"Error: no tests exist!\" && exit 1"

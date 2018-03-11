@@ -1,5 +1,5 @@
 global.lufoRequire = function(name) {
-    return require(__dirname + '/' + name);
+  return require(__dirname + '/' + name);
 }
 const events = require('events');
 const TcpClient = lufoRequire('tcp/Client');

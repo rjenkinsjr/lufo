@@ -231,6 +231,11 @@ cli.command('function <name> <speed>')
       this.setBuiltin(name, speed, stop());
     });
   });
+cli.command('function-list')
+  .description('Lists all possible built-in function names usable by the "function" command.')
+  .action(function() {
+    console.log(require('./tcp/model/Builtins').getFunctionNames().join(', '));
+  });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')
   .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 (slow to fast) inclusive. Steps are space-separated RGB triplets (each value in the triplet ranges 0-255 inclusive); maximum of 16 steps (extras are ignored).')
