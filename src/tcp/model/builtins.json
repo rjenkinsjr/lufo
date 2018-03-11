@@ -18,7 +18,7 @@
   "cyanStrobeFlash": "0x35",
   "purpleStrobeFlash": "0x36",
   "whiteStrobeFlash": "0x37",
-  "noFunction": "0x61",
   "sevenColorJumpingChange": "0x38",
+  "noFunction": "0x61",
   "postReset": "0x63"
 }
