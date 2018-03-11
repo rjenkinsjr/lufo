@@ -21,6 +21,6 @@ class UdpStrings {
   defaultHello(): string { return 'HF-A11ASSISTHREAD'; }
   /** The prefix of all AT command responses that are errors. */
   errAck(): string { return '+ERR'; }
-};
+}
 
 module.exports = Object.freeze(new UdpStrings());

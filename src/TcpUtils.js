@@ -16,7 +16,7 @@ class TcpUtils {
    * A new buffer is returned; the input buffer is not modified.
    */
   prepareBytes(buf: Buffer): Buffer {
-    var newBuf = Buffer.alloc(buf.length + 2);
+    const newBuf = Buffer.alloc(buf.length + 2);
     buf.copy(newBuf);
     // Add the "local" flag to the given buffer.
     //
@@ -26,15 +26,15 @@ class TcpUtils {
     // library, so we always use "local".
     newBuf.writeUInt8(0x0f, newBuf.length - 2);
     // Zero out the checksum field for safety.
-    var lastIndex = newBuf.length - 1;
+    const lastIndex = newBuf.length - 1;
     newBuf.writeUInt8(0, lastIndex);
     // Sum up all the values in the buffer, then divide by 256.
     // The checksum is the remainder.
-    var checksum = 0;
+    let checksum = 0;
     for (const value of newBuf.values()) {
       checksum += value;
     }
-    checksum = checksum % 0x100;
+    checksum %= 0x100;
     newBuf.writeUInt8(checksum, lastIndex);
     // Done.
     return newBuf;

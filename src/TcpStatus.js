@@ -24,32 +24,32 @@ class TcpStatus {
    * Returns the response handler function, bound to the given {@link TcpClient}.
    */
   getResponseHandler(tcpClient: Object): Function {
-    return function(data: Buffer) {
+    return function (data: Buffer) {
       if (!this._error) {
         // Add the data to what we already have.
-        var oldIndex = this._statusIndex;
-        var newIndex = oldIndex + data.length;
+        const oldIndex = this._statusIndex;
+        let newIndex = oldIndex + data.length;
         this._statusArray.set(data, oldIndex);
         if (newIndex >= responseSize) {
           // We have the full response. Capture it and reset the storage buffer.
-          var responseBytes = Buffer.from(this._statusArray);
+          const responseBytes = Buffer.from(this._statusArray);
           this._statusArray.fill(0);
           // Reset the status response index.
           newIndex = 0;
           // Prepare callback variables.
-          var err = null;
-          var result = {};
+          let err = null;
+          let result = {};
           // Verify the response's integrity.
           if (responseBytes.readUInt8(0) === header) {
             // Compute the actual checksum.
-            var lastIndex = responseSize - 1;
-            var expectedChecksum = responseBytes.readUInt8(lastIndex);
+            const lastIndex = responseSize - 1;
+            const expectedChecksum = responseBytes.readUInt8(lastIndex);
             responseBytes.writeUInt8(0, lastIndex);
-            var actualChecksum = 0;
+            let actualChecksum = 0;
             for (const value of responseBytes.values()) {
               actualChecksum += value;
             }
-            actualChecksum = actualChecksum % 0x100;
+            actualChecksum %= 0x100;
             // Compare.
             responseBytes.writeUInt8(expectedChecksum, lastIndex);
             if (expectedChecksum !== actualChecksum) {
@@ -72,10 +72,10 @@ class TcpStatus {
           result.raw = responseBytes;
           // ON_OFF is always either 0x23 or 0x24.
           if (!err) {
-            var power = responseBytes.readUInt8(2);
+            const power = responseBytes.readUInt8(2);
             switch (power) {
               case 0x23:
-                result.power = 'on'
+                result.power = 'on';
                 break;
               case 0x24:
                 result.power = 'off';
@@ -90,7 +90,7 @@ class TcpStatus {
           // - 0x60 is custom steps.
           // - Otherwise, it is a function ID.
           if (!err) {
-            var mode = responseBytes.readUInt8(3);
+            const mode = responseBytes.readUInt8(3);
             switch (mode) {
               case 0x62:
                 result.mode = 'other';
@@ -116,7 +116,7 @@ class TcpStatus {
           }
           // SPEED is evaluated based on MODE, and it does not apply to all modes.
           if (!err) {
-            var speed = responseBytes.readUInt8(5);
+            const speed = responseBytes.readUInt8(5);
             if (result.mode === 'custom') {
               // The UFO seems to store/report the speed as 1 higher than what it really is.
               result.speed = TcpCustoms.flipSpeed(speed - 1);

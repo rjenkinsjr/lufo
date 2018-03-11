@@ -6,14 +6,15 @@ const _ = require('lodash');
 /* Private variables */
 const defaultPort = 48899;
 const commands = require('./UdpCommands');
-const normalizeMac = function(mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g,"$1:").slice(0, -1); };
-const helloResponseParser = function(response: string | Array<string>): { ip: string, mac: string, model: string } {
-  var splitResponse = response;
+
+const normalizeMac = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
+const helloResponseParser = function (response: string | Array<string>): { ip: string, mac: string, model: string } {
+  let splitResponse = response;
   if (!Array.isArray(splitResponse)) splitResponse = splitResponse.split(',');
   return {
     ip: splitResponse[0],
     mac: normalizeMac(splitResponse[1]),
-    model: splitResponse[2]
+    model: splitResponse[2],
   };
 };
 
@@ -51,34 +52,34 @@ class UdpUtils {
    */
   discover(options: Object, callback: Function): void {
     // Return variables.
-    var error = null;
-    var data = [];
+    let error = null;
+    const data = [];
     // Set the default password if none was given.
-    var hello = Buffer.from(options.password ? options.password : UdpStrings.defaultHello());
+    const hello = Buffer.from(options.password ? options.password : UdpStrings.defaultHello());
     // Set the default timeout if none was given.
     const discoverTimeout = 3000; // milliseconds
-    var timeout = options.timeout;
+    let timeout = options.timeout;
     if (!timeout || timeout < 0) timeout = discoverTimeout;
     // Set the default remote port if none was given.
-    var remotePort = options.remotePort;
+    let remotePort = options.remotePort;
     if (!remotePort || remotePort < 0) remotePort = defaultPort;
     // Setup the socket. Let Node exit if this socket is still active.
-    var stopDiscover: ?TimeoutID = null;
+    let stopDiscover: ?TimeoutID = null;
     const socket: dgram$Socket = dgram.createSocket('udp4');
     socket.unref();
     // Define the listener's event handlers.
-    socket.on('close', function() {
+    socket.on('close', () => {
       if (stopDiscover) clearTimeout(stopDiscover);
       typeof callback === 'function' && callback(error, data);
     });
-    socket.on('error', function(err) {
+    socket.on('error', (err) => {
       if (stopDiscover) clearTimeout(stopDiscover);
       error = err;
       socket.close();
     });
-    socket.on('message', function(msg, rinfo) {
+    socket.on('message', (msg, rinfo) => {
       if (!error) {
-        var message = msg.toString('utf8');
+        const message = msg.toString('utf8');
         // The socket sends itself the request message. Ignore this.
         if (message !== hello) {
           // Add the result to our array.
@@ -87,16 +88,16 @@ class UdpUtils {
       }
     });
     // Send the request and start listening for responses.
-    const closeSocket = function() { socket.close(); };
-    socket.on('listening', function() {
+    const closeSocket = function () { socket.close(); };
+    socket.on('listening', () => {
       socket.setBroadcast(true);
-      socket.send(hello, remotePort, '255.255.255.255', function(err) {
+      socket.send(hello, remotePort, '255.255.255.255', (err) => {
         if (err) socket.emit('error', err);
         else stopDiscover = setTimeout(closeSocket, timeout);
       });
     });
     // Use the specified port, or a random one.
-    var localPort = options.localPort;
+    const localPort = options.localPort;
     if (!localPort || localPort < 0) {
       socket.bind();
     } else {
@@ -119,24 +120,24 @@ class UdpUtils {
    */
   assembleCommand(name: string, ...setArgs: Array<string>): { send: string, recv: Function } {
     // Define the command object.
-    var command = commands.get(name);
-    var cmdString = command.cmd;
-    var mode = setArgs.length > 0 ? 'set' : 'get';
+    const command = commands.get(name);
+    let cmdString = command.cmd;
+    const mode = setArgs.length > 0 ? 'set' : 'get';
     // Commands flagged at literal have no syntax translation whatsoever.
     if (!command.literal) {
       // Non-literal commands are wrapped in the send prefix/suffix.
       cmdString = UdpStrings.sendPrefix() + cmdString;
       // Set commands have their argument list prior to the send suffix.
       if (mode === 'set') {
-        cmdString += '=' + setArgs.join(',');
+        cmdString += `=${setArgs.join(',')}`;
       }
       cmdString += UdpStrings.sendSuffix();
     }
     // Return the send and receive schema.
     return Object.freeze({
       send: cmdString,
-      recv: function(response: string): Array<string> {
-        var result = response;
+      recv: function (response: string): Array<string> {
+        let result = response;
         // Chop response prefix/suffix, if they exist.
         const recvPrefix = UdpStrings.recvPrefix();
         const recvSuffix = UdpStrings.recvSuffix();
@@ -150,10 +151,9 @@ class UdpUtils {
           return result.split(',');
         } else if (_.isString(this)) {
           return [result];
-        } else {
-          return [];
         }
-      }.bind(command[mode] || false)
+        return [];
+      }.bind(command[mode] || false),
     });
   }
 }

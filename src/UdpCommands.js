@@ -14,37 +14,37 @@ const commandMap: Map<string, Object> = Map({
     // arg 3 is model number
     cmd: UdpStrings.defaultHello(),
     literal: true,
-    get: []
+    get: [],
   },
   helloAck: {
     // getter-only
     cmd: UdpStrings.ack(),
-    literal: true
+    literal: true,
   },
   reboot: {
     // getter-only
-    cmd: 'Z'
+    cmd: 'Z',
   },
   factoryReset: {
     // getter-only
     cmd: 'RELD',
-    get: 'rebooting...'
+    get: 'rebooting...',
   },
   moduleVersion: {
     // getter-only
     // arbitrary string
     cmd: 'VER',
-    get: []
+    get: [],
   },
   ntp: {
     // arg 1 is IP address, default is 61.164.36.105
     cmd: 'NTPSER',
-    get: []
+    get: [],
   },
   udpPassword: {
     // password must be 20 characters or less
     cmd: 'ASWD',
-    get: []
+    get: [],
   },
   tcpServer: {
     // arg 1 is "TCP" or "UDP"
@@ -52,7 +52,7 @@ const commandMap: Map<string, Object> = Map({
     // arg 3 is port number
     // arg 4 is IP address
     cmd: 'NETP',
-    get: []
+    get: [],
   },
   wifiAutoSwitch: {
     // Determines how long the module will wait with no client WiFi connection
@@ -63,25 +63,25 @@ const commandMap: Map<string, Object> = Map({
     // "auto": 10 minutes
     // 3-120: X minutes
     cmd: 'MDCH',
-    get: []
+    get: [],
   },
   wifiMode: {
     // arg 1 is "AP", "STA" or "APSTA"
     cmd: 'WMODE',
-    get: []
+    get: [],
   },
   wifiScan: {
     // getter-only
     // This command actually returns multiple lines, but no special handling is required for that.
     cmd: 'WSCAN',
-    get: []
+    get: [],
   },
   // Not documented, nor does it show up in AT+H output, but it seems to
   // ease sending multiple commands in sequence. It appears to be some sort
   // of command terminator.
   endCmd: {
     // getter-only
-    cmd: 'Q'
+    cmd: 'Q',
   },
 
   /*
@@ -91,33 +91,33 @@ const commandMap: Map<string, Object> = Map({
     // arg 1 is IP address
     // arg 2 is netmask
     cmd: 'LANN',
-    get: []
+    get: [],
   },
   wifiApBroadcast: {
     // arg 1 is "11B", "11BG" or "11BGN"
     // arg 2 is SSID, 32 characters or less
     // arg 3 is "CH1" thru "CH11"
     cmd: 'WAP',
-    get: []
+    get: [],
   },
   wifiApAuth: {
     // arg 1 (auth) is "OPEN" or "WPA2PSK"
     // arg 2 (encryption) is "NONE" or "AES"
     // arg 3 (passphrase) is an ASCII string between 8 and 63 characters, inclusive
     cmd: 'WAKEY',
-    get: []
+    get: [],
   },
   wifiApLed: {
     // arg 1 is "on" or "off"
     cmd: 'WALKIND',
-    get: []
+    get: [],
   },
   wifiApDhcp: {
     // arg 1 is "on" or "off"
     // arg 2 is start octet
     // arg 3 is end octet
     cmd: 'WADHCP',
-    get: []
+    get: [],
   },
 
   /*
@@ -127,13 +127,13 @@ const commandMap: Map<string, Object> = Map({
     // getter-only
     // arg 1 is the literal string "Disconnected" or the variable string "SSID(MAC)"
     cmd: 'WSLK',
-    get: []
+    get: [],
   },
   wifiClientApSignal: {
     // getter-only
     // arg 1 is the literal string "Disconnected" or an arbitrary string
     cmd: 'WSLQ',
-    get: []
+    get: [],
   },
   wifiClientIp: {
     // arg 1 is "static" or "DHCP"
@@ -141,12 +141,12 @@ const commandMap: Map<string, Object> = Map({
     // arg 3 is netmask
     // arg 4 is gateway
     cmd: 'WANN',
-    get: []
+    get: [],
   },
   wifiClientSsid: {
     // arg 1 is SSID, 32 characters or less
     cmd: 'WSSSID',
-    get: []
+    get: [],
   },
   wifiClientAuth: {
     // arg 1 (auth) is "OPEN", "SHARED", "WPAPSK" or "WPA2PSK"
@@ -161,8 +161,8 @@ const commandMap: Map<string, Object> = Map({
     // - if encryption is "WEP-A", must be an ASCII string of length 5 or 13
     // - if encryption is "TKIP" or "AES", must be an ASCII string between 8 and 63 characters, inclusive
     cmd: 'WSKEY',
-    get: []
-  }
+    get: [],
+  },
 });
 
 /**
@@ -174,10 +174,10 @@ class UdpCommands {
    * @throws {Error} if an invalid command name is provided.
    */
   get(name: string): Object {
-    const command: Object|void = commandMap.get(name);
+    const command: Object | void = commandMap.get(name);
     if (!command) throw new Error(`No such built-in function '${name}'.`);
     return command;
-  };
+  }
 }
 
 module.exports = Object.freeze(new UdpCommands());
