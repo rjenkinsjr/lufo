@@ -23,9 +23,7 @@ class TcpCustoms {
    * Converts a custom function speed value back and forth between the API value and the internal value.
    * Input and output are clamped to 0-30 inclusive.
    */
-  flipSpeed(speed: number): number {
-    return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed);
-  }
+  flipSpeed(speed: number): number { return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed); }
 }
 
 module.exports = Object.freeze(new TcpCustoms());

@@ -1,6 +1,6 @@
 // @flow
-const fs = require('fs');
 const { Map, Set } = require('immutable');
+const fs = require('fs');
 const _ = require('lodash');
 
 /* Private variables */
@@ -34,9 +34,7 @@ class TcpBuiltins {
    * Converts a built-in function speed value back and forth between the API value and the internal value.
    * Input and output are clamped to 0-100 inclusive.
    */
-  flipSpeed(speed: number): number {
-    return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed);
-  }
+  flipSpeed(speed: number): number { return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed); }
 }
 
 module.exports = Object.freeze(new TcpBuiltins());
