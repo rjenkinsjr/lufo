@@ -271,13 +271,15 @@ Client.prototype.custom = function(mode, speed, steps, callback) {
   // can only exist at the end of the array.
   //
   // While we're doing this, truncate the array to the correct size.
+  const nullStep = Customs.getNullStep();
+  const stepCount = Customs.getStepCount();
   var stepsCopy = steps.filter(function(s) {
-    return !(s.red === Customs.nullStep.red &&
-             s.green === Customs.nullStep.green &&
-             s.blue === Customs.nullStep.blue);
-  }).slice(0, Customs.stepCount);
-  while (stepsCopy.length < Customs.stepCount) {
-    stepsCopy.push(Customs.nullStep);
+    return !(s.red === nullStep.red &&
+             s.green === nullStep.green &&
+             s.blue === nullStep.blue);
+  }).slice(0, stepCount);
+  while (stepsCopy.length < stepCount) {
+    stepsCopy.push(nullStep);
   }
   // Each step consists of an RGB value and is translated into 4 bytes.
   // The 4th byte is always zero.
