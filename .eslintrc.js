@@ -10,5 +10,10 @@ module.exports = {
   ],
   env: {
     node: true,
+    es6: true,
+  },
+  rules: {
+    'func-names': [1, 'never'],
+    'no-underscore-dangle': 0,
   },
 };
