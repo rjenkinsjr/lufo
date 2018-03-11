@@ -1,5 +1,6 @@
 const util = require('util');
 const dgram = require('dgram');
+const UdpStrings = require('./UdpStrings');
 const UdpConstants = require('./UdpConstants');
 const UdpUtils = require('./UdpUtils');
 const _ = require('lodash');
@@ -32,7 +33,7 @@ var Client = module.exports = function(ufo, options) {
         var message = msg.toString('utf8') || '';
         // Determine if we had an error.
         var atError = null;
-        if (message.startsWith(UdpConstants.errAck)) {
+        if (message.startsWith(UdpStrings.get('errAck'))) {
           var code = message.substring(message.indexOf('=') + 1).trim();
           var errorMsg = 'Unknown error';
           switch (code) {
@@ -97,7 +98,7 @@ Client.discover = require('./UdpDiscovery');
 Client.prototype._commandMode = function(callback) {
   if (this._dead) return;
   // Say hello.
-  this._sendAndWait(this._options.password || UdpConstants.command('hello'), function(err, msg) {
+  this._sendAndWait(this._options.password || UdpConstants.assembleCommand('hello'), function(err, msg) {
     if (err) {
       // Give up if we couldn't say hello.
       if (err) this._socket.emit('error', err);
@@ -106,7 +107,7 @@ Client.prototype._commandMode = function(callback) {
       var ufo = UdpUtils.parseHelloResponse(msg);
       if (ufo.ip === this._options.host || ufo.ip === '0.0.0.0') {
         // Switch to command mode.
-        this._send(UdpConstants.command('helloAck'), function(err) {
+        this._send(UdpConstants.assembleCommand('helloAck'), function(err) {
           // Give up if we couldn't switch to command mode.
           // Otherwise fire the callback.
           if (err) this._socket.emit('error', err);
@@ -124,7 +125,7 @@ Client.prototype._commandMode = function(callback) {
 // Callback is required and accepts no arguments.
 Client.prototype._endCommand = function(callback) {
   if (this._dead) return;
-  this._send(UdpConstants.command('endCmd'), function(err) {
+  this._send(UdpConstants.assembleCommand('endCmd'), function(err) {
     if (err) this._socket.emit('error', err);
     else callback();
   }.bind(this));
@@ -173,7 +174,7 @@ Client.prototype._sendAndVerify = function(cmd, expected, callback) {
 Client.prototype._sendAndWait = function(cmd, callback) {
   this._receiveCallback = callback;
   this._receiveParser = cmd.recv;
-  this._socket.send(cmd.send, UdpConstants.port, this._options.host, function(err) {
+  this._socket.send(cmd.send, UdpConstants.getDefaultPort(), this._options.host, function(err) {
     if (err) callback(err, null);
   });
 }
@@ -182,7 +183,7 @@ Client.prototype._sendAndWait = function(cmd, callback) {
 //
 // Callback is required and accepts an error argument.
 Client.prototype._send = function(cmd, callback) {
-  this._socket.send(cmd.send, UdpConstants.port, this._options.host, callback);
+  this._socket.send(cmd.send, UdpConstants.getDefaultPort(), this._options.host, callback);
 }
 
 /*
@@ -218,7 +219,7 @@ Client.prototype.disconnect = function() {
 // Either one or the other argument is null, but never both.
 Client.prototype.version = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('moduleVersion'), function(err, version) {
+    this._sendAndWait(UdpConstants.assembleCommand('moduleVersion'), function(err, version) {
       this._endCommand(function(err, version) {
         this(err, version);
       }.bind(callback, err, version));
@@ -233,7 +234,7 @@ Client.prototype.reboot = function(callback) {
   if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
   // Reboot and disconnect.
   this._commandMode(function() {
-    this._send(UdpConstants.command('reboot'), function(err) {
+    this._send(UdpConstants.assembleCommand('reboot'), function(err) {
       if (err) this._socket.emit('error', err);
       else this._ufo.disconnect();
     }.bind(this));
@@ -248,8 +249,8 @@ Client.prototype.factoryReset = function(callback) {
   // Request a factory reset.
   // This command implies a reboot, so no explicit reboot command is needed.
   this._commandMode(function() {
-    const cmd = UdpConstants.command('factoryReset');
-    const expected = UdpConstants.commands.factoryReset.get;
+    const cmd = UdpConstants.assembleCommand('factoryReset');
+    const expected = UdpConstants.getCommands().factoryReset.get;
     this._sendAndRequire(cmd, expected, function(msg) {
       this._ufo.disconnect();
     }.bind(this));
@@ -261,7 +262,7 @@ Client.prototype.factoryReset = function(callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getNtpServer = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('ntp'), function(err, ipAddress) {
+    this._sendAndWait(UdpConstants.assembleCommand('ntp'), function(err, ipAddress) {
       this._endCommand(function(err, ipAddress) {
         this(err, ipAddress);
       }.bind(callback, err, ipAddress));
@@ -276,7 +277,7 @@ Client.prototype.setNtpServer = function(ipAddress, callback) {
     callback(new Error(`Invalid IP address provided: ${ipAddress}.`));
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('ntp', ipAddress), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('ntp', ipAddress), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -287,7 +288,7 @@ Client.prototype.setNtpServer = function(ipAddress, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getUdpPassword = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('udpPassword'), function(err, password) {
+    this._sendAndWait(UdpConstants.assembleCommand('udpPassword'), function(err, password) {
       this._endCommand(function(err, password) {
         this(err, password);
       }.bind(callback, err, password));
@@ -305,7 +306,7 @@ Client.prototype.setUdpPassword = function(password, callback) {
   // Override the callback if requested.
   if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('udpPassword', password), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('udpPassword', password), function(err) {
       if (err) this._socket.emit('error', err);
       else this._ufo.disconnect();
     }.bind(this));
@@ -317,7 +318,7 @@ Client.prototype.setUdpPassword = function(password, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getTcpPort = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('tcpServer'), function(err, tcpServer) {
+    this._sendAndWait(UdpConstants.assembleCommand('tcpServer'), function(err, tcpServer) {
       this._endCommand(function(err, port) {
         this(err, port);
       }.bind(callback, err, parseInt(tcpServer[2])));
@@ -337,9 +338,9 @@ Client.prototype.setTcpPort = function(port, callback) {
   // Override the callback if requested.
   if (typeof callback === 'function') this._ufo._disconnectCallback = callback;
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('tcpServer'), function(err, tcpServer) {
+    this._sendAndWait(UdpConstants.assembleCommand('tcpServer'), function(err, tcpServer) {
       if (err) callback(err);
-      else this._sendAndWait(UdpConstants.command('tcpServer', tcpServer[0], tcpServer[1], port, tcpServer[3]), function(err) {
+      else this._sendAndWait(UdpConstants.assembleCommand('tcpServer', tcpServer[0], tcpServer[1], port, tcpServer[3]), function(err) {
         if (err) this._socket.emit('error', err);
         else this._ufo.disconnect();
       }.bind(this));
@@ -352,7 +353,7 @@ Client.prototype.setTcpPort = function(port, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiAutoSwitch = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiAutoSwitch'), function(err, value) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiAutoSwitch'), function(err, value) {
       this._endCommand(function(err, value) {
         this(err, value);
       }.bind(callback, err, value));
@@ -383,7 +384,7 @@ Client.prototype.setWifiAutoSwitch = function(value, callback) {
     return;
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiAutoSwitch', value), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiAutoSwitch', value), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -394,7 +395,7 @@ Client.prototype.setWifiAutoSwitch = function(value, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiMode = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiMode'), function(err, mode) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiMode'), function(err, mode) {
       this._endCommand(function(err, mode) {
         this(err, mode);
       }.bind(callback, err, mode));
@@ -415,7 +416,7 @@ Client.prototype.setWifiMode = function(mode, callback) {
       return;
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiMode', mode), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiMode', mode), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -429,7 +430,7 @@ Client.prototype.doWifiScan = function(callback) {
   var headerReceived = false;
   var errorReceived = false;
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiScan'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiScan'), function(err, result) {
       if (!errorReceived) {
         if (err) {
           errorReceived = true;
@@ -467,7 +468,7 @@ Client.prototype.doWifiScan = function(callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiApIp = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApIp'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApIp'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, {
           ip: result[0],
@@ -488,7 +489,7 @@ Client.prototype.setWifiApIp = function(ip, mask, callback) {
     callback(new Error(`Invalid subnet mask provided: ${mask}.`));
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApIp', ip, mask), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApIp', ip, mask), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -499,7 +500,7 @@ Client.prototype.setWifiApIp = function(ip, mask, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiApBroadcast = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApBroadcast'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApBroadcast'), function(err, result) {
       this._endCommand(function(err, result) {
         var mode;
         switch (result[0]) {
@@ -552,7 +553,7 @@ Client.prototype.setWifiApBroadcast = function(mode, ssid, channel, callback) {
     return;
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApBroadcast', `11${mode.toUpperCase()}`, ssid, `CH${channel}`), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApBroadcast', `11${mode.toUpperCase()}`, ssid, `CH${channel}`), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -563,7 +564,7 @@ Client.prototype.setWifiApBroadcast = function(mode, ssid, channel, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiApPassphrase = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApAuth'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApAuth'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, result[0] === "OPEN" ? false : result[2]);
       }.bind(callback, err, result));
@@ -576,12 +577,12 @@ Client.prototype.getWifiApPassphrase = function(callback) {
 Client.prototype.setWifiApPassphrase = function(passphrase, callback) {
   var cmd;
   if (passphrase === false || passphrase === 'false') {
-    cmd = UdpConstants.command('wifiApAuth', 'OPEN', 'NONE');
+    cmd = UdpConstants.assembleCommand('wifiApAuth', 'OPEN', 'NONE');
   } else if (passphrase.length < 8 || passphrase.length > 63) {
     callback(new Error(`Passphrase is ${passphrase.length} characters long, must be 8-63 characters inclusive.`));
     return;
   } else {
-    cmd = UdpConstants.command('wifiApAuth', 'WPA2PSK', 'AES', passphrase);
+    cmd = UdpConstants.assembleCommand('wifiApAuth', 'WPA2PSK', 'AES', passphrase);
   }
   this._commandMode(function() {
     this._sendAndWait(cmd, function(err) {
@@ -595,7 +596,7 @@ Client.prototype.setWifiApPassphrase = function(passphrase, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiApLed = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApLed'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApLed'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, result === 'on');
       }.bind(callback, err, result));
@@ -607,7 +608,7 @@ Client.prototype.getWifiApLed = function(callback) {
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiApLed = function(onOff, callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApLed', onOff ? 'on' : 'off'), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApLed', onOff ? 'on' : 'off'), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -618,7 +619,7 @@ Client.prototype.setWifiApLed = function(onOff, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiApDhcp = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApDhcp'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApDhcp'), function(err, result) {
       this._endCommand(function(err, result) {
         var dhcp = { on: result[0] === 'on' }
         if (dhcp.on) {
@@ -649,7 +650,7 @@ Client.prototype.setWifiApDhcp = function(start, end, callback) {
     return;
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApDhcp', 'on', start, end), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApDhcp', 'on', start, end), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -659,7 +660,7 @@ Client.prototype.setWifiApDhcp = function(start, end, callback) {
 // Callback is optional and accepts an error argument.
 Client.prototype.disableWifiApDhcp = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiApDhcp', 'off'), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiApDhcp', 'off'), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -674,7 +675,7 @@ Client.prototype.disableWifiApDhcp = function(callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiClientApInfo = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientApInfo'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientApInfo'), function(err, result) {
       this._endCommand(function(err, result) {
         var info = {
           ssid: null,
@@ -696,7 +697,7 @@ Client.prototype.getWifiClientApInfo = function(callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiClientApSignal = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientApSignal'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientApSignal'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, result === "Disconnected" ? false : result.join(','));
       }.bind(callback, err, result));
@@ -709,7 +710,7 @@ Client.prototype.getWifiClientApSignal = function(callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiClientIp = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientIp'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientIp'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, {
           dhcp: result[0] === "DHCP",
@@ -726,7 +727,7 @@ Client.prototype.getWifiClientIp = function(callback) {
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiClientIpDhcp = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientIp', 'DHCP'), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientIp', 'DHCP'), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -745,7 +746,7 @@ Client.prototype.setWifiClientIpStatic = function(ip, mask, gateway, callback) {
     callback(new Error(`Invalid gateway provided: ${gateway}.`));
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientIp', 'static', ip, mask, gateway), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientIp', 'static', ip, mask, gateway), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -756,7 +757,7 @@ Client.prototype.setWifiClientIpStatic = function(ip, mask, gateway, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiClientSsid = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientSsid'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientSsid'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, result);
       }.bind(callback, err, result));
@@ -772,7 +773,7 @@ Client.prototype.setWifiClientSsid = function(ssid, callback) {
     return;
   }
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientSsid', ssid), function(err) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientSsid', ssid), function(err) {
       this._endCommand(function(err) { this(err); }.bind(callback, err));
     }.bind(this));
   }.bind(this));
@@ -783,7 +784,7 @@ Client.prototype.setWifiClientSsid = function(ssid, callback) {
 // Either one or the other argument is null, but never both.
 Client.prototype.getWifiClientAuth = function(callback) {
   this._commandMode(function() {
-    this._sendAndWait(UdpConstants.command('wifiClientAuth'), function(err, result) {
+    this._sendAndWait(UdpConstants.assembleCommand('wifiClientAuth'), function(err, result) {
       this._endCommand(function(err, result) {
         this(err, {
           auth: result[0],
@@ -865,9 +866,9 @@ Client.prototype.setWifiClientAuth = function(auth, encryption, passphrase, call
   }
   var cmd;
   if (encryption === "NONE") {
-    cmd = UdpConstants.command('wifiClientAuth', 'OPEN', 'NONE');
+    cmd = UdpConstants.assembleCommand('wifiClientAuth', 'OPEN', 'NONE');
   } else {
-    cmd = UdpConstants.command('wifiClientAuth', auth, encryption, passphrase);
+    cmd = UdpConstants.assembleCommand('wifiClientAuth', auth, encryption, passphrase);
   }
   this._commandMode(function() {
     this._sendAndWait(cmd, function(err) {

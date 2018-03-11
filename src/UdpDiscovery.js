@@ -1,4 +1,5 @@
 const dgram = require('dgram');
+const UdpStrings = require('./UdpStrings');
 const UdpConstants = require('./UdpConstants');
 const UdpUtils = require('./UdpUtils');
 
@@ -21,14 +22,14 @@ module.exports = function(options, callback) {
   var error = null;
   var data = [];
   // Set the default password if none was given.
-  var hello = options.password ? options.password : UdpConstants.defaultHello;
+  var hello = options.password ? options.password : UdpStrings.get('defaultHello');
   // Set the default timeout if none was given.
   const discoverTimeout = 3000; // milliseconds
   var timeout = options.timeout;
   if (!timeout || timeout < 0) timeout = discoverTimeout;
   // Set the default remote port if none was given.
   var remotePort = options.remotePort;
-  if (!remotePort || remotePort < 0) remotePort = UdpConstants.port;
+  if (!remotePort || remotePort < 0) remotePort = UdpConstants.getDefaultPort();
   // Setup the socket. Let Node exit if this socket is still active.
   var stopDiscover = null;
   const socket = dgram.createSocket('udp4').unref();

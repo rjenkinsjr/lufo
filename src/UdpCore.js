@@ -5,13 +5,13 @@ module.exports = Object.freeze({
     // arg 1 is IP address
     // arg 2 is MAC address
     // arg 3 is model number
-    cmd: UdpStrings.defaultHello,
+    cmd: UdpStrings.get('defaultHello'),
     literal: true,
     get: []
   },
   helloAck: {
     // getter-only
-    cmd: UdpStrings.ack,
+    cmd: UdpStrings.get('ack'),
     literal: true
   },
   reboot: {

@@ -1,29 +1,43 @@
+// @flow
 const util = require('util');
 const UdpStrings = require('./UdpStrings');
 const _ = require('lodash');
 
-// Definition of all supported AT commands, including their send formats,
-// receive formats and number of receive arguments.
+/* Private variables */
+const defaultPort = 48899;
 const commands = Object.freeze(Object.assign({},
   require('./UdpCore'),
   require('./UdpWifiClient'),
   require('./UdpWifiAp')
 ));
 
-// Export all of the above.
-module.exports = Object.freeze(Object.assign({
-  // All UFOs use this port for UDP.
-  port: 48899,
-  // Raw commands list.
-  commands: commands,
-  // Function that returns command syntaxes. An object with keys "send" and
-  // "recv" is returned, both of which are never null.
-  // - "send" is always a string; this is the command that will be sent to the
-  // UFO's UDP socket. It contains all the set arguments provided to this method.
-  // - "recv" is a function that accepts the command's response and returns an
-  // array with the args from the response. This array is never null, and will
-  // be empty for commands whose responses have no arguments.
-  command: function(name, ...setArgs) {
+/**
+ * This class contains methods for controlling a UFO's power flag.
+ */
+class UdpConstants {
+  /**
+   * Returns the default UDP port, 48899.
+   */
+  getDefaultPort(): number { return defaultPort; }
+  /**
+   * Returns the object containing all command definitions.
+   */
+  getCommands(): Object { return commands; }
+  /**
+   * Given a command and optional setter arguments, returns the send and receive
+   * logic for the command.
+   *
+   * The "send" string is the complete AT command string that needs to be sent
+   * to the UFO via the UDP client. It includes all the given setter arguments.
+   * If no setter arguments are passed, the "send" string constitutes a getter
+   * command instead of a setter command.
+   *
+   * The "recv" function takes the AT command response and returns a possibly-empty
+   * string array with the parsed response. The prefix and suffix strings are
+   * stripped from the response, and the response is split into an array if it
+   * contains multiple values. Getter commands will always return an empty array.
+   */
+  assembleCommand(name: string, ...setArgs: Array<string>): { send: string, recv: Function } {
     // Define the command object.
     var command = commands[name];
     var cmdString = command.cmd;
@@ -31,22 +45,24 @@ module.exports = Object.freeze(Object.assign({
     // Commands flagged at literal have no syntax translation whatsoever.
     if (!command.literal) {
       // Non-literal commands are wrapped in the send prefix/suffix.
-      cmdString = UdpStrings.sendPrefix + cmdString;
+      cmdString = UdpStrings.get('sendPrefix') + cmdString;
       // Set commands have their argument list prior to the send suffix.
       if (mode === 'set') {
         cmdString += '=' + setArgs.join(',');
       }
-      cmdString += UdpStrings.sendSuffix;
+      cmdString += UdpStrings.get('sendSuffix');
     }
     // Return the send and receive schema.
     return Object.freeze({
       send: cmdString,
-      recv: function(response) {
+      recv: function(response: string): Array<string> {
         var result = response;
         // Chop response prefix/suffix, if they exist.
-        if (result.startsWith(UdpStrings.recvPrefix)) result = result.substring(UdpStrings.recvPrefix.length);
+        const recvPrefix = UdpStrings.get('recvPrefix');
+        const recvSuffix = UdpStrings.get('recvSuffix');
+        if (result.startsWith(recvPrefix)) result = result.substring(recvPrefix.length);
         if (result.startsWith('=')) result = result.substring(1);
-        if (result.endsWith(UdpStrings.recvSuffix)) result = result.substring(0, result.length - UdpStrings.recvPrefix.length);
+        if (result.endsWith(recvSuffix)) result = result.substring(0, result.length - recvPrefix.length);
         result = result.trim();
         if (result === '') {
           return [];
@@ -60,4 +76,6 @@ module.exports = Object.freeze(Object.assign({
       }.bind(command[mode] || false)
     });
   }
-}, UdpStrings));
+}
+
+module.exports = Object.freeze(new UdpConstants());
