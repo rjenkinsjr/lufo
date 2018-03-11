@@ -1,9 +1,23 @@
 // @flow
-const Power = function() {};
-// 0x71 0x23 0x0F 0xA3, always.
-// This includes local flag and checksum; do not pass to tcp/Utils.
-Power.prototype.on = function() { return Buffer.from([0x71, 0x23, 0x0F, 0xA3]); };
-// 0x71 0x24 0x0F 0xA4, always.
-// This includes local flag and checksum; do not pass to tcp/Utils.
-Power.prototype.off = function() { return Buffer.from([0x71, 0x24, 0x0F, 0xA4]); };
+
+/* Private variables */
+const on = [0x71, 0x23, 0x0F, 0xA3];
+const off = [0x71, 0x24, 0x0F, 0xA4];
+
+/**
+ * This class contains methods for controlling a UFO's power flag.
+ */
+class Power {
+  /**
+   * Returns the bytes for the "on" flag. The returned buffer already contains
+   * the "local" byte and the checksum byte; do not pass this value to tcp/Utils.
+   */
+  on(): Buffer { return Buffer.from(on); }
+  /**
+   * Returns the bytes for the "off" flag. The returned buffer already contains
+   * the "local" byte and the checksum byte; do not pass this value to tcp/Utils.
+   */
+  off(): Buffer { return Buffer.from(off); }
+}
+
 module.exports = Object.freeze(new Power());
