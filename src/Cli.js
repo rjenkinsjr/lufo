@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 import _ from 'lodash';
 import promptly from 'promptly';
-import Address4 from 'ip-address';
+import { Address4 } from 'ip-address';
 import Ufo from './Ufo';
 import TcpBuiltins from './TcpBuiltins';
 

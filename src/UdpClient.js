@@ -1,7 +1,7 @@
 import * as util from 'util';
 import * as dgram from 'dgram';
 import _ from 'lodash';
-import Address4 from 'ip-address';
+import { Address4 } from 'ip-address';
 import UdpCommands from './UdpCommands';
 import UdpStrings from './UdpStrings';
 import UdpUtils from './UdpUtils';
