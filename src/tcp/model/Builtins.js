@@ -1,7 +1,7 @@
 // @flow
-const _ = require('lodash');
-const { Map, Set } = require('immutable');
 const fs = require('fs');
+const { Map, Set } = require('immutable');
+const _ = require('lodash');
 
 /* Private variables */
 const builtinMap = Map(JSON.parse(fs.readFileSync(__dirname + '/builtins.json', 'utf8'))).map(v => parseInt(v, 16));
