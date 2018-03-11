@@ -80,7 +80,7 @@ cli.on('--help', function() {
  */
 // Discover command
 const discover = function(args) {
-  UFO.discover(args, function(err, data) {
+  Ufo.discover(args, function(err, data) {
     if (err) quitError(err);
     else console.log(JSON.stringify(data, null, 2));
   });
