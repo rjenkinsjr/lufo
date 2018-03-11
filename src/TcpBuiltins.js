@@ -4,9 +4,9 @@ const { Map, Set } = require('immutable');
 const _ = require('lodash');
 
 /* Private variables */
-const builtinMap = Map(JSON.parse(fs.readFileSync(__dirname + '/builtinMap.json', 'utf8'))).map(v => parseInt(v, 16));
+const functionMap = Map(JSON.parse(fs.readFileSync(__dirname + '/functionMap.json', 'utf8'))).map(v => parseInt(v, 16));
 const specialFunctionNames = Set.of('noFunction', 'postReset');
-const functionNames = builtinMap.keySeq().toSet().subtract(specialFunctionNames);
+const functionNames = functionMap.keySeq().toSet().subtract(specialFunctionNames);
 const maxSpeed = 100;
 
 /**
@@ -17,7 +17,7 @@ class Builtins {
    * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.
    * This map includes internal function names that are excluded by {@link Builtins#getFunctionNames}.
    */
-  getFunctions(): Map<string, number> { return builtinMap; }
+  getFunctions(): Map<string, number> { return functionMap; }
   /**
    * Returns the set of valid UFO built-in function names usable by the CLI/API.
    */
