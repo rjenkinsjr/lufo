@@ -14,6 +14,7 @@ module.exports = {
   },
   rules: {
     'func-names': [1, 'never'],
+    'max-len': 0,
     'no-underscore-dangle': 0,
   },
 };
