@@ -2,6 +2,7 @@ const util = require('util');
 const dgram = require('dgram');
 const UdpStrings = require('./UdpStrings');
 const UdpConstants = require('./UdpConstants');
+const UdpCommands = require('./UdpCommands');
 const UdpUtils = require('./UdpUtils');
 const _ = require('lodash');
 const IPv4 = require('ip-address').Address4;
@@ -250,7 +251,7 @@ Client.prototype.factoryReset = function(callback) {
   // This command implies a reboot, so no explicit reboot command is needed.
   this._commandMode(function() {
     const cmd = UdpConstants.assembleCommand('factoryReset');
-    const expected = UdpConstants.getCommands().factoryReset.get;
+    const expected = UdpCommands.get('factoryReset').get;
     this._sendAndRequire(cmd, expected, function(msg) {
       this._ufo.disconnect();
     }.bind(this));

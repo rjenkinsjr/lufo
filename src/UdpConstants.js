@@ -5,11 +5,7 @@ const _ = require('lodash');
 
 /* Private variables */
 const defaultPort = 48899;
-const commands = Object.freeze(Object.assign({},
-  require('./UdpCore'),
-  require('./UdpWifiClient'),
-  require('./UdpWifiAp')
-));
+const commands = require('./UdpCommands');
 
 /**
  * This class contains methods for controlling a UFO's power flag.
@@ -19,10 +15,6 @@ class UdpConstants {
    * Returns the default UDP port, 48899.
    */
   getDefaultPort(): number { return defaultPort; }
-  /**
-   * Returns the object containing all command definitions.
-   */
-  getCommands(): Object { return commands; }
   /**
    * Given a command and optional setter arguments, returns the send and receive
    * logic for the command.
@@ -39,7 +31,7 @@ class UdpConstants {
    */
   assembleCommand(name: string, ...setArgs: Array<string>): { send: string, recv: Function } {
     // Define the command object.
-    var command = commands[name];
+    var command = commands.get(name);
     var cmdString = command.cmd;
     var mode = setArgs.length > 0 ? 'set' : 'get';
     // Commands flagged at literal have no syntax translation whatsoever.
