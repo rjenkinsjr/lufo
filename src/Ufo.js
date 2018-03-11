@@ -1,7 +1,7 @@
-const events = require('events');
-const TcpClient = require('./TcpClient');
-const UdpClient = require('./UdpClient');
-const UfoDisconnectError = require('./UfoDisconnectError');
+import * as events from 'events';
+import TcpClient from './TcpClient';
+import UdpClient from './UdpClient';
+import UfoDisconnectError from './UfoDisconnectError';
 
 /*
  * Constructor

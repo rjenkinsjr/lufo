@@ -1,10 +1,10 @@
-const util = require('util');
-const dgram = require('dgram');
-const UdpStrings = require('./UdpStrings');
-const UdpUtils = require('./UdpUtils');
-const UdpCommands = require('./UdpCommands');
-const _ = require('lodash');
-const IPv4 = require('ip-address').Address4;
+import * as util from 'util';
+import * as dgram from 'dgram';
+import _ from 'lodash';
+import Address4 from 'ip-address';
+import UdpCommands from './UdpCommands';
+import UdpStrings from './UdpStrings';
+import UdpUtils from './UdpUtils';
 
 /*
  * Exports
@@ -273,7 +273,7 @@ Client.prototype.getNtpServer = function (callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setNtpServer = function (ipAddress, callback) {
-  if (!new IPv4(ipAddress).isValid()) {
+  if (!new Address4(ipAddress).isValid()) {
     callback(new Error(`Invalid IP address provided: ${ipAddress}.`));
   }
   this._commandMode(() => {
@@ -484,10 +484,10 @@ Client.prototype.getWifiApIp = function (callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiApIp = function (ip, mask, callback) {
-  if (!new IPv4(ip).isValid()) {
+  if (!new Address4(ip).isValid()) {
     callback(new Error(`Invalid IP address provided: ${ip}.`));
   }
-  if (!new IPv4(mask).isValid()) {
+  if (!new Address4(mask).isValid()) {
     callback(new Error(`Invalid subnet mask provided: ${mask}.`));
   }
   this._commandMode(() => {
@@ -738,13 +738,13 @@ Client.prototype.setWifiClientIpDhcp = function (callback) {
 //
 // Callback is optional and accepts an error argument.
 Client.prototype.setWifiClientIpStatic = function (ip, mask, gateway, callback) {
-  if (!new IPv4(ip).isValid()) {
+  if (!new Address4(ip).isValid()) {
     callback(new Error(`Invalid IP address provided: ${ip}.`));
   }
-  if (!new IPv4(mask).isValid()) {
+  if (!new Address4(mask).isValid()) {
     callback(new Error(`Invalid subnet mask provided: ${mask}.`));
   }
-  if (!new IPv4(gateway).isValid()) {
+  if (!new Address4(gateway).isValid()) {
     callback(new Error(`Invalid gateway provided: ${gateway}.`));
   }
   this._commandMode(() => {

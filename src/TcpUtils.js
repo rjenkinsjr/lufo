@@ -1,21 +1,21 @@
 // @flow
-const _ = require('lodash');
+import _ from 'lodash';
 
 /**
  * This class contains utility methods for handling UFO TCP data.
  */
-class TcpUtils {
+export default class {
   /**
    * Clamps the input to 0-255 inclusive, for use as an RGBW value.
    */
-  clampRGBW(value: number): number { return _.clamp(value, 0, 255); }
+  static clampRGBW(value: number): number { return _.clamp(value, 0, 255); }
   /**
    * Given a buffer of data destined for a UFO, expands the buffer by 2 and
    * inserts the last two bytes (the "local" flag 0x0f and the checksum).
    *
    * A new buffer is returned; the input buffer is not modified.
    */
-  prepareBytes(buf: Buffer): Buffer {
+  static prepareBytes(buf: Buffer): Buffer {
     const newBuf = Buffer.alloc(buf.length + 2);
     buf.copy(newBuf);
     // Add the "local" flag to the given buffer.
@@ -40,5 +40,3 @@ class TcpUtils {
     return newBuf;
   }
 }
-
-module.exports = Object.freeze(new TcpUtils());

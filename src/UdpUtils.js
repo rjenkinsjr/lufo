@@ -1,12 +1,11 @@
 // @flow
-const dgram = require('dgram');
-const UdpStrings = require('./UdpStrings');
-const _ = require('lodash');
+import * as dgram from 'dgram';
+import _ from 'lodash';
+import UdpCommands from './UdpCommands';
+import UdpStrings from './UdpStrings';
 
 /* Private variables */
 const defaultPort = 48899;
-const commands = require('./UdpCommands');
-
 const normalizeMac = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
 const helloResponseParser = function (response: string | Array<string>): { ip: string, mac: string, model: string } {
   let splitResponse = response;
@@ -21,19 +20,19 @@ const helloResponseParser = function (response: string | Array<string>): { ip: s
 /**
  * This class contains utility methods for UFO UDP functionality.
  */
-class UdpUtils {
+export default class {
   /**
    * Returns the default UDP port, 48899.
    */
-  getDefaultPort(): number { return defaultPort; }
+  static getDefaultPort(): number { return defaultPort; }
   /**
    * Normalizes a MAC address string by lowercasing all letters and converting separators to colons.
    */
-  macAddress(mac: string): string { return normalizeMac(mac); }
+  static macAddress(mac: string): string { return normalizeMac(mac); }
   /**
    * Converts a UDP "hello" response to an object containing the IP, MAC and model of the UFO.
    */
-  parseHelloResponse(response: string | Array<string>): { ip: string, mac: string, model: string } { return helloResponseParser(response); }
+  static parseHelloResponse(response: string | Array<string>): { ip: string, mac: string, model: string } { return helloResponseParser(response); }
   /**
    * UFO discovery method.
    *
@@ -50,7 +49,7 @@ class UdpUtils {
    * - mac
    * - model
    */
-  discover(options: Object, callback: Function): void {
+  static discover(options: Object, callback: Function): void {
     // Return variables.
     let error = null;
     const data = [];
@@ -118,9 +117,9 @@ class UdpUtils {
    * stripped from the response, and the response is split into an array if it
    * contains multiple values. Getter commands will always return an empty array.
    */
-  assembleCommand(name: string, ...setArgs: Array<string>): { send: string, recv: Function } {
+  static assembleCommand(name: string, ...setArgs: Array<string>): { send: string, recv: Function } {
     // Define the command object.
-    const command = commands.get(name);
+    const command = UdpCommands.get(name);
     let cmdString = command.cmd;
     const mode = setArgs.length > 0 ? 'set' : 'get';
     // Commands flagged at literal have no syntax translation whatsoever.
@@ -157,5 +156,3 @@ class UdpUtils {
     });
   }
 }
-
-module.exports = Object.freeze(new UdpUtils());

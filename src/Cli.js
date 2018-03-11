@@ -1,9 +1,9 @@
 #! /usr/bin/env node
-const util = require('util');
-const Ufo = require('./Ufo');
-const _ = require('lodash');
-const promptly = require('promptly');
-const IPv4 = require('ip-address').Address4;
+import _ from 'lodash';
+import promptly from 'promptly';
+import Address4 from 'ip-address';
+import Ufo from './Ufo';
+import TcpBuiltins from './TcpBuiltins';
 
 let theUfo = null;
 // Helper function for assembling the UFO object based on the given args.
@@ -13,7 +13,7 @@ const go = function (action) {
     cli.ufo = process.env.LUFO_ADDRESS;
   }
   if (cli.ufo) {
-    if (new IPv4(cli.ufo).isValid()) {
+    if (new Address4(cli.ufo).isValid()) {
       const ufoOptions = {
         host: cli.ufo,
         disconnectCallback(err) {
@@ -235,7 +235,7 @@ cli.command('function <name> <speed>')
 cli.command('function-list')
   .description('Lists all possible built-in function names usable by the "function" command.')
   .action(() => {
-    console.log(require('./TcpBuiltins').getFunctionNames().join(', '));
+    console.log(TcpBuiltins.getFunctionNames().join(', '));
   });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')

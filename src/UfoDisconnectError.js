@@ -16,4 +16,4 @@ class UfoDisconnectError extends Error {
   }
 }
 
-module.exports = UfoDisconnectError;
+export default UfoDisconnectError;

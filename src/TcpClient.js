@@ -1,9 +1,9 @@
-const net = require('net');
-const TcpBuiltins = require('./TcpBuiltins');
-const TcpCustoms = require('./TcpCustoms');
-const TcpPower = require('./TcpPower');
-const TcpStatus = require('./TcpStatus');
-const TcpUtils = require('./TcpUtils');
+import * as net from 'net';
+import TcpBuiltins from './TcpBuiltins';
+import TcpCustoms from './TcpCustoms';
+import TcpPower from './TcpPower';
+import TcpStatus from './TcpStatus';
+import TcpUtils from './TcpUtils';
 
 // TCP socket creation method. Must be bound to a tcp/Client instance.
 const createSocket = function () {

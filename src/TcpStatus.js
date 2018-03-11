@@ -1,6 +1,6 @@
 // @flow
-const TcpBuiltins = require('./TcpBuiltins');
-const TcpCustoms = require('./TcpCustoms');
+import TcpBuiltins from './TcpBuiltins';
+import TcpCustoms from './TcpCustoms';
 
 /* Private variables */
 const header = 0x81;
@@ -10,20 +10,20 @@ const responseSize = 14;
 /**
  * This class contains methods for parsing a UFO's status byte stream.
  */
-class TcpStatus {
+export default class {
   /**
    * Returns the bytes for the status request command. The returned buffer already
    * contains the "local" byte and the checksum byte; do not pass this value to tcp/Utils.
    */
-  getRequest(): Buffer { return Buffer.from(request); }
+  static getRequest(): Buffer { return Buffer.from(request); }
   /**
    * Returns 14, the size of the status command response.
    */
-  getResponseSize(): number { return responseSize; }
+  static getResponseSize(): number { return responseSize; }
   /**
    * Returns the response handler function, bound to the given {@link TcpClient}.
    */
-  getResponseHandler(tcpClient: Object): Function {
+  static getResponseHandler(tcpClient: Object): Function {
     return function (data: Buffer) {
       if (!this._error) {
         // Add the data to what we already have.
@@ -142,5 +142,3 @@ class TcpStatus {
     }.bind(tcpClient);
   }
 }
-
-module.exports = Object.freeze(new TcpStatus());

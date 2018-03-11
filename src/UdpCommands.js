@@ -1,6 +1,6 @@
 // @flow
-const { Map } = require('immutable');
-const UdpStrings = require('./UdpStrings');
+import { Map } from 'immutable';
+import UdpStrings from './UdpStrings';
 
 /* Private variables */
 const commandMap: Map<string, Object> = Map({
@@ -168,16 +168,14 @@ const commandMap: Map<string, Object> = Map({
 /**
  * This class contains all UFO UDP commands.
  */
-class UdpCommands {
+export default class {
   /**
    * Returns the desired command definition.
    * @throws {Error} if an invalid command name is provided.
    */
-  get(name: string): Object {
+  static get(name: string): Object {
     const command: Object | void = commandMap.get(name);
     if (!command) throw new Error(`No such built-in function '${name}'.`);
     return command;
   }
 }
-
-module.exports = Object.freeze(new UdpCommands());

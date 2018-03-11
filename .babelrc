@@ -6,5 +6,8 @@
       }
     }],
     "flow"
-  ]
+  ],
+  "plugins": [
+    "add-module-exports",
+  ],
 }

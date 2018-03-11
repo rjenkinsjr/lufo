@@ -1,7 +1,6 @@
 // @flow
-const { Map, Set } = require('immutable');
-const fs = require('fs');
-const _ = require('lodash');
+import { Map, Set } from 'immutable';
+import _ from 'lodash';
 
 /* Private variables */
 const functionMap: Map<string, number> = Map({
@@ -35,21 +34,21 @@ const maxSpeed = 100;
 /**
  * This class contains methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions.
  */
-class TcpBuiltins {
+export default class {
   /**
    * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.
    * This map includes internal function names that are excluded by {@link TcpBuiltins#getFunctionNames}.
    */
-  getFunctions(): Map<string, number> { return functionMap; }
+  static getFunctions(): Map<string, number> { return functionMap; }
   /**
    * Returns the set of valid UFO built-in function names usable by the CLI/API.
    */
-  getFunctionNames(): Set<string> { return functionNames; }
+  static getFunctionNames(): Set<string> { return functionNames; }
   /**
    * Given a built-in function name, returns its hexadecimal ID.
    * @throws {Error} if an invalid function name is provided.
    */
-  getFunctionId(name: string): number {
+  static getFunctionId(name: string): number {
     const id: number | void = functionMap.get(name);
     if (!id) throw new Error(`No such built-in function '${name}'.`);
     return id;
@@ -58,7 +57,5 @@ class TcpBuiltins {
    * Converts a built-in function speed value back and forth between the API value and the internal value.
    * Input and output are clamped to 0-100 inclusive.
    */
-  flipSpeed(speed: number): number { return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed); }
+  static flipSpeed(speed: number): number { return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed); }
 }
-
-module.exports = Object.freeze(new TcpBuiltins());
