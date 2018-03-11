@@ -4,7 +4,30 @@ const fs = require('fs');
 const _ = require('lodash');
 
 /* Private variables */
-const functionMap = Map(JSON.parse(fs.readFileSync(__dirname + '/functionMap.json', 'utf8'))).map(v => parseInt(v, 16));
+const functionMap: Map<string, number> = Map({
+  "sevenColorCrossFade": 0x25,
+  "redGradualChange": 0x26,
+  "greenGradualChange": 0x27,
+  "blueGradualChange": 0x28,
+  "yellowGradualChange": 0x29,
+  "cyanGradualChange": 0x2A,
+  "purpleGradualChange": 0x2B,
+  "whiteGradualChange": 0x2C,
+  "redGreenCrossFade": 0x2D,
+  "redBlueCrossFade": 0x2E,
+  "greenBlueCrossFade": 0x2F,
+  "sevenColorStrobeFlash": 0x30,
+  "redStrobeFlash": 0x31,
+  "greenStrobeFlash": 0x32,
+  "blueStrobeFlash": 0x33,
+  "yellowStrobeFlash": 0x34,
+  "cyanStrobeFlash": 0x35,
+  "purpleStrobeFlash": 0x36,
+  "whiteStrobeFlash": 0x37,
+  "sevenColorJumpingChange": 0x38,
+  "noFunction": 0x61,
+  "postReset": 0x63
+});
 const specialFunctionNames = Set.of('noFunction', 'postReset');
 const functionNames = functionMap.keySeq().toSet().subtract(specialFunctionNames);
 const maxSpeed = 100;
