@@ -1,6 +1,6 @@
 // @flow
-const Builtins = lufoRequire('tcp/model/Builtins');
-const Customs = lufoRequire('tcp/model/Customs');
+const Builtins = require('./TcpBuiltins');
+const Customs = require('./TcpCustoms');
 
 // The status response payload is always the same size.
 const statusResponseSize = 14;

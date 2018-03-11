@@ -4,7 +4,7 @@ const { Map, Set } = require('immutable');
 const _ = require('lodash');
 
 /* Private variables */
-const builtinMap = Map(JSON.parse(fs.readFileSync(__dirname + '/builtins.json', 'utf8'))).map(v => parseInt(v, 16));
+const builtinMap = Map(JSON.parse(fs.readFileSync(__dirname + '/builtinMap.json', 'utf8'))).map(v => parseInt(v, 16));
 const specialFunctionNames = Set.of('noFunction', 'postReset');
 const functionNames = builtinMap.keySeq().toSet().subtract(specialFunctionNames);
 const maxSpeed = 100;

@@ -1,13 +1,13 @@
 const util = require('util');
-const Strings = lufoRequire('udp/model/Strings');
+const Strings = require('./UdpStrings');
 const _ = require('lodash');
 
 // Definition of all supported AT commands, including their send formats,
 // receive formats and number of receive arguments.
 const commands = Object.freeze(Object.assign({},
-  lufoRequire('udp/model/Core'),
-  lufoRequire('udp/model/WifiClient'),
-  lufoRequire('udp/model/WifiAp')
+  require('./UdpCore'),
+  require('./UdpWifiClient'),
+  require('./UdpWifiAp')
 ));
 
 // Export all of the above.

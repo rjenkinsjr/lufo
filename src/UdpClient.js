@@ -1,7 +1,7 @@
 const util = require('util');
 const dgram = require('dgram');
-const Constants = lufoRequire('udp/Constants');
-const UDPUtils = lufoRequire('udp/Utils');
+const Constants = require('./UdpConstants');
+const UDPUtils = require('./UdpUtils');
 const _ = require('lodash');
 const IPv4 = require('ip-address').Address4;
 
@@ -85,7 +85,7 @@ var Client = module.exports = function(ufo, options) {
 };
 
 // Export static discovery method.
-Client.discover = require('./Discovery.js');
+Client.discover = require('./UdpDiscovery');
 
 /*
  * Private methods
