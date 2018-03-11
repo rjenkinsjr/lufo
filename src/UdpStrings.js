@@ -1,29 +1,26 @@
 // @flow
-const { Map } = require('immutable');
 
 /* Private variables */
 const ack = '+ok';
 
 /**
- * This {@link https://facebook.github.io/immutable-js/docs/#/Map Map} contains
- * common strings used in UFO UDP commands.
+ * This class contains common strings used in UFO UDP commands.
  */
-const UdpStrings = {
+class UdpStrings {
   /** The standard acknowledgement message sent by both parties. */
-  ack: ack,
+  ack(): string { return ack; }
   /** The prefix of all AT commands. */
-  sendPrefix: 'AT+',
+  sendPrefix(): string { return 'AT+'; }
   /** The suffix of all AT commands. */
-  sendSuffix: '\r',
+  sendSuffix(): string { return '\r'; }
   /** The prefix of all AT command responses that are not errors. */
-  recvPrefix: ack,
+  recvPrefix(): string { return ack; }
   /** The suffix of all AT command responses that are not errors. */
-  recvSuffix: '\r\n\r\n',
+  recvSuffix(): string { return '\r\n\r\n'; }
   /** The default UDP password. */
-  defaultHello: 'HF-A11ASSISTHREAD',
+  defaultHello(): string { return 'HF-A11ASSISTHREAD'; }
   /** The prefix of all AT command responses that are errors. */
-  errAck: '+ERR'
+  errAck(): string { return '+ERR'; }
 };
 
-const exportMap: Map<string, string> = Map(UdpStrings);
-module.exports = exportMap;
+module.exports = Object.freeze(new UdpStrings());

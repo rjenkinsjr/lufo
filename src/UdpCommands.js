@@ -2,11 +2,8 @@
 const { Map } = require('immutable');
 const UdpStrings = require('./UdpStrings');
 
-/**
- * This {@link https://facebook.github.io/immutable-js/docs/#/Map Map} contains
- * all UFO UDP commands.
- */
-const UdpCommands = {
+/* Private variables */
+const commandMap: Map<string, Object> = Map({
   /*
    * Common commands
    */
@@ -15,13 +12,13 @@ const UdpCommands = {
     // arg 1 is IP address
     // arg 2 is MAC address
     // arg 3 is model number
-    cmd: UdpStrings.get('defaultHello'),
+    cmd: UdpStrings.defaultHello(),
     literal: true,
     get: []
   },
   helloAck: {
     // getter-only
-    cmd: UdpStrings.get('ack'),
+    cmd: UdpStrings.ack(),
     literal: true
   },
   reboot: {
@@ -166,7 +163,21 @@ const UdpCommands = {
     cmd: 'WSKEY',
     get: []
   }
-};
+});
 
-const exportMap: Map<string, Object> = Map(UdpCommands);
-module.exports = exportMap;
+/**
+ * This class contains all UFO UDP commands.
+ */
+class UdpCommands {
+  /**
+   * Returns the desired command definition.
+   * @throws {Error} if an invalid command name is provided.
+   */
+  get(name: string): Object {
+    const command: Object|void = commandMap.get(name);
+    if (!command) throw new Error(`No such built-in function '${name}'.`);
+    return command;
+  };
+}
+
+module.exports = Object.freeze(new UdpCommands());

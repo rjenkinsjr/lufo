@@ -33,7 +33,7 @@ var Client = module.exports = function(ufo, options) {
         var message = msg.toString('utf8') || '';
         // Determine if we had an error.
         var atError = null;
-        if (message.startsWith(UdpStrings.get('errAck'))) {
+        if (message.startsWith(UdpStrings.errAck())) {
           var code = message.substring(message.indexOf('=') + 1).trim();
           var errorMsg = 'Unknown error';
           switch (code) {

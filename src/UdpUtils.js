@@ -54,7 +54,7 @@ class UdpUtils {
     var error = null;
     var data = [];
     // Set the default password if none was given.
-    var hello = Buffer.from(options.password ? options.password : UdpStrings.get('defaultHello'));
+    var hello = Buffer.from(options.password ? options.password : UdpStrings.defaultHello());
     // Set the default timeout if none was given.
     const discoverTimeout = 3000; // milliseconds
     var timeout = options.timeout;
@@ -125,12 +125,12 @@ class UdpUtils {
     // Commands flagged at literal have no syntax translation whatsoever.
     if (!command.literal) {
       // Non-literal commands are wrapped in the send prefix/suffix.
-      cmdString = UdpStrings.get('sendPrefix') + cmdString;
+      cmdString = UdpStrings.sendPrefix() + cmdString;
       // Set commands have their argument list prior to the send suffix.
       if (mode === 'set') {
         cmdString += '=' + setArgs.join(',');
       }
-      cmdString += UdpStrings.get('sendSuffix');
+      cmdString += UdpStrings.sendSuffix();
     }
     // Return the send and receive schema.
     return Object.freeze({
@@ -138,8 +138,8 @@ class UdpUtils {
       recv: function(response: string): Array<string> {
         var result = response;
         // Chop response prefix/suffix, if they exist.
-        const recvPrefix = UdpStrings.get('recvPrefix');
-        const recvSuffix = UdpStrings.get('recvSuffix');
+        const recvPrefix = UdpStrings.recvPrefix();
+        const recvSuffix = UdpStrings.recvSuffix();
         if (result.startsWith(recvPrefix)) result = result.substring(recvPrefix.length);
         if (result.startsWith('=')) result = result.substring(1);
         if (result.endsWith(recvSuffix)) result = result.substring(0, result.length - recvPrefix.length);

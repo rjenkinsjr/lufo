@@ -50,8 +50,9 @@ class TcpBuiltins {
    * @throws {Error} if an invalid function name is provided.
    */
   getFunctionId(name: string): number {
-    if (!this.getFunctions().has(name)) throw new Error(`No such built-in function '${name}'.`);
-    return this.getFunctions().get(name);
+    const id: number|void = functionMap.get(name);
+    if (!id) throw new Error(`No such built-in function '${name}'.`);
+    return id;
   };
   /**
    * Converts a built-in function speed value back and forth between the API value and the internal value.
