@@ -1,7 +1,7 @@
 // @flow
 
 /* Private variables */
-const ack = '+ok';
+const ack: string = '+ok';
 
 /**
  * This class contains common strings used in UFO UDP commands.

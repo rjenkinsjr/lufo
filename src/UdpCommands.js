@@ -165,9 +165,7 @@ const commandMap: Map<string, Object> = Map({
   },
 });
 
-/**
- * This class contains all UFO UDP commands.
- */
+/** This class contains all UFO UDP commands. */
 export default class {
   /**
    * Returns the desired command definition.

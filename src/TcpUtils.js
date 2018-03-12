@@ -1,13 +1,9 @@
 // @flow
 import _ from 'lodash';
 
-/**
- * This class contains utility methods for handling UFO TCP data.
- */
+/** This class contains utility methods for handling UFO TCP data. */
 export default class {
-  /**
-   * Clamps the input to 0-255 inclusive, for use as an RGBW value.
-   */
+  /** Clamps the input to 0-255 inclusive, for use as an RGBW value. */
   static clampRGBW(value: number): number { return _.clamp(value, 0, 255); }
   /**
    * Given a buffer of data destined for a UFO, expands the buffer by 2 and

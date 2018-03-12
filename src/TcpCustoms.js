@@ -2,18 +2,13 @@
 import _ from 'lodash';
 
 /* Private variables */
-const stepCount = 16;
-const nullStep = Object.freeze({ red: 1, green: 2, blue: 3 });
-const maxSpeed = 30;
+const nullStep: Object = Object.freeze({ red: 1, green: 2, blue: 3 });
+const maxSpeed: number = 30;
 
-/**
- * This class contains methods for working with UFO custom functions.
- */
+/** This class contains methods for working with UFO custom functions. */
 export default class {
-  /**
-   * Returns 16, the maximum number of steps allowed in a single custom function command.
-   */
-  static getStepCount(): number { return stepCount; }
+  /** Returns 16, the maximum number of steps allowed in a single custom function command. */
+  static getStepCount(): number { return 16; }
   /**
    * Returns the object definition of a null step; these are used to fill in
    * missing steps at the end of the byte stream to produce a valid payload.

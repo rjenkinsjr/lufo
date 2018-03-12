@@ -5,9 +5,9 @@ import UdpCommands from './UdpCommands';
 import UdpStrings from './UdpStrings';
 
 /* Private variables */
-const defaultPort = 48899;
-const normalizeMac = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
-const helloResponseParser = function (response: string | Array<string>): { ip: string, mac: string, model: string } {
+const defaultPort: number = 48899;
+const normalizeMac: Function = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
+const helloResponseParser: Function = function (response: string | Array<string>): { ip: string, mac: string, model: string } {
   let splitResponse = response;
   if (!Array.isArray(splitResponse)) splitResponse = splitResponse.split(',');
   return {

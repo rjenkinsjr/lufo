@@ -27,22 +27,18 @@ const functionMap: Map<string, number> = Map({
   noFunction: 0x61,
   postReset: 0x63,
 });
-const specialFunctionNames = Set.of('noFunction', 'postReset');
-const functionNames = functionMap.keySeq().toSet().subtract(specialFunctionNames);
-const maxSpeed = 100;
+const specialFunctionNames: Set<string> = Set.of('noFunction', 'postReset');
+const functionNames: Set<string> = functionMap.keySeq().toSet().subtract(specialFunctionNames);
+const maxSpeed: number = 100;
 
-/**
- * This class contains methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions.
- */
+/** This class contains methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions. */
 export default class {
   /**
    * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.
    * This map includes internal function names that are excluded by {@link TcpBuiltins#getFunctionNames}.
    */
   static getFunctions(): Map<string, number> { return functionMap; }
-  /**
-   * Returns the set of valid UFO built-in function names usable by the CLI/API.
-   */
+  /** Returns the set of valid UFO built-in function names usable by the CLI/API. */
   static getFunctionNames(): Set<string> { return functionNames; }
   /**
    * Given a built-in function name, returns its hexadecimal ID.

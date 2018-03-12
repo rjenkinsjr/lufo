@@ -1,12 +1,10 @@
 // @flow
 
 /* Private variables */
-const on = [0x71, 0x23, 0x0F, 0xA3];
-const off = [0x71, 0x24, 0x0F, 0xA4];
+const on: Array<number> = [0x71, 0x23, 0x0F, 0xA3];
+const off: Array<number> = [0x71, 0x24, 0x0F, 0xA4];
 
-/**
- * This class contains methods for controlling a UFO's power flag.
- */
+/** This class contains methods for controlling a UFO's power flag. */
 export default class {
   /**
    * Returns the bytes for the "on" flag. The returned buffer already contains
