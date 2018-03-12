@@ -3,30 +3,12 @@ import * as dgram from 'dgram';
 import _ from 'lodash';
 import UdpCommands from './UdpCommands';
 import UdpStrings from './UdpStrings';
-
-/** This object declares the IP/MAC addresses and model number of a discovered UFO. */
-type DiscoveredUfo = {
-  ip: string,
-  mac: string,
-  model: string,
-};
-
-/** The response from the UFO "hello" UDP command, used to discover UFOs on the network. */
-type UdpHelloResponse = string | Array<string>;
-
-/** An object that contains a complete AT command string and a function that will parse the command response. */
-type UdpCommandSchema = {
-  send: string,
-  recv: (string) => Array<string>,
-};
-
-/** A callback function that receives a list of discovered UFOs. */
-type UdpDiscoverCallback = (error: ?Error, ufos: Array<DiscoveredUfo>) => mixed;
+import * as UdpTypes from './UdpTypes';
 
 /* Private variables */
 const defaultPort = 48899;
 const normalizeMac = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
-const helloResponseParser = function (response: UdpHelloResponse): DiscoveredUfo {
+const helloResponseParser = function (response: UdpTypes.UfoHelloResponse): UdpTypes.DiscoveredUfo {
   let splitResponse = response;
   if (!Array.isArray(splitResponse)) splitResponse = splitResponse.split(',');
   return {
@@ -34,6 +16,24 @@ const helloResponseParser = function (response: UdpHelloResponse): DiscoveredUfo
     mac: normalizeMac(splitResponse[1]),
     model: splitResponse[2],
   };
+};
+const udpCommandRecv = function (response: string): Array<string> {
+  let result = response;
+  // Chop response prefix/suffix, if they exist.
+  const recvPrefix = UdpStrings.recvPrefix();
+  const recvSuffix = UdpStrings.recvSuffix();
+  if (result.startsWith(recvPrefix)) result = result.substring(recvPrefix.length);
+  if (result.startsWith('=')) result = result.substring(1);
+  if (result.endsWith(recvSuffix)) result = result.substring(0, result.length - recvPrefix.length);
+  result = result.trim();
+  if (result === '') {
+    return [];
+  } else if (Array.isArray(this)) {
+    return result.split(',');
+  } else if (_.isString(this)) {
+    return [result];
+  }
+  return [];
 };
 
 /** Static methods for generic UFO UDP functionality. */
@@ -47,26 +47,49 @@ export default class {
    */
   static macAddress(mac: string): string { return normalizeMac(mac); }
   /**
+   * Given a command and optional setter arguments, returns the send and receive
+   * logic for the command.
+   *
+   * The "send" string is the complete AT command string that needs to be sent
+   * to the UFO via the UDP client. It includes all the given setter arguments.
+   * If no setter arguments are passed, the "send" string constitutes a getter
+   * command instead of a setter command.
+   *
+   * The "recv" function takes the AT command response and returns a possibly-empty
+   * string array with the parsed response. The prefix and suffix strings are
+   * stripped from the response, and the response is split into an array if it
+   * contains multiple values. Getter commands will always return an empty array.
+   */
+  static assembleCommand(name: string, ...setArgs: Array<string>): UdpTypes.UdpCommandSchema {
+    // Define the command object.
+    const command = UdpCommands.get(name);
+    let cmdString = command.cmd;
+    const mode = setArgs.length > 0 ? 'set' : 'get';
+    // Commands flagged at literal have no syntax translation whatsoever.
+    if (!command.literal) {
+      // Non-literal commands are wrapped in the send prefix/suffix.
+      cmdString = UdpStrings.sendPrefix() + cmdString;
+      // Set commands have their argument list prior to the send suffix.
+      if (mode === 'set') {
+        cmdString += `=${setArgs.join(',')}`;
+      }
+      cmdString += UdpStrings.sendSuffix();
+    }
+    // Return the send and receive schema.
+    const recvThis = mode === 'get' ? command.get : false;
+    const commandSchema = {
+      send: cmdString,
+      recv: udpCommandRecv.bind(recvThis),
+    };
+    Object.freeze(commandSchema);
+    return commandSchema;
+  }
+  /**
    * Converts a UDP "hello" response to an object containing the IP, MAC and model of the UFO.
    */
-  static parseHelloResponse(response: UdpHelloResponse): DiscoveredUfo { return helloResponseParser(response); }
-  /**
-   * UFO discovery method.
-   *
-   * Options are:
-   * - timeout: milliseconds to wait for responses from UFOs; default is 3000ms.
-   * - password: password to use to reach UFOs; if unspecified the default is used.
-   * - localPort: the port bound on this machine to search for UFOs; if unspecified a random port is used.
-   * - remotePort: the port to which expected UFOs are bound; if unspecified the default is used.
-   *
-   * Callback takes an error object and a data array.
-   * The data array is never null, but may be empty.
-   * Each object in the array has exactly three properties:
-   * - ip
-   * - mac
-   * - model
-   */
-  static discover(options: Object, callback: UdpDiscoverCallback): void {
+  static parseHelloResponse(response: UdpTypes.UfoHelloResponse): UdpTypes.DiscoveredUfo { return helloResponseParser(response); }
+  /** Searches for UFOs on the network and invokes the given callback with the resulting list. */
+  static discover(options: UdpTypes.UfoDiscoverOptions, callback: UdpTypes.UdpDiscoverCallback): void {
     // Return variables.
     let error = null;
     const data = [];
@@ -119,60 +142,5 @@ export default class {
     } else {
       socket.bind(localPort);
     }
-  }
-  /**
-   * Given a command and optional setter arguments, returns the send and receive
-   * logic for the command.
-   *
-   * The "send" string is the complete AT command string that needs to be sent
-   * to the UFO via the UDP client. It includes all the given setter arguments.
-   * If no setter arguments are passed, the "send" string constitutes a getter
-   * command instead of a setter command.
-   *
-   * The "recv" function takes the AT command response and returns a possibly-empty
-   * string array with the parsed response. The prefix and suffix strings are
-   * stripped from the response, and the response is split into an array if it
-   * contains multiple values. Getter commands will always return an empty array.
-   */
-  static assembleCommand(name: string, ...setArgs: Array<string>): UdpCommandSchema {
-    // Define the command object.
-    const command = UdpCommands.get(name);
-    let cmdString = command.cmd;
-    const mode = setArgs.length > 0 ? 'set' : 'get';
-    // Commands flagged at literal have no syntax translation whatsoever.
-    if (!command.literal) {
-      // Non-literal commands are wrapped in the send prefix/suffix.
-      cmdString = UdpStrings.sendPrefix() + cmdString;
-      // Set commands have their argument list prior to the send suffix.
-      if (mode === 'set') {
-        cmdString += `=${setArgs.join(',')}`;
-      }
-      cmdString += UdpStrings.sendSuffix();
-    }
-    // Return the send and receive schema.
-    const recvThis = mode === 'get' ? command.get : false;
-    const commandSchema = {
-      send: cmdString,
-      recv: function (response: string): Array<string> {
-        let result = response;
-        // Chop response prefix/suffix, if they exist.
-        const recvPrefix = UdpStrings.recvPrefix();
-        const recvSuffix = UdpStrings.recvSuffix();
-        if (result.startsWith(recvPrefix)) result = result.substring(recvPrefix.length);
-        if (result.startsWith('=')) result = result.substring(1);
-        if (result.endsWith(recvSuffix)) result = result.substring(0, result.length - recvPrefix.length);
-        result = result.trim();
-        if (result === '') {
-          return [];
-        } else if (Array.isArray(this)) {
-          return result.split(',');
-        } else if (_.isString(this)) {
-          return [result];
-        }
-        return [];
-      }.bind(recvThis),
-    };
-    Object.freeze(commandSchema);
-    return commandSchema;
   }
 }

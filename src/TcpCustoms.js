@@ -1,8 +1,6 @@
 // @flow
 import _ from 'lodash';
-
-/** A "null step" in a list of custom steps. */
-type NullStep = { red: 1, green: 2, blue: 3 };
+import type { NullStep } from './TcpTypes';
 
 /* Private variables */
 const nullStep: NullStep = { red: 1, green: 2, blue: 3 };

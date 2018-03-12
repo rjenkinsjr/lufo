@@ -1,22 +1,7 @@
 // @flow
 import { Map } from 'immutable';
 import UdpStrings from './UdpStrings';
-
-/**
- * An object that defines a UDP command.
- *
- * @member cmd the AT command string.
- * @member literal if defined and true, cmd is the exact AT command string.
- *  Otherwise, cmd is the AT command string minus the standard prefix/suffix.
- * @member get if defined, this command returns a response; otherwise, it does not.
- *  If defined as a string, this command returns that literal string as the response.
- *  If defined as an (empty) array, this command returns multiple values separated by commas.
- */
-type UdpCommand = {
-  cmd: string,
-  literal?: boolean,
-  get?: string | Array<string>,
-}
+import type { UdpCommand } from './UdpTypes';
 
 /* Private variables */
 const commandMap: Map<string, UdpCommand> = Map({

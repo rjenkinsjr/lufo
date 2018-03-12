@@ -6,9 +6,9 @@
  * that may have contributed to this error.
  */
 class UfoDisconnectError extends Error {
-  udpError: Error;
-  tcpError: Error;
-  constructor(message: string, udpError: Error, tcpError: Error) {
+  udpError: ?Error;
+  tcpError: ?Error;
+  constructor(message: string, udpError: ?Error, tcpError: ?Error) {
     super(message);
     Error.captureStackTrace(this, UfoDisconnectError);
     this.udpError = udpError;

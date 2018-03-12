@@ -1,14 +1,12 @@
 // @flow
 import TcpBuiltins from './TcpBuiltins';
 import TcpCustoms from './TcpCustoms';
+import type { StatusResponseHandler } from './TcpTypes';
 
 /* Private variables */
 const header = 0x81;
 const request: Array<number> = [header, 0x8A, 0x8B, 0x96];
 const responseSize = 14;
-
-/** A function that parses the response from a UFO "status" TCP command. */
-type StatusResponseHandler = (data: Buffer) => void;
 
 /** Static methods for parsing a UFO's status byte stream. */
 export default class {

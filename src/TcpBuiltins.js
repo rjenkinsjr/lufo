@@ -35,7 +35,7 @@ const maxSpeed = 100;
 export default class {
   /**
    * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.
-   * This map includes internal function names that are excluded by {@link TcpBuiltins#getFunctionNames}.
+   * This map includes internal function names that are excluded by {@link TcpBuiltins.getFunctionNames}.
    */
   static getFunctions(): Map<string, number> { return functionMap; }
   /** Returns the set of valid UFO built-in function names usable by the CLI/API. */
