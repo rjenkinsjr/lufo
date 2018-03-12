@@ -29,9 +29,9 @@ const functionMap: Map<string, number> = Map({
 });
 const specialFunctionNames: Set<string> = Set.of('noFunction', 'postReset');
 const functionNames: Set<string> = functionMap.keySeq().toSet().subtract(specialFunctionNames);
-const maxSpeed: number = 100;
+const maxSpeed = 100;
 
-/** This class contains methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions. */
+/** Static methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions. */
 export default class {
   /**
    * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.

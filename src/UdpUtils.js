@@ -4,10 +4,29 @@ import _ from 'lodash';
 import UdpCommands from './UdpCommands';
 import UdpStrings from './UdpStrings';
 
+/** This object declares the IP/MAC addresses and model number of a discovered UFO. */
+type DiscoveredUfo = {
+  ip: string,
+  mac: string,
+  model: string,
+};
+
+/** The response from the UFO "hello" UDP command, used to discover UFOs on the network. */
+type UdpHelloResponse = string | Array<string>;
+
+/** An object that contains a complete AT command string and a function that will parse the command response. */
+type UdpCommandSchema = {
+  send: string,
+  recv: (string) => Array<string>,
+};
+
+/** A callback function that receives a list of discovered UFOs. */
+type UdpDiscoverCallback = (error: ?Error, ufos: Array<DiscoveredUfo>) => mixed;
+
 /* Private variables */
-const defaultPort: number = 48899;
-const normalizeMac: Function = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
-const helloResponseParser: Function = function (response: string | Array<string>): { ip: string, mac: string, model: string } {
+const defaultPort = 48899;
+const normalizeMac = function (mac: string): string { return mac.toLowerCase().replace(/[-:]/g, '').replace(/(.{2})/g, '$1:').slice(0, -1); };
+const helloResponseParser = function (response: UdpHelloResponse): DiscoveredUfo {
   let splitResponse = response;
   if (!Array.isArray(splitResponse)) splitResponse = splitResponse.split(',');
   return {
@@ -17,9 +36,7 @@ const helloResponseParser: Function = function (response: string | Array<string>
   };
 };
 
-/**
- * This class contains utility methods for UFO UDP functionality.
- */
+/** Static methods for generic UFO UDP functionality. */
 export default class {
   /**
    * Returns the default UDP port, 48899.
@@ -32,7 +49,7 @@ export default class {
   /**
    * Converts a UDP "hello" response to an object containing the IP, MAC and model of the UFO.
    */
-  static parseHelloResponse(response: string | Array<string>): { ip: string, mac: string, model: string } { return helloResponseParser(response); }
+  static parseHelloResponse(response: UdpHelloResponse): DiscoveredUfo { return helloResponseParser(response); }
   /**
    * UFO discovery method.
    *
@@ -49,7 +66,7 @@ export default class {
    * - mac
    * - model
    */
-  static discover(options: Object, callback: Function): void {
+  static discover(options: Object, callback: UdpDiscoverCallback): void {
     // Return variables.
     let error = null;
     const data = [];
@@ -117,7 +134,7 @@ export default class {
    * stripped from the response, and the response is split into an array if it
    * contains multiple values. Getter commands will always return an empty array.
    */
-  static assembleCommand(name: string, ...setArgs: Array<string>): { send: string, recv: Function } {
+  static assembleCommand(name: string, ...setArgs: Array<string>): UdpCommandSchema {
     // Define the command object.
     const command = UdpCommands.get(name);
     let cmdString = command.cmd;
@@ -133,7 +150,8 @@ export default class {
       cmdString += UdpStrings.sendSuffix();
     }
     // Return the send and receive schema.
-    return Object.freeze({
+    const recvThis = mode === 'get' ? command.get : false;
+    const commandSchema = {
       send: cmdString,
       recv: function (response: string): Array<string> {
         let result = response;
@@ -152,7 +170,9 @@ export default class {
           return [result];
         }
         return [];
-      }.bind(command[mode] || false),
-    });
+      }.bind(recvThis),
+    };
+    Object.freeze(commandSchema);
+    return commandSchema;
   }
 }

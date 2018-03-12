@@ -1,11 +1,9 @@
 // @flow
 
 /* Private variables */
-const ack: string = '+ok';
+const ack = '+ok';
 
-/**
- * This class contains common strings used in UFO UDP commands.
- */
+/** Static methods for common strings used in UFO UDP commands. */
 export default class {
   /** The standard acknowledgement message sent by both parties. */
   static ack(): string { return ack; }

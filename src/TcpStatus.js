@@ -3,11 +3,14 @@ import TcpBuiltins from './TcpBuiltins';
 import TcpCustoms from './TcpCustoms';
 
 /* Private variables */
-const header: number = 0x81;
+const header = 0x81;
 const request: Array<number> = [header, 0x8A, 0x8B, 0x96];
-const responseSize: number = 14;
+const responseSize = 14;
 
-/** This class contains methods for parsing a UFO's status byte stream. */
+/** A function that parses the response from a UFO "status" TCP command. */
+type StatusResponseHandler = (data: Buffer) => void;
+
+/** Static methods for parsing a UFO's status byte stream. */
 export default class {
   /**
    * Returns the bytes for the status request command. The returned buffer already
@@ -16,8 +19,8 @@ export default class {
   static getRequest(): Buffer { return Buffer.from(request); }
   /** Returns 14, the size of the status command response. */
   static getResponseSize(): number { return responseSize; }
-  /** Returns the response handler function, bound to the given {@link TcpClient}. */
-  static getResponseHandler(tcpClient: Object): Function {
+  /** Returns a response handler function, bound to the given {@link TcpClient}. */
+  static getResponseHandler(tcpClient: Object): StatusResponseHandler {
     return function (data: Buffer) {
       if (!this._error) {
         // Add the data to what we already have.
