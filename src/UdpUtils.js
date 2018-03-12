@@ -35,6 +35,7 @@ const udpCommandRecv = function (response: string): Array<string> {
   }
   return [];
 };
+const discoverTimeout = 3000; // milliseconds
 
 /** Static methods for generic UFO UDP functionality. */
 export default class {
@@ -96,11 +97,10 @@ export default class {
     // Set the default password if none was given.
     const hello = Buffer.from(options.password ? options.password : UdpStrings.defaultHello());
     // Set the default timeout if none was given.
-    const discoverTimeout = 3000; // milliseconds
-    let timeout = options.timeout;
+    let timeout = options.timeout || -1;
     if (!timeout || timeout < 0) timeout = discoverTimeout;
     // Set the default remote port if none was given.
-    let remotePort = options.remotePort;
+    let remotePort = options.remotePort || -1;
     if (!remotePort || remotePort < 0) remotePort = defaultPort;
     // Setup the socket. Let Node exit if this socket is still active.
     let stopDiscover: ?TimeoutID = null;
