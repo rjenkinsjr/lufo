@@ -12,7 +12,7 @@ const responseSize = 14;
 export default class {
   /**
    * Returns the bytes for the status request command. The returned buffer already
-   * contains the "local" byte and the checksum byte; do not pass this value to tcp/Utils.
+   * contains the "local" byte and the checksum byte; do not pass this value to {@link TcpUtils.prepareBytes}.
    */
   static getRequest(): Buffer { return Buffer.from(request); }
   /** Returns 14, the size of the status command response. */
