@@ -58,7 +58,7 @@ export default class {
    * The "recv" function takes the AT command response and returns a possibly
    * empty string array with the parsed response. The prefix and suffix strings
    * are stripped from the response, and the response is split into an array if
-   * it contains multiple values. Getter commands will always return an empty
+   * it contains multiple values. Setter commands will always return an empty
    * array.
    */
   static assembleCommand(name: string, ...setArgs: Array<string>): UdpTypes.UdpCommandSchema {

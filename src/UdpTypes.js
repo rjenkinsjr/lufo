@@ -90,7 +90,7 @@ export type UfoDiscoverOptions = {
  * A callback function that receives an array of discovered UFOs.
  * @memberof UdpTypes
  * @callback
- * @param {Error} error Possibly-null error object.
+ * @param {Error} [error] Possibly-null error object.
  * @param {Array<DiscoveredUfo>} ufos The list of UFOs that were discovered; may
  * be empty.
  */
