@@ -11,13 +11,17 @@ const responseSize = 14;
 /** Static methods for parsing a UFO's status byte stream. */
 export default class {
   /**
-   * Returns the bytes for the status request command. The returned buffer already
-   * contains the "local" byte and the checksum byte; do not pass this value to {@link TcpUtils.prepareBytes}.
+   * Returns the bytes for the "status" command. The returned buffer already
+   * contains the "local" byte and the checksum byte; do not pass this value to
+   * {@link TcpUtils.prepareBytes}.
    */
   static getRequest(): Buffer { return Buffer.from(request); }
   /** Returns 14, the size of the status command response. */
   static getResponseSize(): number { return responseSize; }
-  /** Returns a response handler function, bound to the given {@link TcpClient}. */
+  /**
+   * Returns a status command response handler function, bound to the given
+   * {@link TcpClient}.
+   */
   static getResponseHandler(tcpClient: Object): StatusResponseHandler {
     return function (data: Buffer) {
       if (!this._error) {

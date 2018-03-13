@@ -31,14 +31,18 @@ const specialFunctionNames: Set<string> = Set.of('noFunction', 'postReset');
 const functionNames: Set<string> = functionMap.keySeq().toSet().subtract(specialFunctionNames);
 const maxSpeed = 100;
 
-/** Static methods for utilizing a UFO's built-in functions. UFOs come with 20 such functions. */
+/**
+ * Static methods for utilizing a UFO's built-in functions. UFOs come with 20
+ * such functions.
+ */
 export default class {
   /**
-   * Returns the map of built-in function names to IDs. Function IDs are hexadecimal numbers.
-   * This map includes internal function names that are excluded by {@link TcpBuiltins.getFunctionNames}.
+   * Returns the map of built-in function names to IDs. Function IDs are
+   * hexadecimal numbers. This map includes internal function names that are
+   * excluded by {@link TcpBuiltins.getFunctionNames}.
    */
   static getFunctions(): Map<string, number> { return functionMap; }
-  /** Returns the set of valid UFO built-in function names usable by the CLI/API. */
+  /** Returns the set of valid built-in function names usable by the CLI/API. */
   static getFunctionNames(): Set<string> { return functionNames; }
   /**
    * Given a built-in function name, returns its hexadecimal ID.
@@ -50,8 +54,9 @@ export default class {
     return id;
   }
   /**
-   * Converts a built-in function speed value back and forth between the API value and the internal value.
-   * Input and output are clamped to 0-100 inclusive.
+   * Converts a built-in function speed value back and forth between the API
+   * value and the internal value. Input and output are clamped to 0-100
+   * inclusive.
    */
   static flipSpeed(speed: number): number { return Math.abs(_.clamp(speed, 0, maxSpeed) - maxSpeed); }
 }

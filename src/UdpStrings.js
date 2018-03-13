@@ -3,7 +3,10 @@
 /* Private variables */
 const ack = '+ok';
 
-/** Static methods for common strings used in UFO UDP commands. */
+/**
+ * Static methods for common strings used in UFO UDP commands.
+ * These methods always return the same values.
+ */
 export default class {
   /** The standard acknowledgement message sent by both parties. */
   static ack(): string { return ack; }

@@ -6,8 +6,8 @@ export default class {
   /** Clamps the input to 0-255 inclusive, for use as an RGBW value. */
   static clampRGBW(value: number): number { return _.clamp(value, 0, 255); }
   /**
-   * Given a buffer of data destined for a UFO, expands the buffer by 2 and
-   * inserts the last two bytes (the "local" flag 0x0f and the checksum).
+   * Given a buffer of data destined for a {@link TcpClient}, expands the buffer
+   * by 2 and inserts the last two bytes (the "local" flag 0x0f and the checksum).
    *
    * A new buffer is returned; the input buffer is not modified.
    */

@@ -7,13 +7,15 @@ const off: Array<number> = [0x71, 0x24, 0x0F, 0xA4];
 /** Static methods for controlling a UFO's power flag. */
 export default class {
   /**
-   * Returns the bytes for the "on" flag. The returned buffer already contains
-   * the "local" byte and the checksum byte; do not pass this value to {@link TcpUtils.prepareBytes}.
+   * Returns the bytes for the "on" command. The returned buffer already
+   * contains the "local" byte and the checksum byte; do not pass this value to
+   * {@link TcpUtils.prepareBytes}.
    */
   static on(): Buffer { return Buffer.from(on); }
   /**
-   * Returns the bytes for the "off" flag. The returned buffer already contains
-   * the "local" byte and the checksum byte; do not pass this value to {@link TcpUtils.prepareBytes}.
+  * Returns the bytes for the "off" command. The returned buffer already
+  * contains the "local" byte and the checksum byte; do not pass this value to
+  * {@link TcpUtils.prepareBytes}.
    */
   static off(): Buffer { return Buffer.from(off); }
 }

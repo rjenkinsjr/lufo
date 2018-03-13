@@ -39,12 +39,11 @@ const discoverTimeout = 3000; // milliseconds
 
 /** Static methods for generic UFO UDP functionality. */
 export default class {
-  /**
-   * Returns the default UDP port, 48899.
-   */
+  /** Returns the default UDP port, 48899. */
   static getDefaultPort(): number { return defaultPort; }
   /**
-   * Normalizes a MAC address string by lowercasing all letters and converting separators to colons.
+   * Normalizes a MAC address string by lowercasing all letters and converting
+   * separators to colons.
    */
   static macAddress(mac: string): string { return normalizeMac(mac); }
   /**
@@ -56,10 +55,11 @@ export default class {
    * If no setter arguments are passed, the "send" string constitutes a getter
    * command instead of a setter command.
    *
-   * The "recv" function takes the AT command response and returns a possibly-empty
-   * string array with the parsed response. The prefix and suffix strings are
-   * stripped from the response, and the response is split into an array if it
-   * contains multiple values. Getter commands will always return an empty array.
+   * The "recv" function takes the AT command response and returns a possibly
+   * empty string array with the parsed response. The prefix and suffix strings
+   * are stripped from the response, and the response is split into an array if
+   * it contains multiple values. Getter commands will always return an empty
+   * array.
    */
   static assembleCommand(name: string, ...setArgs: Array<string>): UdpTypes.UdpCommandSchema {
     // Define the command object.
@@ -86,10 +86,14 @@ export default class {
     return commandSchema;
   }
   /**
-   * Converts a UDP "hello" response to an object containing the IP, MAC and model of the UFO.
+   * Converts a "hello" command response to an object containing the IP, MAC and
+   * model of the UFO.
    */
   static parseHelloResponse(response: UdpTypes.UfoHelloResponse): UdpTypes.DiscoveredUfo { return helloResponseParser(response); }
-  /** Searches for UFOs on the network and invokes the given callback with the resulting list. */
+  /**
+   * Searches for UFOs on the network and invokes the given callback with the
+   * resulting list.
+   */
   static discover(options: UdpTypes.UfoDiscoverOptions, callback: UdpTypes.UdpDiscoverCallback): void {
     // Return variables.
     let error = null;

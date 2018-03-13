@@ -1,6 +1,6 @@
 // @flow
 /**
- * Data types used by various TCP functions.
+ * Data types used by various UFO TCP functions.
  * @namespace TcpTypes
  */
 
@@ -11,7 +11,7 @@
 export type NullStep = { red: 1, green: 2, blue: 3 };
 
 /**
- * A function that parses the response from a UFO "status" TCP command.
+ * A function that parses the response from the "status" command.
  * @memberof TcpTypes
  */
 export type StatusResponseHandler = (data: Buffer) => void;
