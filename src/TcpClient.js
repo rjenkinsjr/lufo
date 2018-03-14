@@ -1,31 +1,157 @@
 // @flow
 import * as net from 'net';
-import TcpBuiltins from './TcpBuiltins';
-import TcpCustoms from './TcpCustoms';
-import TcpPower from './TcpPower';
-import TcpUtils from './TcpUtils';
+import { Map, Set } from 'immutable';
+import _ from 'lodash';
 
-/* Private variables */
+/** One of the possible built-in function names. */
+export type BuiltinFunction =
+  'sevenColorCrossFade' |
+  'redGradualChange' |
+  'greenGradualChange' |
+  'blueGradualChange' |
+  'yellowGradualChange' |
+  'cyanGradualChange' |
+  'purpleGradualChange' |
+  'whiteGradualChange' |
+  'redGreenCrossFade' |
+  'redBlueCrossFade' |
+  'greenBlueCrossFade' |
+  'sevenColorStrobeFlash' |
+  'redStrobeFlash' |
+  'greenStrobeFlash' |
+  'blueStrobeFlash' |
+  'yellowStrobeFlash' |
+  'cyanStrobeFlash' |
+  'purpleStrobeFlash' |
+  'whiteStrobeFlash' |
+  'sevenColorJumpingChange' |
+  'noFunction' |
+  'postReset';
+
+/** One of the possible custom function modes. */
+export type CustomMode = 'gradual' | 'jumping' | 'strobe';
+/**
+ * A custom function step definition. At runtime, all values are clamped to
+ * 0-255 inclusive.
+ */
+export type CustomStep = {
+  red: number,
+  green: number,
+  blue: number
+};
+
+/* Private variables/methods. */
 const statusHeader = 0x81;
+// Do not pass these values to _prepareBytes().
 const statusRequest = Buffer.from([statusHeader, 0x8A, 0x8B, 0x96]);
 const statusResponseSize = 14;
+// Do not pass these values to _prepareBytes().
+const powerOn = Buffer.from([0x71, 0x23, 0x0F, 0xA3]);
+// Do not pass these values to _prepareBytes().
+const powerOff = Buffer.from([0x71, 0x24, 0x0F, 0xA4]);
+const noFunctionValue = 0x61;
+const builtinFunctionMap: Map<BuiltinFunction, number> = Map({
+  sevenColorCrossFade: 0x25,
+  redGradualChange: 0x26,
+  greenGradualChange: 0x27,
+  blueGradualChange: 0x28,
+  yellowGradualChange: 0x29,
+  cyanGradualChange: 0x2A,
+  purpleGradualChange: 0x2B,
+  whiteGradualChange: 0x2C,
+  redGreenCrossFade: 0x2D,
+  redBlueCrossFade: 0x2E,
+  greenBlueCrossFade: 0x2F,
+  sevenColorStrobeFlash: 0x30,
+  redStrobeFlash: 0x31,
+  greenStrobeFlash: 0x32,
+  blueStrobeFlash: 0x33,
+  yellowStrobeFlash: 0x34,
+  cyanStrobeFlash: 0x35,
+  purpleStrobeFlash: 0x36,
+  whiteStrobeFlash: 0x37,
+  sevenColorJumpingChange: 0x38,
+  noFunction: noFunctionValue,
+  postReset: 0x63,
+});
+const builtinFunctionReservedNames: Set<string> = Set.of('noFunction', 'postReset');
+const maxBuiltinSpeed = 100;
+const maxCustomSteps = 16;
+const nullStep: CustomStep = { red: 1, green: 2, blue: 3 };
+Object.freeze(nullStep);
+const maxCustomSpeed = 30;
+/**
+ * Clamps the input to 0-255 inclusive, for use as an RGBW value.
+ *
+ * @private
+ */
+const _clampRGBW = function (value: number): number {
+  return _.clamp(value, 0, 255);
+};
+/**
+ * Given a buffer of data destined for the TCP socket, expands the buffer by 2
+ * and inserts the last two bytes (the "local" flag 0x0f and the checksum).
+ *
+ * A new buffer is returned; the input buffer is not modified.
+ *
+ * @private
+ */
+const _prepareBytes = function (buf: Buffer): Buffer {
+  const newBuf = Buffer.alloc(buf.length + 2);
+  buf.copy(newBuf);
+  // Add the "local" flag to the given buffer.
+  //
+  // For virtually all datagrams sent to UFOs, the second-to-last byte is either
+  // 0f (local) or (f0) remote. "Remote" refers to UFOs that are exposed to the
+  // Internet via the company's cloud service, which is not supported by this
+  // library, so we always use "local".
+  newBuf.writeUInt8(0x0f, newBuf.length - 2);
+  // Zero out the checksum field for safety.
+  const lastIndex = newBuf.length - 1;
+  newBuf.writeUInt8(0, lastIndex);
+  // Sum up all the values in the buffer, then divide by 256.
+  // The checksum is the remainder.
+  let checksum = 0;
+  Array.from(newBuf.values()).forEach((value) => { checksum += value; });
+  checksum %= 0x100;
+  newBuf.writeUInt8(checksum, lastIndex);
+  // Done.
+  return newBuf;
+};
+/**
+ * Converts a built-in function speed value back and forth between the API
+ * value and the internal value. Input and output are clamped to 0-100
+ * inclusive.
+ *
+ * @private
+ */
+const _builtinFlipSpeed = function (speed: number): number {
+  return Math.abs(_.clamp(speed, 0, maxBuiltinSpeed) - maxBuiltinSpeed);
+};
+/**
+ * Converts a custom function speed value back and forth between the API value
+ * and the internal value. Input and output are clamped to 0-30 inclusive.
+ *
+ * @private
+ */
+const _customFlipSpeed = function (speed: number): number {
+  return Math.abs(_.clamp(speed, 0, maxCustomSpeed) - maxCustomSpeed);
+};
 
 /** Provides an API to UFOs for interacting with the UFO's TCP server. */
-export default class {
+export default class TcpClient {
   constructor(ufo: Object, options: Object) {
-    // Capture the parent UFO.
     this._ufo = ufo;
-    // Capture the options provided by the user.
-    this._options = Object.freeze(options);
-    // Create the TCP socket and other dependent objects.
+    this._options = options;
+    Object.freeze(this._options);
     this._createSocket();
   }
-
   /**
    * Reacts to the "close" event on the TCP socket inside this client.
    * - If the UFO FIN'ed first due to inactivity, silently reconnect.
    * - If the UFO FIN'ed first due to an error, fire the disconnect callback with the error.
    * - Otherwise, fire the disconnect callback with no error.
+   *
    * @private
    */
   _closeSocket(): void {
@@ -52,10 +178,10 @@ export default class {
       this._ufo.emit('tcpDead', this._error);
     }
   }
-
   /**
    * Creates/initializes the TCP socket inside this client. Also initializes/
    * resets other variables needed to manage connection status.
+   *
    * @private
    */
   _createSocket(): void {
@@ -88,50 +214,11 @@ export default class {
     // Initially, ignore all received data.
     this._socket.pause();
   }
-
-  // Wraps the socket.write() method, handling the optional callback.
-  //
-  // callback is optional and accepts no arguments.
-  _write(buffer: Buffer, callback: ?() => mixed): void {
-    if (typeof callback === 'function') {
-      this._socket.write(buffer, callback);
-    } else {
-      this._socket.write(buffer);
-    }
-  }
-  // This function appears to set the UFO's time.
-  // It is called by the Android app when a UFO is factory reset or has its WiFi configuration is updated.
-  // Neither of those functions seem dependent on this function executing, however...correctly or at all.
-  //
-  // Since this function's purpose isn't fully known, it is marked as private.
-  // Its response always seems to be 0x0f 0x10 0x00 0x1f.
-  //
-  // Callback is optional and accepts no arguments.
-  _time(callback: ?() => mixed): void {
-    if (this._dead) return;
-    // 0x10 yy yy mm dd hh mm ss 0x07 0x00
-    // The first "yy" is the first 2 digits of the year.
-    // The second "yy" is the last 2 digits of the year.
-    // "mm" ranges from decimal "01" to "12".
-    // "hh" is 24-hour format.
-    // 0x07 0x00 seems to be a constant terminator for the data.
-    const buf = Buffer.alloc(10);
-    buf.writeUInt8(0x10, 0);
-    const now = new Date();
-    const first2Year = parseInt(now.getFullYear().toString().substring(0, 2), 10);
-    const last2Year = parseInt(now.getFullYear().toString().substring(2), 10);
-    buf.writeUInt8(first2Year, 1);
-    buf.writeUInt8(last2Year, 2);
-    buf.writeUInt8(now.getMonth() + 1, 3);
-    buf.writeUInt8(now.getDate(), 4);
-    buf.writeUInt8(now.getHours(), 5);
-    buf.writeUInt8(now.getMinutes(), 6);
-    buf.writeUInt8(now.getSeconds(), 7);
-    buf.writeUInt8(0x07, 8);
-    buf.writeUInt8(0, 9);
-    this._write(TcpUtils.prepareBytes(buf), callback);
-  }
-  // Handles bytes received as a result of calling the "status" command.
+  /**
+   * Handles TCP data received as a result of calling the "status" command.
+   *
+   * @private
+   */
   _receiveStatus(data: Buffer): void {
     if (!this._error) {
       // Add the data to what we already have.
@@ -154,9 +241,9 @@ export default class {
           const expectedChecksum = responseBytes.readUInt8(lastIndex);
           responseBytes.writeUInt8(0, lastIndex);
           let actualChecksum = 0;
-          for (const value of responseBytes.values()) {
+          Array.from(responseBytes.values()).forEach((value) => {
             actualChecksum += value;
-          }
+          });
           actualChecksum %= 0x100;
           // Compare.
           responseBytes.writeUInt8(expectedChecksum, lastIndex);
@@ -200,26 +287,27 @@ export default class {
         if (!err) {
           const mode = responseBytes.readUInt8(3);
           switch (mode) {
-            case 0x62:
+            case 0x62: {
               result.mode = 'other';
               break;
-            case 0x61:
+            }
+            case 0x61: {
               result.mode = 'static';
               break;
-            case 0x60:
+            }
+            case 0x60: {
               result.mode = 'custom';
               break;
-            default:
-              var found = false;
-              for (const f in TcpBuiltins.getFunctions().toObject()) {
-                if (TcpBuiltins.getFunctionId(f) === mode) {
-                  result.mode = `function:${f}`;
-                  found = true;
-                  break;
-                }
+            }
+            default: {
+              const name = builtinFunctionMap.findEntry((v, k) => v === mode); // eslint-disable-line no-unused-vars
+              if (name) {
+                result.mode = `function:${name[0]}`;
+              } else {
+                err = new Error(`Status check failed (impossible mode ${mode}).`);
               }
-              if (!found) err = new Error(`Status check failed (impossible mode ${mode}).`);
               break;
+            }
           }
         }
         // SPEED is evaluated based on MODE, and it does not apply to all modes.
@@ -227,10 +315,10 @@ export default class {
           const speed = responseBytes.readUInt8(5);
           if (result.mode === 'custom') {
             // The UFO seems to store/report the speed as 1 higher than what it really is.
-            result.speed = TcpCustoms.flipSpeed(speed - 1);
+            result.speed = _customFlipSpeed(speed - 1);
           }
           if (result.mode.startsWith('function')) {
-            result.speed = TcpBuiltins.flipSpeed(speed);
+            result.speed = _builtinFlipSpeed(speed);
           }
         }
         // Capture RGBW values as-is.
@@ -248,10 +336,63 @@ export default class {
       this._statusIndex = newIndex;
     }
   }
-  // Binds the TCP socket on this machine.
-  //
-  // Callback is required and accepts no arguments.
-  connect(callback: () => mixed): void {
+  /**
+   * Sends the data in the given buffer to the TCP socket, then invokes the
+   * given callback.
+   *
+   * @private
+   */
+  _write(buffer: Buffer, callback: ?() => mixed): void {
+    if (callback) {
+      this._socket.write(buffer, callback);
+    } else {
+      this._socket.write(buffer);
+    }
+  }
+  /**
+   * The TCP command sent by this method appears to set/synchronize time on the
+   * UFO. This is based on the construction of the payload, as observed via
+   * packet sniffing. The given callback, if any, is invoked after the command
+   * is sent.
+   * - The Android app appears to send this command when a UFO is factory reset
+   * or has its WiFi configuration is updated. Neither of these actions seem
+   * dependent on this command function executing, however, so this method
+   * exists only for completeness and is not used.
+   * - It's not clear how this works with the NTP client that is configurable
+   * via an AT/UDP command, since all UFOs have an NTP server setting.
+   * - The response of this command always seems to be: 0x0f 0x10 0x00 0x1f.
+   *
+   * @private
+   */
+  _time(callback: ?() => mixed): void {
+    if (this._dead) return;
+    // 0x10 yy yy mm dd hh mm ss 0x07 0x00
+    // The first "yy" is the first 2 digits of the year.
+    // The second "yy" is the last 2 digits of the year.
+    // "mm" ranges from decimal "01" to "12".
+    // "hh" is 24-hour format.
+    // 0x07 0x00 seems to be a constant terminator for the data.
+    const buf = Buffer.alloc(10);
+    buf.writeUInt8(0x10, 0);
+    const now = new Date();
+    const first2Year = parseInt(now.getFullYear().toString().substring(0, 2), 10);
+    const last2Year = parseInt(now.getFullYear().toString().substring(2), 10);
+    buf.writeUInt8(first2Year, 1);
+    buf.writeUInt8(last2Year, 2);
+    buf.writeUInt8(now.getMonth() + 1, 3);
+    buf.writeUInt8(now.getDate(), 4);
+    buf.writeUInt8(now.getHours(), 5);
+    buf.writeUInt8(now.getMinutes(), 6);
+    buf.writeUInt8(now.getSeconds(), 7);
+    buf.writeUInt8(0x07, 8);
+    buf.writeUInt8(0, 9);
+    this._write(_prepareBytes(buf), callback);
+  }
+  /**
+   * Opens the TCP socket on this machine and connects to the UFO's TCP server,
+   * then invokes the given callback.
+   */
+  connect(callback: ?() => mixed): void {
     if (this._dead) return;
     // Define options object.
     const options = {
@@ -265,7 +406,11 @@ export default class {
     // Connect.
     this._socket.connect(options, callback);
   }
-  // Closes the TCP socket on this machine.
+  /**
+   * Closes the TCP socket on this machine. This object cannot be used after
+   * this method is called; invoking any method after this one results in a
+   * silent no-op.
+   */
   disconnect(): void {
     if (this._dead) return;
     // We're intentionally closing this connection.
@@ -274,10 +419,10 @@ export default class {
     this._socket.end();
     this._socket.emit('close');
   }
-  // Returns a JSON object describing the status of the UFO.
-  //
-  // Callback is required and accepts error and data arguments.
-  // Either one or the other argument is null, but never both.
+  /**
+   * Gets the UFO's output status and sends it to the given callback.
+   * The callback is guaranteed to have exactly one non-null argument.
+   */
   status(callback: (error: ?Error, data: ?Object) => mixed): void {
     if (this._dead) return;
     this._socket.resume();
@@ -288,28 +433,25 @@ export default class {
     }.bind(this);
     this._socket.write(statusRequest);
   }
-  // Turns the UFO on.
-  //
-  // Callback is optional and accepts no arguments.
+  /** Turns the UFO output on, then invokes the given callback. */
   on(callback: ?() => mixed): void {
     if (this._dead) return;
-    this._write(TcpPower.on(), callback);
+    this._write(powerOn, callback);
   }
-  // Turns the UFO off.
-  //
-  // Callback is optional and accepts no arguments.
+  /** Turns the UFO output off, then invokes the given callback. */
   off(callback: ?() => mixed): void {
     if (this._dead) return;
-    this._write(TcpPower.off(), callback);
+    this._write(powerOff, callback);
   }
-  // Toggles the UFO.
-  //
-  // Callback is optional and accepts an error argument.
+  /**
+   * Toggles the UFO output, then invokes the given callback. The error
+   * argument will be non-null if the UFO's status could not be obtained.
+   */
   togglePower(callback: ?(error: ?Error) => mixed): void {
     if (this._dead) return;
     this.status((err, status) => {
       if (err) {
-        typeof callback === 'function' && callback(err);
+        if (callback) callback(err);
       } else if (status.power === 'on') {
         this.off(callback);
       } else {
@@ -317,46 +459,53 @@ export default class {
       }
     });
   }
-  // Sets the RGBW output values of the UFO.
-  //
-  // Callback is optional and accepts no arguments.
+  /**
+   * Sets the UFO output to the static values specified, then invokes the given
+   * calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
+   * and 255 is fully on/100% output.
+   */
   rgbw(red: number, green: number, blue: number, white: number, callback: ?() => mixed): void {
     if (this._dead) return;
     // 0x31 rr gg bb ww 0x00
     // 0x00 seems to be a constant terminator for the data.
     const buf = Buffer.alloc(6);
     buf.writeUInt8(0x31, 0);
-    buf.writeUInt8(TcpUtils.clampRGBW(red), 1);
-    buf.writeUInt8(TcpUtils.clampRGBW(green), 2);
-    buf.writeUInt8(TcpUtils.clampRGBW(blue), 3);
-    buf.writeUInt8(TcpUtils.clampRGBW(white), 4);
+    buf.writeUInt8(_clampRGBW(red), 1);
+    buf.writeUInt8(_clampRGBW(green), 2);
+    buf.writeUInt8(_clampRGBW(blue), 3);
+    buf.writeUInt8(_clampRGBW(white), 4);
     buf.writeUInt8(0, 5);
-    this._write(TcpUtils.prepareBytes(buf), callback);
+    this._write(_prepareBytes(buf), callback);
   }
-  // Enables one of the UFO's built-in functions.
-  // Speed ranges from 0 (slow) to 100 (fast), inclusive.
-  //
-  // Callback is optional and accepts no arguments.
-  builtin(name: string, speed: number, callback: ?() => mixed): void {
+  /**
+   * Starts one of the UFO's built-in functions at the given speed, then invokes
+   * the given callback. The error is always null unless an invalid function
+   * name is given.
+   * - The speed is clamped from 0-100 inclusive. 0 is ??? seconds and 100 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
+   */
+  builtin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => mixed): void {
     if (this._dead) return;
-    // 0x61 id speed
-    const buf = Buffer.alloc(3);
-    buf.writeUInt8(0x61, 0);
-    buf.writeUInt8(TcpBuiltins.getFunctionId(name), 1);
-    // This function accepts a speed from 0 (slow) to 100 (fast).
-    buf.writeUInt8(TcpBuiltins.flipSpeed(speed), 2);
-    this._write(TcpUtils.prepareBytes(buf), callback);
+    if (builtinFunctionMap.has(name)) {
+      // 0x61 id speed
+      const buf = Buffer.alloc(3);
+      buf.writeUInt8(0x61, 0);
+      buf.writeUInt8(builtinFunctionMap.get(name, noFunctionValue), 1);
+      // This function accepts a speed from 0 (slow) to 100 (fast).
+      buf.writeUInt8(_builtinFlipSpeed(speed), 2);
+      this._write(_prepareBytes(buf), callback);
+    } else if (callback) {
+      callback(new Error(`No such built-in function ${name}`));
+    }
   }
-  // Starts a custom function.
-  // Speed ranges from 0 (slow) to 30 (fast).
-  // Mode is one of 'gradual', 'jumping' or 'strobe'.
-  //
-  // Steps is an array of objects; each object must define 'red', 'green' and 'blue' attributes whose values range from 0 to 255, inclusive.
-  // The array should not be more than 16 objects in size; only the first 16 objects will be used.
-  // Step objects defined as { red: 1, green: 2, blue: 3 } are invalid and dropped from the input array.
-  //
-  // Callback is optional and accepts no arguments.
-  custom(mode: 'gradual' | 'jumping' | 'strobe', speed: number, steps: Array<{red: number, green: number, blue: number}>, callback: ?() => mixed): void {
+  /**
+   * Starts the given custom function, then invokes the given callback. The error
+   * is always null unless an invalid mode is given.
+   * - The speed is clamped from 0-30 inclusive. 0 is ??? seconds and 30 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
+   * - Only the first 16 steps in the given array are considered. Any additional steps are ignored.
+   * - If any null steps are specified in the array, they are dropped *before*
+   * the above limit of 16 is considered.
+   */
+  custom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => mixed): void {
     if (this._dead) return;
     // Validate the mode.
     let modeId;
@@ -371,7 +520,7 @@ export default class {
         modeId = 0x3C;
         break;
       default:
-        typeof callback === 'function' && callback(new Error(`Invalid mode '${mode}'.`));
+        if (callback) callback(new Error(`Invalid mode '${mode}'.`));
         return;
     }
     // 0x51 steps(16xUInt8) speed mode 0xFF
@@ -385,42 +534,43 @@ export default class {
     // can only exist at the end of the array.
     //
     // While we're doing this, truncate the array to the correct size.
-    const nullStep = TcpCustoms.getNullStep();
-    const stepCount = TcpCustoms.getStepCount();
     const stepsCopy = steps.filter(s => !(s.red === nullStep.red &&
                s.green === nullStep.green &&
-               s.blue === nullStep.blue)).slice(0, stepCount);
-    while (stepsCopy.length < stepCount) {
+               s.blue === nullStep.blue)).slice(0, maxCustomSteps);
+    while (stepsCopy.length < maxCustomSteps) {
       stepsCopy.push(nullStep);
     }
     // Each step consists of an RGB value and is translated into 4 bytes.
     // The 4th byte is always zero.
-    for (const step of stepsCopy) {
-      buf.writeUInt8(TcpUtils.clampRGBW(step.red), index);
+    stepsCopy.forEach((step) => {
+      buf.writeUInt8(_clampRGBW(step.red), index);
       index += 1;
-      buf.writeUInt8(TcpUtils.clampRGBW(step.green), index);
+      buf.writeUInt8(_clampRGBW(step.green), index);
       index += 1;
-      buf.writeUInt8(TcpUtils.clampRGBW(step.blue), index);
+      buf.writeUInt8(_clampRGBW(step.blue), index);
       index += 1;
       buf.writeUInt8(0, index);
       index += 1;
-    }
+    });
     // This function accepts a speed from 0 (slow) to 30 (fast).
     // The UFO seems to store/report the speed as 1 higher than what it really is.
-    buf.writeUInt8(TcpCustoms.flipSpeed(speed) + 1, index);
+    buf.writeUInt8(_customFlipSpeed(speed) + 1, index);
     index += 1;
     // Set the mode.
     buf.writeUInt8(modeId, index);
     index += 1;
     // Add terminator and write.
     buf.writeUInt8(0xFF, index);
-    this._write(TcpUtils.prepareBytes(buf), callback);
+    this._write(_prepareBytes(buf), callback);
   }
-
-  /*
-  Music, disco and camera modes:
-    0x41 ?? ?? ?? ?? ?? 0x0F checksum
-  irrelevant mode because it's dependent on the device's audio, microphone or camera; individual transmissions just set the color
-  only relevant observation is that 41 is the header
-  */
+  /** Returns the list of built-in functions usable by the API/CLI. */
+  static getBuiltinFunctions(): Array<BuiltinFunction> {
+    return builtinFunctionMap.keySeq().toSet().subtract(builtinFunctionReservedNames).toArray();
+  }
 }
+/*
+Music, disco and camera modes:
+  0x41 ?? ?? ?? ?? ?? 0x0F checksum
+irrelevant mode because it's dependent on the device's audio, microphone or camera; individual transmissions just set the color
+only relevant observation is that 41 is the header
+*/

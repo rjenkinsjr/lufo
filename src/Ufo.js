@@ -221,9 +221,7 @@ Ufo.prototype.reboot = function (callback) {
 //
 // Callback is optional and overrides any already-defined disconnect callback.
 Ufo.prototype.factoryReset = function (callback) {
-  this._tcpClient._time(() => {
-    this._udpClient.factoryReset(callback);
-  });
+  this._udpClient.factoryReset(callback);
 };
 Ufo.prototype.setNtpServer = function (ipAddress, callback) {
   this._udpClient.setNtpServer(ipAddress, callback);
