@@ -9,9 +9,3 @@
  * @memberof TcpTypes
  */
 export type NullStep = { red: 1, green: 2, blue: 3 };
-
-/**
- * A function that parses the response from the "status" command.
- * @memberof TcpTypes
- */
-export type StatusResponseHandler = (data: Buffer) => void;
