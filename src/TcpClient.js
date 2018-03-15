@@ -491,7 +491,7 @@ export default class TcpClient {
    * - The speed is clamped from 0-30 inclusive. 0 is ??? seconds and 30 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
    * - Only the first 16 steps in the given array are considered. Any additional steps are ignored.
    * - If any null steps are specified in the array, they are dropped *before*
-   * the above limit of 16 is considered.
+   * the limit of 16 documented above is considered.
    */
   custom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => mixed): void {
     if (this._dead) return;
