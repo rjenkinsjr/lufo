@@ -447,22 +447,6 @@ export default class TcpClient {
     this._write(powerOff, callback);
   }
   /**
-   * Toggles the UFO output, then invokes the given callback. The error
-   * argument will be non-null if the UFO's status could not be obtained.
-   */
-  togglePower(callback: ?(error: ?Error) => mixed): void {
-    if (this._dead) return;
-    this.status((err, status) => {
-      if (err) {
-        if (callback) callback(err);
-      } else if (status.power === 'on') {
-        this.off(callback);
-      } else {
-        this.on(callback);
-      }
-    });
-  }
-  /**
    * Sets the UFO output to the static values specified, then invokes the given
    * calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
    * and 255 is fully on/100% output.
