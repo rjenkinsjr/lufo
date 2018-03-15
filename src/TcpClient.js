@@ -1,6 +1,5 @@
 // @flow
 import * as net from 'net';
-import { Map, Set } from 'immutable';
 import _ from 'lodash';
 
 /** One of the possible built-in function names. */
@@ -50,31 +49,34 @@ const powerOn = Buffer.from([0x71, 0x23, 0x0F, 0xA3]);
 // Do not pass these values to _prepareBytes().
 const powerOff = Buffer.from([0x71, 0x24, 0x0F, 0xA4]);
 const noFunctionValue = 0x61;
-const builtinFunctionMap: Map<BuiltinFunction, number> = Map({
-  sevenColorCrossFade: 0x25,
-  redGradualChange: 0x26,
-  greenGradualChange: 0x27,
-  blueGradualChange: 0x28,
-  yellowGradualChange: 0x29,
-  cyanGradualChange: 0x2A,
-  purpleGradualChange: 0x2B,
-  whiteGradualChange: 0x2C,
-  redGreenCrossFade: 0x2D,
-  redBlueCrossFade: 0x2E,
-  greenBlueCrossFade: 0x2F,
-  sevenColorStrobeFlash: 0x30,
-  redStrobeFlash: 0x31,
-  greenStrobeFlash: 0x32,
-  blueStrobeFlash: 0x33,
-  yellowStrobeFlash: 0x34,
-  cyanStrobeFlash: 0x35,
-  purpleStrobeFlash: 0x36,
-  whiteStrobeFlash: 0x37,
-  sevenColorJumpingChange: 0x38,
-  noFunction: noFunctionValue,
-  postReset: 0x63,
-});
-const builtinFunctionReservedNames: Set<string> = Set.of('noFunction', 'postReset');
+const builtinFunctionMap: Map<BuiltinFunction, number> = new Map([
+  ['sevenColorCrossFade', 0x25],
+  ['redGradualChange', 0x26],
+  ['greenGradualChange', 0x27],
+  ['blueGradualChange', 0x28],
+  ['yellowGradualChange', 0x29],
+  ['cyanGradualChange', 0x2A],
+  ['purpleGradualChange', 0x2B],
+  ['whiteGradualChange', 0x2C],
+  ['redGreenCrossFade', 0x2D],
+  ['redBlueCrossFade', 0x2E],
+  ['greenBlueCrossFade', 0x2F],
+  ['sevenColorStrobeFlash', 0x30],
+  ['redStrobeFlash', 0x31],
+  ['greenStrobeFlash', 0x32],
+  ['blueStrobeFlash', 0x33],
+  ['yellowStrobeFlash', 0x34],
+  ['cyanStrobeFlash', 0x35],
+  ['purpleStrobeFlash', 0x36],
+  ['whiteStrobeFlash', 0x37],
+  ['sevenColorJumpingChange', 0x38],
+  ['noFunction', noFunctionValue],
+  ['postReset', 0x63],
+]);
+const builtinFunctionReservedNames: Array<BuiltinFunction> = [
+  'noFunction',
+  'postReset',
+];
 const maxBuiltinSpeed = 100;
 const maxCustomSteps = 16;
 const nullStep: CustomStep = { red: 1, green: 2, blue: 3 };
@@ -300,9 +302,10 @@ export default class TcpClient {
               break;
             }
             default: {
-              const name = builtinFunctionMap.findEntry((v, k) => v === mode); // eslint-disable-line no-unused-vars
+              let name: ?string = null;
+              builtinFunctionMap.forEach((v, k) => { if (name !== null && v === mode) name = k; });
               if (name) {
-                result.mode = `function:${name[0]}`;
+                result.mode = `function:${name}`;
               } else {
                 err = new Error(`Status check failed (impossible mode ${mode}).`);
               }
@@ -487,9 +490,10 @@ export default class TcpClient {
     if (this._dead) return;
     if (builtinFunctionMap.has(name)) {
       // 0x61 id speed
+      const functionId = builtinFunctionMap.get(name) || noFunctionValue;
       const buf = Buffer.alloc(3);
       buf.writeUInt8(0x61, 0);
-      buf.writeUInt8(builtinFunctionMap.get(name, noFunctionValue), 1);
+      buf.writeUInt8(functionId, 1);
       // This function accepts a speed from 0 (slow) to 100 (fast).
       buf.writeUInt8(_builtinFlipSpeed(speed), 2);
       this._write(_prepareBytes(buf), callback);
@@ -565,7 +569,7 @@ export default class TcpClient {
   }
   /** Returns the list of built-in functions usable by the API/CLI. */
   static getBuiltinFunctions(): Array<BuiltinFunction> {
-    return builtinFunctionMap.keySeq().toSet().subtract(builtinFunctionReservedNames).toArray();
+    return Array.from(builtinFunctionMap.keys()).filter(k => !builtinFunctionReservedNames.includes(k)).sort();
   }
 }
 /*
