@@ -140,6 +140,17 @@ const _customFlipSpeed = function (speed: number): number {
   return Math.abs(_.clamp(speed, 0, maxCustomSpeed) - maxCustomSpeed);
 };
 
+/**
+ * Indicates whether or not the given object is equivalent to a null custom step.
+ *
+ * @private
+ */
+const _isNullStep = function (step: CustomStep) {
+  return step.red === nullStep.red &&
+    step.green === nullStep.green &&
+    step.blue === nullStep.blue;
+};
+
 /** Provides an API to UFOs for interacting with the UFO's TCP server. */
 export default class TcpClient {
   constructor(ufo: Object, options: Object) {
@@ -522,9 +533,7 @@ export default class TcpClient {
     // can only exist at the end of the array.
     //
     // While we're doing this, truncate the array to the correct size.
-    const stepsCopy = steps.filter(s => !(s.red === nullStep.red &&
-               s.green === nullStep.green &&
-               s.blue === nullStep.blue)).slice(0, maxCustomSteps);
+    const stepsCopy = steps.filter(s => !_isNullStep(s)).slice(0, maxCustomSteps);
     while (stepsCopy.length < maxCustomSteps) {
       stepsCopy.push(nullStep);
     }
@@ -555,6 +564,8 @@ export default class TcpClient {
   static getBuiltinFunctions(): Array<BuiltinFunction> {
     return Array.from(builtinFunctionMap.keys()).filter(k => !builtinFunctionReservedNames.includes(k)).sort();
   }
+  /** Indicates whether or not the given object is equivalent to a null custom step. */
+  static isNullStep(step: CustomStep): boolean { return _isNullStep(step); }
 }
 /*
 Music, disco and camera modes:

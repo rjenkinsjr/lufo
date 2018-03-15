@@ -239,25 +239,21 @@ cli.command('function-list')
   });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')
-  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 (slow to fast) inclusive. Steps are space-separated RGB triplets (each value in the triplet ranges 0-255 inclusive); maximum of 16 steps (extras are ignored).')
+  .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 (slow to fast) inclusive. Each step is a comma-separated RGB triplets (each value in the triplet ranges 0-255 inclusive); maximum of 16 steps (extras are ignored).')
   .action((type, speed, values, options) => {
-    const truncatedValues = values.slice(0, 48);
-    if (truncatedValues.length % 3 != 0) {
-      quitError('Number of step values provided is not divisible by 3.');
-    } else {
-      let steps = [];
-      while (truncatedValues.length) {
-        steps.push(truncatedValues.splice(0, 3));
-      }
-      steps = steps.map(step => ({
-        red: step[0],
-        green: step[1],
-        blue: step[2],
-      }));
-      go(function () {
-        this.setCustom(type, speed, steps, stop());
-      });
-    }
+    const steps = [];
+    values.forEach((v) => {
+      const splitV = v.split(',');
+      const newValue = {
+        red: parseInt(splitV[0], 10),
+        green: parseInt(splitV[1], 10),
+        blue: parseInt(splitV[2], 10),
+      };
+      if (!TcpClient.isNullStep(newValue)) steps.push(newValue);
+    });
+    go(function () {
+      this.setCustom(type, speed, steps, stop());
+    });
   });
 cli.command('zero')
   .alias('0')
