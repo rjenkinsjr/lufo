@@ -26,7 +26,6 @@ export type BuiltinFunction =
   'sevenColorJumpingChange' |
   'noFunction' |
   'postReset';
-
 /** One of the possible custom function modes. */
 export type CustomMode = 'gradual' | 'jumping' | 'strobe';
 /**
@@ -39,7 +38,7 @@ export type CustomStep = {
   blue: number
 };
 
-/* Private variables/methods. */
+/* Private variables. */
 const statusHeader = 0x81;
 // Do not pass these values to _prepareBytes().
 const statusRequest = Buffer.from([statusHeader, 0x8A, 0x8B, 0x96]);
@@ -82,9 +81,10 @@ const maxCustomSteps = 16;
 const nullStep: CustomStep = { red: 1, green: 2, blue: 3 };
 Object.freeze(nullStep);
 const maxCustomSpeed = 30;
+
+/* Private functions. */
 /**
  * Clamps the input to 0-255 inclusive, for use as an RGBW value.
- *
  * @private
  */
 const _clampRGBW = function (value: number): number {
@@ -92,10 +92,8 @@ const _clampRGBW = function (value: number): number {
 };
 /**
  * Given a buffer of data destined for the TCP socket, expands the buffer by 2
- * and inserts the last two bytes (the "local" flag 0x0f and the checksum).
- *
- * A new buffer is returned; the input buffer is not modified.
- *
+ * and inserts the last two bytes (the "local" flag 0x0f and the checksum). A
+ * new buffer is returned; the input buffer is not modified.
  * @private
  */
 const _prepareBytes = function (buf: Buffer): Buffer {
@@ -124,7 +122,6 @@ const _prepareBytes = function (buf: Buffer): Buffer {
  * Converts a built-in function speed value back and forth between the API
  * value and the internal value. Input and output are clamped to 0-100
  * inclusive.
- *
  * @private
  */
 const _builtinFlipSpeed = function (speed: number): number {
@@ -133,7 +130,6 @@ const _builtinFlipSpeed = function (speed: number): number {
 /**
  * Converts a custom function speed value back and forth between the API value
  * and the internal value. Input and output are clamped to 0-30 inclusive.
- *
  * @private
  */
 const _customFlipSpeed = function (speed: number): number {
@@ -142,7 +138,6 @@ const _customFlipSpeed = function (speed: number): number {
 
 /**
  * Indicates whether or not the given object is equivalent to a null custom step.
- *
  * @private
  */
 const _isNullStep = function (step: CustomStep) {
@@ -152,7 +147,7 @@ const _isNullStep = function (step: CustomStep) {
 };
 
 /** Provides an API to UFOs for interacting with the UFO's TCP server. */
-export default class TcpClient {
+export default class {
   constructor(ufo: Object, options: Object) {
     this._ufo = ufo;
     this._options = options;
@@ -162,9 +157,9 @@ export default class TcpClient {
   /**
    * Reacts to the "close" event on the TCP socket inside this client.
    * - If the UFO FIN'ed first due to inactivity, silently reconnect.
-   * - If the UFO FIN'ed first due to an error, fire the disconnect callback with the error.
+   * - If the UFO FIN'ed first due to an error, fire the disconnect callback
+   * with the error.
    * - Otherwise, fire the disconnect callback with no error.
-   *
    * @private
    */
   _closeSocket(): void {
@@ -194,14 +189,13 @@ export default class TcpClient {
   /**
    * Creates/initializes the TCP socket inside this client. Also initializes/
    * resets other variables needed to manage connection status.
-   *
    * @private
    */
   _createSocket(): void {
-    // UFOs will close TCP connections after a cetain time of not receiving any data.
-    // TCP keepalives from Node don't seem to help.
-    // This flag is used by the "close" event handler to re-establish a connection
-    // that was unknowingly closed by the UFO.
+    // UFOs will close TCP connections after a cetain time of not receiving any
+    // data. TCP keepalives from Node don't seem to help.
+    // This flag is used by the "close" event handler to re-establish a
+    // connection that was unknowingly closed by the UFO.
     //
     // If this is true, this UFO instance is unusable and will no longer perform
     // any UFO control methods (e.g. rgbw).
@@ -216,7 +210,8 @@ export default class TcpClient {
     this._socket.setNoDelay(this._options.sendImmediately || true);
     // Capture errors so we can respond appropriately.
     this._socket.on('error', (err) => {
-      // Do NOT set the dead flag here! The close handler needs its current status.
+      // Do NOT set the dead flag here!
+      // The close handler needs its current status.
       this._error = err;
       // NodeJS automatically emits a "close" event after an "error" event.
     });
@@ -229,7 +224,6 @@ export default class TcpClient {
   }
   /**
    * Handles TCP data received as a result of calling the "status" command.
-   *
    * @private
    */
   _receiveStatus(data: Buffer): void {
@@ -314,7 +308,9 @@ export default class TcpClient {
             }
             default: {
               let name: ?string = null;
-              builtinFunctionMap.forEach((v, k) => { if (name !== null && v === mode) name = k; });
+              builtinFunctionMap.forEach((v, k) => {
+                if (name !== null && v === mode) name = k;
+              });
               if (name) {
                 result.mode = `function:${name}`;
               } else {
@@ -328,7 +324,8 @@ export default class TcpClient {
         if (!err) {
           const speed = responseBytes.readUInt8(5);
           if (result.mode === 'custom') {
-            // The UFO seems to store/report the speed as 1 higher than what it really is.
+            // The UFO seems to store/report the speed as 1 higher than what it
+            // really is.
             result.speed = _customFlipSpeed(speed - 1);
           }
           if (result.mode.startsWith('function')) {
@@ -353,7 +350,6 @@ export default class TcpClient {
   /**
    * Sends the data in the given buffer to the TCP socket, then invokes the
    * given callback.
-   *
    * @private
    */
   _write(buffer: Buffer, callback: ?() => mixed): void {
@@ -375,7 +371,6 @@ export default class TcpClient {
    * - It's not clear how this works with the NTP client that is configurable
    * via an AT/UDP command, since all UFOs have an NTP server setting.
    * - The response of this command always seems to be: 0x0f 0x10 0x00 0x1f.
-   *
    * @private
    */
   _time(callback: ?() => mixed): void {
@@ -497,10 +492,11 @@ export default class TcpClient {
     }
   }
   /**
-   * Starts the given custom function, then invokes the given callback. The error
-   * is always null unless an invalid mode is given.
+   * Starts the given custom function, then invokes the given callback. The
+   * error is always null unless an invalid mode is given.
    * - The speed is clamped from 0-30 inclusive. 0 is ??? seconds and 30 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
-   * - Only the first 16 steps in the given array are considered. Any additional steps are ignored.
+   * - Only the first 16 steps in the given array are considered. Any additional
+   * steps are ignored.
    * - If any null steps are specified in the array, they are dropped *before*
    * the limit of 16 documented above is considered.
    */
@@ -567,9 +563,3 @@ export default class TcpClient {
   /** Indicates whether or not the given object is equivalent to a null custom step. */
   static isNullStep(step: CustomStep): boolean { return _isNullStep(step); }
 }
-/*
-Music, disco and camera modes:
-  0x41 ?? ?? ?? ?? ?? 0x0F checksum
-irrelevant mode because it's dependent on the device's audio, microphone or camera; individual transmissions just set the color
-only relevant observation is that 41 is the header
-*/
