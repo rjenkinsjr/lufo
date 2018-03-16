@@ -17,7 +17,7 @@ const go = function (action) {
       const ufoOptions = {
         host: cli.ufo,
         disconnectCallback(err) {
-          if (err) quitError(error);
+          if (err) quitError(err);
         },
       };
       theUfo = new Ufo(ufoOptions);
