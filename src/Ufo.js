@@ -6,22 +6,6 @@ import UfoDisconnectError from './UfoDisconnectError';
 /*
  * Constructor
  */
-/* Options object:
-{
-  // required IP address of the UFO
-  host: '192.168.1.10',
-  // optional UDP password; if not specified, the default is used
-  password: 'blah'
-  // optional local UDP port number; if not specified or non-positive, a random port is used
-  udpPort: 0,
-  // optional local TCP port number; if not specified or non-positive, a random port is used
-  tcpPort: 0,
-  // true (default) or false, tells the TCP socket (RGBW control) whether to send data right away or buffer
-  sendImmediately: true,
-  // optional callback w/ error argument invoked when this UFO object disconnects from its host
-  disconnectCallback: function(err) {}
-}
-*/
 // If the optional callback is provided, the UFO object's connect() method will
 // be invoked immediately after construction. The callback takes no arguments.
 const Ufo = module.exports = function (options, callback) {
@@ -161,10 +145,10 @@ Ufo.prototype.turnOff = function (callback) {
   this._tcpClient.off(callback);
 };
 Ufo.prototype.togglePower = function (callback) {
-  this.status((err, status) => {
+  this.getStatus((err, status) => {
     if (err) {
       if (callback) callback(err);
-    } else if (status.power === 'on') {
+    } else if (status.on) {
       this.turnOff(callback);
     } else {
       this.turnOn(callback);
@@ -194,7 +178,7 @@ Ufo.prototype._setSingle = function (position, value, solo, callback) {
   } else {
     this.getStatus((err, data) => {
       if (err) {
-        callback(error);
+        callback(err);
       } else {
         const values = [data.red, data.green, data.blue, data.white];
         values[position] = value;

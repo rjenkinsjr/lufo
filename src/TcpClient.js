@@ -1,6 +1,7 @@
 // @flow
 import * as net from 'net';
 import _ from 'lodash';
+import type { UfoOptions } from './UfoOptions';
 
 /** One of the possible built-in function names. */
 export type BuiltinFunction =
@@ -37,12 +38,39 @@ export type CustomStep = {
   green: number,
   blue: number
 };
+/**
+ * An object representing the UFO's output status.
+ * @typedef {Object} UfoStatus
+ * @property {Buffer} raw The raw byte stream containing the status data.
+ * @property {boolean} on true if the UFO is on, false if the UFO is off.
+ * @property {string} mode one of "static", "custom", "other" or
+ * "function:{@link BuiltinFunction}"
+ * @property {number} [speed] defined only if mode is "custom" or
+ * "function:{@link BuiltinFunction}". If "custom" this value ranges 0-30,
+ * inclusive, otherwise it ranges 0-100 inclusive.
+ * @property {number} red The red output strength, 0-255 inclusive.
+ * @property {number} green The green output strength, 0-255 inclusive.
+ * @property {number} blue The blue output strength, 0-255 inclusive.
+ * @property {number} white The white output strength, 0-255 inclusive.
+ */
+export type UfoStatus = {
+  raw: Buffer,
+  on: boolean,
+  mode: string,
+  speed?: number,
+  red: number,
+  green: number,
+  blue: number,
+  white: number,
+}
 
 /* Private variables. */
+const defaultPort = 5577;
 const statusHeader = 0x81;
 // Do not pass this value to _prepareBytes().
 const statusRequest = Buffer.from([statusHeader, 0x8A, 0x8B, 0x96]);
 const statusResponseSize = 14;
+const emptyBuffer = Buffer.from([]);
 // Do not pass this value to _prepareBytes().
 const powerOn = Buffer.from([0x71, 0x23, 0x0F, 0xA3]);
 // Do not pass this value to _prepareBytes().
@@ -79,6 +107,15 @@ const maxBuiltinSpeed = 100;
 const maxCustomSteps = 16;
 const nullStep: CustomStep = { red: 1, green: 2, blue: 3 };
 const maxCustomSpeed = 30;
+
+/* Private types. */
+type TcpOptions = {
+  localPort: number,
+  localAddress: string,
+  remotePort: number,
+  remoteAddress: string,
+  immediate: boolean,
+};
 
 /* Private functions. */
 /**
@@ -146,9 +183,23 @@ const _isNullStep = function (step: CustomStep) {
 
 /** Provides an API to UFOs for interacting with the UFO's TCP server. */
 export default class {
-  constructor(ufo: Object, options: Object) {
+  _ufo: Object;
+  _options: TcpOptions;
+  _dead: boolean;
+  _statusArray: Uint8Array;
+  _statusIndex: number;
+  _socket: net.Socket;
+  _error: ?Error;
+  _statusCallback: ?(?Error, ?UfoStatus) => void
+  constructor(ufo: Object, options: UfoOptions) {
     this._ufo = ufo;
-    this._options = options;
+    this._options = {
+      localPort: options.localTcpPort || -1,
+      localAddress: options.localTcpAddress || '',
+      remotePort: options.remoteTcpPort || defaultPort,
+      remoteAddress: options.host,
+      immediate: options.immediate || true,
+    };
     this._createSocket();
   }
   /**
@@ -201,11 +252,10 @@ export default class {
     this._statusArray = new Uint8Array(statusResponseSize);
     this._statusIndex = 0;
     // The TCP socket used to communicate with the UFO.
-    this._socket = net.Socket();
-    this._error = null;
-    // Send all data immediately; no buffering.
-    this._socket.setNoDelay(this._options.sendImmediately || true);
+    this._socket = new net.Socket();
+    this._socket.setNoDelay(this._options.immediate);
     // Capture errors so we can respond appropriately.
+    this._error = null;
     this._socket.on('error', (err) => {
       // Do NOT set the dead flag here!
       // The close handler needs its current status.
@@ -237,7 +287,15 @@ export default class {
         newIndex = 0;
         // Prepare callback variables.
         let err = null;
-        let result = {};
+        const result: UfoStatus = {
+          raw: emptyBuffer,
+          on: false,
+          mode: '',
+          red: 0,
+          green: 0,
+          blue: 0,
+          white: 0,
+        };
         // The response format is:
         // 0x81 ???a POWER MODE ???b SPEED RED GREEN BLUE WHITE [UNUSED] CHECKSUM
         //
@@ -247,6 +305,8 @@ export default class {
         //
         // Verify the response's integrity.
         if (responseBytes.readUInt8(0) === statusHeader) {
+          // Add raw bytes to the response.
+          result.raw = responseBytes;
           // Compute the actual checksum.
           const lastIndex = statusResponseSize - 1;
           const expectedChecksum = responseBytes.readUInt8(lastIndex);
@@ -264,17 +324,15 @@ export default class {
         } else {
           err = new Error('Status check failed (header mismatch).');
         }
-        // Add raw bytes to the response.
-        result.raw = responseBytes;
         // ON_OFF is always either 0x23 or 0x24.
         if (!err) {
           const power = responseBytes.readUInt8(2);
           switch (power) {
             case 0x23:
-              result.power = 'on';
+              result.on = true;
               break;
             case 0x24:
-              result.power = 'off';
+              result.on = false;
               break;
             default:
               err = new Error(`Status check failed (impossible power value ${power}).`);
@@ -334,8 +392,9 @@ export default class {
           result.white = responseBytes.readUInt8(9);
         }
         // Transfer control to the user's callback.
-        if (err) result = null;
-        this._statusCallback(err, result);
+        let finalResult: ?UfoStatus = null;
+        if (!err) finalResult = result;
+        if (this._statusCallback) this._statusCallback(err, finalResult);
       }
       // Update the status response index.
       this._statusIndex = newIndex;
@@ -346,12 +405,9 @@ export default class {
    * given callback.
    * @private
    */
-  _write(buffer: Buffer, callback: ?() => mixed): void {
-    if (callback) {
-      this._socket.write(buffer, callback);
-    } else {
-      this._socket.write(buffer);
-    }
+  _write(buffer: Buffer, callback: ?() => void): void {
+    if (callback) this._socket.write(buffer, callback);
+    else this._socket.write(buffer);
   }
   /**
    * The TCP command sent by this method appears to set/synchronize time on the
@@ -367,7 +423,7 @@ export default class {
    * - The response of this command always seems to be: 0x0f 0x10 0x00 0x1f.
    * @private
    */
-  _time(callback: ?() => mixed): void {
+  _time(callback: ?() => void): void {
     if (this._dead) return;
     // 0x10 yy yy mm dd hh mm ss 0x07 0x00
     // The first "yy" is the first 2 digits of the year.
@@ -396,19 +452,21 @@ export default class {
    * Opens the TCP socket on this machine and connects to the UFO's TCP server,
    * then invokes the given callback.
    */
-  connect(callback: ?() => mixed): void {
+  connect(callback: ?() => void): void {
     if (this._dead) return;
-    // Define options object.
-    const options = {
-      host: this._options.host,
-      // All UFOs listen on the same port.
-      port: 5577,
-    };
-    if (this._options.tcpPort && this._options.tcpPort > 0) {
-      options.localPort = this._options.tcpPort;
+    const options = {};
+    options.family = 4;
+    options.host = this._options.remoteAddress;
+    options.port = this._options.remotePort;
+    if (this._options.localAddress && this._options.localAddress.length > 0) {
+      options.localAddress = this._options.localAddress;
+    }
+    if (this._options.localPort && this._options.localPort > 0) {
+      options.localPort = this._options.localPort;
     }
     // Connect.
-    this._socket.connect(options, callback);
+    if (callback) this._socket.connect(options, callback);
+    else this._socket.connect(options);
   }
   /**
    * Closes the TCP socket on this machine. This object cannot be used after
@@ -427,7 +485,7 @@ export default class {
    * Gets the UFO's output status and sends it to the given callback.
    * The callback is guaranteed to have exactly one non-null argument.
    */
-  status(callback: (error: ?Error, data: ?Object) => mixed): void {
+  status(callback: (error: ?Error, data: ?UfoStatus) => void): void {
     if (this._dead) return;
     this._socket.resume();
     this._statusCallback = function (err, data) {
@@ -438,12 +496,12 @@ export default class {
     this._socket.write(statusRequest);
   }
   /** Turns the UFO output on, then invokes the given callback. */
-  on(callback: ?() => mixed): void {
+  on(callback: ?() => void): void {
     if (this._dead) return;
     this._write(powerOn, callback);
   }
   /** Turns the UFO output off, then invokes the given callback. */
-  off(callback: ?() => mixed): void {
+  off(callback: ?() => void): void {
     if (this._dead) return;
     this._write(powerOff, callback);
   }
@@ -452,7 +510,7 @@ export default class {
    * calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
    * and 255 is fully on/100% output.
    */
-  rgbw(red: number, green: number, blue: number, white: number, callback: ?() => mixed): void {
+  rgbw(red: number, green: number, blue: number, white: number, callback: ?() => void): void {
     if (this._dead) return;
     // 0x31 rr gg bb ww 0x00
     // 0x00 seems to be a constant terminator.
@@ -471,7 +529,7 @@ export default class {
    * name is given.
    * - The speed is clamped from 0-100 inclusive. 0 is ??? seconds and 100 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
    */
-  builtin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => mixed): void {
+  builtin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => void): void {
     if (this._dead) return;
     const functionId = builtinFunctionMap.get(name);
     if (functionId !== undefined) {
@@ -494,7 +552,7 @@ export default class {
    * - If any null steps are specified in the array, they are dropped *before*
    * the limit of 16 documented above is considered.
    */
-  custom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => mixed): void {
+  custom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => void): void {
     if (this._dead) return;
     // Validate the mode.
     let modeId;
