@@ -40,14 +40,13 @@ export type CustomStep = {
 
 /* Private variables. */
 const statusHeader = 0x81;
-// Do not pass these values to _prepareBytes().
+// Do not pass this value to _prepareBytes().
 const statusRequest = Buffer.from([statusHeader, 0x8A, 0x8B, 0x96]);
 const statusResponseSize = 14;
-// Do not pass these values to _prepareBytes().
+// Do not pass this value to _prepareBytes().
 const powerOn = Buffer.from([0x71, 0x23, 0x0F, 0xA3]);
-// Do not pass these values to _prepareBytes().
+// Do not pass this value to _prepareBytes().
 const powerOff = Buffer.from([0x71, 0x24, 0x0F, 0xA4]);
-const noFunctionValue = 0x61;
 const builtinFunctionMap: Map<BuiltinFunction, number> = new Map([
   ['sevenColorCrossFade', 0x25],
   ['redGradualChange', 0x26],
@@ -69,7 +68,7 @@ const builtinFunctionMap: Map<BuiltinFunction, number> = new Map([
   ['purpleStrobeFlash', 0x36],
   ['whiteStrobeFlash', 0x37],
   ['sevenColorJumpingChange', 0x38],
-  ['noFunction', noFunctionValue],
+  ['noFunction', 0x61],
   ['postReset', 0x63],
 ]);
 const builtinFunctionReservedNames: Array<BuiltinFunction> = [
@@ -79,7 +78,6 @@ const builtinFunctionReservedNames: Array<BuiltinFunction> = [
 const maxBuiltinSpeed = 100;
 const maxCustomSteps = 16;
 const nullStep: CustomStep = { red: 1, green: 2, blue: 3 };
-Object.freeze(nullStep);
 const maxCustomSpeed = 30;
 
 /* Private functions. */
@@ -151,7 +149,6 @@ export default class {
   constructor(ufo: Object, options: Object) {
     this._ufo = ufo;
     this._options = options;
-    Object.freeze(this._options);
     this._createSocket();
   }
   /**
@@ -197,8 +194,8 @@ export default class {
     // This flag is used by the "close" event handler to re-establish a
     // connection that was unknowingly closed by the UFO.
     //
-    // If this is true, this UFO instance is unusable and will no longer perform
-    // any UFO control methods (e.g. rgbw).
+    // Once this flag becomes true, this object is unusable and all public
+    // methods resort to no-op.
     this._dead = false;
     // Storage/tracking for the status response.
     this._statusArray = new Uint8Array(statusResponseSize);
@@ -241,6 +238,13 @@ export default class {
         // Prepare callback variables.
         let err = null;
         let result = {};
+        // The response format is:
+        // 0x81 ???a POWER MODE ???b SPEED RED GREEN BLUE WHITE [UNUSED] CHECKSUM
+        //
+        // ???a is unknown. It always seems to be 0x04.
+        // ???b is unknown; it always seems to be 0x21.
+        // [UNUSED] is a 3-byte big-endian field whose purpose is unknown. It always seems to be "0x03 0x00 0x00".
+        //
         // Verify the response's integrity.
         if (responseBytes.readUInt8(0) === statusHeader) {
           // Compute the actual checksum.
@@ -260,16 +264,6 @@ export default class {
         } else {
           err = new Error('Status check failed (header mismatch).');
         }
-
-        /*
-        Response format:
-        0x81 ???a POWER MODE ???b SPEED RED GREEN BLUE WHITE [UNUSED] CHECKSUM
-
-        ???a is unknown. It always seems to be 0x04.
-        ???b is unknown; it always seems to be 0x21.
-        [UNUSED] is a 3-byte big-endian field whose purpose is unknown. It always seems to be "0x03 0x00 0x00".
-        */
-
         // Add raw bytes to the response.
         result.raw = responseBytes;
         // ON_OFF is always either 0x23 or 0x24.
@@ -287,10 +281,10 @@ export default class {
           }
         }
         // MODE:
-        // - 0x62 is disco mode or camera mode (called "other").
+        // - 0x62 is music, disco or camera mode (called "other").
         // - 0x61 is static color.
         // - 0x60 is custom steps.
-        // - Otherwise, it is a function ID.
+        // - Otherwise, the value maps to a function ID.
         if (!err) {
           const mode = responseBytes.readUInt8(3);
           switch (mode) {
@@ -380,12 +374,13 @@ export default class {
     // The second "yy" is the last 2 digits of the year.
     // "mm" ranges from decimal "01" to "12".
     // "hh" is 24-hour format.
-    // 0x07 0x00 seems to be a constant terminator for the data.
+    // 0x07 0x00 seems to be a constant terminator.
     const buf = Buffer.alloc(10);
     buf.writeUInt8(0x10, 0);
     const now = new Date();
-    const first2Year = parseInt(now.getFullYear().toString().substring(0, 2), 10);
-    const last2Year = parseInt(now.getFullYear().toString().substring(2), 10);
+    const yearString = now.getFullYear().toString();
+    const first2Year = parseInt(yearString.substring(0, 2), 10);
+    const last2Year = parseInt(yearString.substring(2), 10);
     buf.writeUInt8(first2Year, 1);
     buf.writeUInt8(last2Year, 2);
     buf.writeUInt8(now.getMonth() + 1, 3);
@@ -460,7 +455,7 @@ export default class {
   rgbw(red: number, green: number, blue: number, white: number, callback: ?() => mixed): void {
     if (this._dead) return;
     // 0x31 rr gg bb ww 0x00
-    // 0x00 seems to be a constant terminator for the data.
+    // 0x00 seems to be a constant terminator.
     const buf = Buffer.alloc(6);
     buf.writeUInt8(0x31, 0);
     buf.writeUInt8(_clampRGBW(red), 1);
@@ -478,13 +473,12 @@ export default class {
    */
   builtin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => mixed): void {
     if (this._dead) return;
-    if (builtinFunctionMap.has(name)) {
+    const functionId = builtinFunctionMap.get(name);
+    if (functionId !== undefined) {
       // 0x61 id speed
-      const functionId = builtinFunctionMap.get(name) || noFunctionValue;
       const buf = Buffer.alloc(3);
       buf.writeUInt8(0x61, 0);
       buf.writeUInt8(functionId, 1);
-      // This function accepts a speed from 0 (slow) to 100 (fast).
       buf.writeUInt8(_builtinFlipSpeed(speed), 2);
       this._write(_prepareBytes(buf), callback);
     } else if (callback) {
@@ -519,16 +513,18 @@ export default class {
         return;
     }
     // 0x51 steps(16xUInt8) speed mode 0xFF
-    // 0xFF seems to be a constant terminator for the data.
+    // 0xFF seems to be a constant terminator.
     const buf = Buffer.alloc(68);
     buf.writeUInt8(0x51, 0);
     let index = 1;
-    // If there are fewer than 16 steps, "null" steps must be added so we have
-    // exactly 16 steps. Additionally, any null steps intermingled with non-null
-    // steps must be removed, as they will cause the pattern to stop. Null steps
-    // can only exist at the end of the array.
+    // First, remove from the steps array any null steps that were set by the
+    // user. The UFO stops playing the function upon the first occurrence of a
+    // null step, so we cannot accept them in the steps array argument.
     //
-    // While we're doing this, truncate the array to the correct size.
+    // Then:
+    // - If there are fewer than 16 steps, "null" steps must be added so we have
+    // exactly 16 steps.
+    // - Otherwise, truncate the array so it has exactly 16 steps.
     const stepsCopy = steps.filter(s => !_isNullStep(s)).slice(0, maxCustomSteps);
     while (stepsCopy.length < maxCustomSteps) {
       stepsCopy.push(nullStep);
@@ -545,7 +541,6 @@ export default class {
       buf.writeUInt8(0, index);
       index += 1;
     });
-    // This function accepts a speed from 0 (slow) to 30 (fast).
     // The UFO seems to store/report the speed as 1 higher than what it really is.
     buf.writeUInt8(_customFlipSpeed(speed) + 1, index);
     index += 1;
