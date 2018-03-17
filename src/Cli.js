@@ -445,4 +445,4 @@ cli.executeSubCommand = () => false;
 // Parse the CLI args and execute whatever was requested.
 const parsedCli = cli.parse(process.argv);
 // Show help if no arguments were provided.
-if (!parsedCli.args.length) cli.help();
+if (parsedCli.args && !parsedCli.args.length) cli.help();
