@@ -64,6 +64,15 @@ export type UfoStatus = {
   white: number,
 }
 
+/* Private types. */
+type TcpOptions = {
+  localPort: number,
+  localAddress: string,
+  remotePort: number,
+  remoteAddress: string,
+  immediate: boolean,
+};
+
 /* Private variables. */
 const defaultPort = 5577;
 const statusHeader = 0x81;
@@ -107,15 +116,6 @@ const maxBuiltinSpeed = 100;
 const maxCustomSteps = 16;
 const nullStep: CustomStep = { red: 1, green: 2, blue: 3 };
 const maxCustomSpeed = 30;
-
-/* Private types. */
-type TcpOptions = {
-  localPort: number,
-  localAddress: string,
-  remotePort: number,
-  remoteAddress: string,
-  immediate: boolean,
-};
 
 /* Private functions. */
 /**
