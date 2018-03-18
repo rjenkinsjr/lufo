@@ -527,7 +527,12 @@ export default class {
    * Starts one of the UFO's built-in functions at the given speed, then invokes
    * the given callback. The error is always null unless an invalid function
    * name is given.
-   * - The speed is clamped from 0-100 inclusive. 0 is ??? seconds and 100 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
+   *
+   * The speed is clamped from 0-100 inclusive. Speed values do not result in
+   * the same durations across all functions (e.g. sevenColorStrobeFlash is
+   * much faster at speed 100 than sevenColorJumpingChange); you will need to
+   * experiment with different values to get the desired timing for the function
+   * you wish to use.
    */
   builtin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => void): void {
     if (this._dead) return;
@@ -546,7 +551,17 @@ export default class {
   /**
    * Starts the given custom function, then invokes the given callback. The
    * error is always null unless an invalid mode is given.
-   * - The speed is clamped from 0-30 inclusive. 0 is ??? seconds and 30 is ??? seconds. Increasing the speed value by 1 shortens the time between transitions by ??? seconds.
+   * - The speed is clamped from 0-30 inclusive. Below is a list of step
+   * durations measured with a stopwatch when using the "jumping" mode. These
+   * values should be treated as approximations. Based on this list, it appears
+   * decrementing the speed by 1 increases step duration by 0.14 seconds.
+   *    - 30 = 0.4 seconds
+   *    - 25 = 1.1 seconds
+   *    - 20 = 1.8 seconds
+   *    - 15 = 2.5 seconds
+   *    - 10 = 3.2 seconds
+   *    - 5 = 3.9 seconds
+   *    - 0 = 4.6 seconds
    * - Only the first 16 steps in the given array are considered. Any additional
    * steps are ignored.
    * - If any null steps are specified in the array, they are dropped *before*
