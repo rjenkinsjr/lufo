@@ -1,5 +1,28 @@
 // @flow
-import type { UfoDisconnectCallback } from './UfoDisconnectCallback';
+/**
+ * A callback function that is invoked once a {@link Ufo} object has
+ * disconnected from the UFO, either because the {@link Ufo.disconnect} method
+ * was called or because a communication error occurred. The callback accepts a
+ * single error argument that, if not null, contains the error that caused the
+ * disconnect.
+ * @callback
+ */
+export type UfoDisconnectCallback = (?Error) => mixed;
+/**
+ * Errors of this type are thrown when communication with a UFO fails. The error
+ * object contains a message and an optional error from the UDP and TCP sockets
+ * that may have contributed to this error.
+ */
+export class UfoDisconnectError extends Error { // eslint-disable-line import/prefer-default-export
+  udpError: ?Error;
+  tcpError: ?Error;
+  constructor(message: string, udpError: ?Error, tcpError: ?Error) {
+    super(message);
+    Error.captureStackTrace(this, UfoDisconnectError);
+    this.udpError = udpError;
+    this.tcpError = tcpError;
+  }
+}
 /**
  * Available configuration options for the {@link Ufo} object.
  * @typedef {Object} UfoOptions

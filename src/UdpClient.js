@@ -3,8 +3,7 @@ import * as util from 'util';
 import * as dgram from 'dgram';
 import _ from 'lodash';
 import { Address4 } from 'ip-address';
-import type { UfoOptions } from './UfoOptions';
-import type { UfoDisconnectCallback } from './UfoDisconnectCallback';
+import type { UfoDisconnectCallback, UfoOptions } from './Misc';
 
 /**
  * Details of a UFO found by {@link UdpClient.discover}.

@@ -1,7 +1,7 @@
 // @flow
 import * as net from 'net';
 import _ from 'lodash';
-import type { UfoOptions } from './UfoOptions';
+import type { UfoOptions } from './Misc';
 
 /** One of the possible built-in function names. */
 export type BuiltinFunction =

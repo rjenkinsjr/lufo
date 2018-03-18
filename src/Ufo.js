@@ -1,6 +1,6 @@
 import * as events from 'events';
-import TcpClient from './TcpClient';
-import UdpClient from './UdpClient';
+import { TcpClient, BuiltinFunction, CustomMode, CustomStep, UfoClient } from './TcpClient';
+import { UdpClient, DiscoveredUfo, UfoDiscoverOptions, UfoDiscoverCallback, WifiNetwork } from './UdpClient';
 import UfoDisconnectError from './UfoDisconnectError';
 
 /*
