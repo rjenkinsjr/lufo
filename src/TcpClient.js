@@ -195,7 +195,7 @@ export default class {
     this._ufo = ufo;
     this._options = {
       localPort: options.localTcpPort || -1,
-      localAddress: options.localTcpAddress || '',
+      localAddress: options.localHost || '',
       remotePort: options.remoteTcpPort || defaultPort,
       remoteAddress: options.host,
       immediate: options.immediate || true,
@@ -458,10 +458,10 @@ export default class {
     options.family = 4;
     options.host = this._options.remoteAddress;
     options.port = this._options.remotePort;
-    if (this._options.localAddress && this._options.localAddress.length > 0) {
+    if (this._options.localAddress.length > 0) {
       options.localAddress = this._options.localAddress;
     }
-    if (this._options.localPort && this._options.localPort > 0) {
+    if (this._options.localPort > 0) {
       options.localPort = this._options.localPort;
     }
     // Connect.

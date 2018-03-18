@@ -344,7 +344,7 @@ cli.command('wifi-ap-passphrase [pwd]')
   .description('Gets/sets the WiFi passphrase when in AP mode. 8-63 characters inclusive. Use "false" (no quotes) to disable security and configure the AP as an open network.')
   .action((pwd) => {
     go(function () {
-      pwd ? this.setWifiApPassphrase(pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, value => (value === false ? '<No passphrase, open network>' : value)));
+      pwd ? this.setWifiApPassphrase(pwd.toLowerCase() === 'false' ? null : pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, value => (value ? value : '<No passphrase, open network>')));
     });
   });
 cli.command('wifi-ap-led [value]')
@@ -371,7 +371,7 @@ cli.command('wifi-ap-dhcp-disable')
 
 // WiFi client commands
 cli.command('wifi-client-ap-info')
-  .description('Shows the connected AP info when in client mode [json].')
+  .description('Shows the connected AP\'s SSID/MAC address when in client mode [json].')
   .action(() => {
     go(function () {
       this.getWifiClientApInfo(getAndStop(true));
