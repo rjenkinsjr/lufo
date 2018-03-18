@@ -311,7 +311,10 @@ const _asArray = function (value: string | Array<string>): Array<string> {
   return [value];
 };
 
-/** Provides an API to UFOs for interacting with the UFO's UDP server. */
+/**
+ * Provides an API to UFOs for interacting with the UFO's UDP server.
+ * @private
+ */
 export default class {
   _ufo: Object;
   _options: UdpOptions;

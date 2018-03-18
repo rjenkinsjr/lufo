@@ -6,6 +6,8 @@
  * single error argument that, if not null, contains the error that caused the
  * disconnect.
  * @callback
+ * @param {Error} [error] the error that caused the UFO to disconnect. If null,
+ * disconnect was not due to an error.
  */
 export type UfoDisconnectCallback = (?Error) => mixed;
 /**

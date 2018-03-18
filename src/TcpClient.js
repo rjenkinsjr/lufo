@@ -30,8 +30,11 @@ export type BuiltinFunction =
 /** One of the possible custom function modes. */
 export type CustomMode = 'gradual' | 'jumping' | 'strobe';
 /**
- * A custom function step definition. At runtime, all values are clamped to
- * 0-255 inclusive.
+ * A custom function step definition.
+ * @typedef {Object} CustomStep
+ * @property {number} red The red value, 0-255 inclusive.
+ * @property {number} green The red value, 0-255 inclusive.
+ * @property {number} blue The red value, 0-255 inclusive.
  */
 export type CustomStep = {
   red: number,
@@ -181,7 +184,10 @@ const _isNullStep = function (step: CustomStep) {
     step.blue === nullStep.blue;
 };
 
-/** Provides an API to UFOs for interacting with the UFO's TCP server. */
+/**
+ * Provides an API to UFOs for interacting with the UFO's TCP server.
+ * @private
+ */
 export default class {
   _ufo: Object;
   _options: TcpOptions;
