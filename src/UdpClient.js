@@ -3,10 +3,11 @@ import * as util from 'util';
 import * as dgram from 'dgram';
 import _ from 'lodash';
 import { Address4 } from 'ip-address';
+import Ufo from './Ufo';
 import type { UfoDisconnectCallback, UfoOptions } from './Misc';
 
 /**
- * Details of a UFO found by {@link UdpClient.discover}.
+ * Details of a UFO found by {@link Ufo.discover}.
  * @typedef {Object} DiscoveredUfo
  * @property {string} ip The IP address of the UFO.
  * @property {string} mac The MAC address of the UFO.
@@ -19,7 +20,7 @@ export type DiscoveredUfo = {
   model: string,
 };
 /**
- * {@link UdpClient.discover} options.
+ * {@link Ufo.discover} options.
  * @typedef {Object} UfoDiscoverOptions
  * @property {number} [timeout] How long to wait for UFOs to respond, in
  * milliseconds. Default is 3000.
@@ -46,9 +47,9 @@ export type UfoDiscoverOptions = {
  * @param {Array<DiscoveredUfo>} ufos The list of UFOs that were discovered; may
  * be empty.
  */
-export type UdpDiscoverCallback = (error: ?Error, ufos: Array<DiscoveredUfo>) => void;
+export type UfoDiscoverCallback = (error: ?Error, ufos: Array<DiscoveredUfo>) => void;
 /**
- * A WiFi network discovered by the {@link UdpClient#doWifiScan} method.
+ * A WiFi network discovered by the {@link Ufo#doWifiScan} method.
  * @typedef {Object} WifiNetwork
  * @property {number} channel The network channel number, 1-11 inclusive.
  * @property {string} [ssid] The SSID of the network. If null, SSID broadcast is
@@ -315,15 +316,15 @@ const _asArray = function (value: string | Array<string>): Array<string> {
  * Provides an API to UFOs for interacting with the UFO's UDP server.
  * @private
  */
-export default class {
-  _ufo: Object;
+export class UdpClient {
+  _ufo: Ufo;
   _options: UdpOptions;
   _dead: boolean;
   _socket: dgram$Socket;
   _error: ?Error;
   _receiveCallback: ?UdpCommandReceiveCallback;
   _receiveParser: ?UdpCommandReceiveParser;
-  constructor(ufo: Object, options: UfoOptions) {
+  constructor(ufo: Ufo, options: UfoOptions) {
     this._ufo = ufo;
     const optionsBuilder = {};
     optionsBuilder.host = options.host;
@@ -407,7 +408,7 @@ export default class {
    * Searches for UFOs on the network and invokes the given callback with the
    * resulting list.
    */
-  static discover(options: UfoDiscoverOptions, callback: UdpDiscoverCallback): void {
+  static discover(options: UfoDiscoverOptions, callback: UfoDiscoverCallback): void {
     // Return variables.
     let error = null;
     const data = [];
@@ -588,7 +589,7 @@ export default class {
     this._socket.close();
   }
   /** Returns the UFO's hardware/firmware version. */
-  version(callback: (?Error, string) => void): void {
+  getVersion(callback: (?Error, string) => void): void {
     this._runCommandWithResponse(_assembleCommand('moduleVersion'), (err, version) => {
       callback(err, String(version));
     });
@@ -651,12 +652,6 @@ export default class {
     }
     this._runCommandNoResponse(_assembleCommand('ntp', ipAddress), callback);
   }
-  /** Returns the UDP password. */
-  getUdpPassword(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('udpPassword'), (err, password) => {
-      callback(err, String(password));
-    });
-  }
   /**
    * Sets the UDP password. If an error occurs while executing this command,
    * the owning UFO object will be disconnected and the given callback (if any)
@@ -680,12 +675,6 @@ export default class {
         this._options.password = password;
         if (callback) callback();
       }
-    });
-  }
-  /** Returns the TCP port. */
-  getTcpPort(callback: (?Error, number) => void): void {
-    this._runCommandWithResponse(_assembleCommand('tcpServer'), (err, tcpServer) => {
-      callback(err, parseInt(_asArray(tcpServer)[2], 10));
     });
   }
   /**
@@ -1108,3 +1097,4 @@ export default class {
     this._runCommandNoResponse(cmd, callback);
   }
 }
+export default UdpClient;

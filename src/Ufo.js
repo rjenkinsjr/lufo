@@ -1,270 +1,457 @@
-import * as events from 'events';
-import { TcpClient, BuiltinFunction, CustomMode, CustomStep, UfoClient } from './TcpClient';
-import { UdpClient, DiscoveredUfo, UfoDiscoverOptions, UfoDiscoverCallback, WifiNetwork } from './UdpClient';
-import { UfoDisconnectCallback, UfoDisconnectError, UfoOptions } from './Misc';
+// @flow
+import EventEmitter from 'events';
+import { TcpClient } from './TcpClient';
+import type { BuiltinFunction, CustomMode, CustomStep, UfoStatus } from './TcpClient';
+import { UdpClient } from './UdpClient';
+import type { UfoDiscoverOptions, UfoDiscoverCallback, WifiNetwork } from './UdpClient';
+import { UfoDisconnectError } from './Misc';
+import type { UfoDisconnectCallback, UfoOptions } from './Misc';
 
-/*
- * Constructor
+/**
+ * The API for interfacing with UFO devices. If a callback is provided during
+ * construction, {@link Ufo#connect} is called immediately after construction.
  */
-// If the optional callback is provided, the UFO object's connect() method will
-// be invoked immediately after construction. The callback takes no arguments.
-const Ufo = module.exports = function (options, callback) {
-  // Flag that tracks the state of this UFO object.
-  this._dead = false;
-  // Capture the options provided by the user.
-  this._options = Object.freeze(options);
-  this._disconnectCallback = this._options.disconnectCallback;
-  // Create the TCP and UDP clients.
-  this._tcpClient = new TcpClient(this, options);
-  this._udpClient = new UdpClient(this, options);
-  // Define the "client is dead" event handlers.
-  this._tcpError = null;
-  this.on('tcpDead', (err) => {
-    this._dead = true;
-    this._tcpError = err;
-    if (this._udpClient._dead) {
-      this.emit('dead');
-    } else {
-      this._udpClient.disconnect();
-    }
-  });
-  this._udpError = null;
-  this.on('udpDead', (err) => {
-    this._dead = true;
-    this._udpError = err;
-    if (this._tcpClient._dead) {
-      this.emit('dead');
-    } else {
-      this._tcpClient.disconnect();
-    }
-  });
-  // Define the "UFO is dead" event handler, invoked once both clients are closed.
-  this.on('dead', () => {
-    // Invoke the disconnect callback, if one is defined.
-    let error = null;
-    if (this._udpError || this._tcpError) {
-      error = new UfoDisconnectError('UFO disconnected due to an error.', this._udpError, this._tcpError);
-    }
-    const callback = this._disconnectCallback;
-    typeof callback === 'function' && callback(error);
-  });
-  // Make sure this UFO disconnects before NodeJS exits.
-  process.on('exit', (code) => { this.disconnect(); });
-  // Connect now, if a callback was requested.
-  typeof callback === 'function' && this.connect(callback);
-};
-Ufo.prototype = new events.EventEmitter();
-
-/*
- * Connect/disconnect methods
- */
-Ufo.prototype.connect = function (callback) {
-  this._udpClient.connect(() => {
-    this._tcpClient.connect(callback);
-  });
-};
-Ufo.prototype.disconnect = function () {
-  if (this._dead) return;
-  this._dead = true;
-  this._tcpClient.disconnect();
-  this._udpClient.disconnect();
-};
-
-/*
- * Query methods
- */
-Ufo.discover = UdpClient.discover;
-Ufo.prototype.getHost = function () {
-  return this._options.host;
-};
-Ufo.prototype.getStatus = function (callback) {
-  this._tcpClient.status(callback);
-};
-Ufo.prototype.getVersion = function (callback) {
-  this._udpClient.version(callback);
-};
-Ufo.prototype.getNtpServer = function (callback) {
-  this._udpClient.getNtpServer(callback);
-};
-Ufo.prototype.getUdpPassword = function (callback) {
-  this._udpClient.getUdpPassword(callback);
-};
-Ufo.prototype.getTcpPort = function (callback) {
-  this._udpClient.getTcpPort(callback);
-};
-Ufo.prototype.getWifiAutoSwitch = function (callback) {
-  this._udpClient.getWifiAutoSwitch(callback);
-};
-Ufo.prototype.getWifiMode = function (callback) {
-  this._udpClient.getWifiMode(callback);
-};
-Ufo.prototype.doWifiScan = function (callback) {
-  this._udpClient.doWifiScan(callback);
-};
-Ufo.prototype.getWifiApIp = function (callback) {
-  this._udpClient.getWifiApIp(callback);
-};
-Ufo.prototype.getWifiApBroadcast = function (callback) {
-  this._udpClient.getWifiApBroadcast(callback);
-};
-Ufo.prototype.getWifiApPassphrase = function (callback) {
-  this._udpClient.getWifiApPassphrase(callback);
-};
-Ufo.prototype.getWifiApLed = function (callback) {
-  this._udpClient.getWifiApLed(callback);
-};
-Ufo.prototype.getWifiApDhcp = function (callback) {
-  this._udpClient.getWifiApDhcp(callback);
-};
-Ufo.prototype.getWifiClientApInfo = function (callback) {
-  this._udpClient.getWifiClientApInfo(callback);
-};
-Ufo.prototype.getWifiClientApSignal = function (callback) {
-  this._udpClient.getWifiClientApSignal(callback);
-};
-Ufo.prototype.getWifiClientIp = function (callback) {
-  this._udpClient.getWifiClientIp(callback);
-};
-Ufo.prototype.getWifiClientSsid = function (callback) {
-  this._udpClient.getWifiClientSsid(callback);
-};
-Ufo.prototype.getWifiClientAuth = function (callback) {
-  this._udpClient.getWifiClientAuth(callback);
-};
-
-/*
- * RGBW control methods
- */
-Ufo.prototype.setPower = function (onOff, callback) {
-  onOff ? this.turnOn(callback) : this.turnOff(callback);
-};
-Ufo.prototype.turnOn = function (callback) {
-  this._tcpClient.on(callback);
-};
-Ufo.prototype.turnOff = function (callback) {
-  this._tcpClient.off(callback);
-};
-Ufo.prototype.togglePower = function (callback) {
-  this.getStatus((err, status) => {
-    if (err) {
-      if (callback) callback(err);
-    } else if (status.on) {
-      this.turnOff(callback);
-    } else {
-      this.turnOn(callback);
-    }
-  });
-};
-Ufo.prototype.setColor = function (red, green, blue, white, callback) {
-  this._tcpClient.rgbw(red, green, blue, white, callback);
-};
-Ufo.prototype.setRed = function (value, solo, callback) {
-  this._setSingle(0, value, solo, callback);
-};
-Ufo.prototype.setGreen = function (value, solo, callback) {
-  this._setSingle(1, value, solo, callback);
-};
-Ufo.prototype.setBlue = function (value, solo, callback) {
-  this._setSingle(2, value, solo, callback);
-};
-Ufo.prototype.setWhite = function (value, solo, callback) {
-  this._setSingle(3, value, solo, callback);
-};
-Ufo.prototype._setSingle = function (position, value, solo, callback) {
-  if (solo) {
-    const values = [0, 0, 0, 0];
-    values[position] = value;
-    this.setColor(...values, callback);
-  } else {
-    this.getStatus((err, data) => {
-      if (err) {
-        callback(err);
+class Ufo extends EventEmitter {
+  _dead: boolean;
+  _options: UfoOptions;
+  _disconnectCallback: ?UfoDisconnectCallback;
+  _tcpClient: TcpClient;
+  _udpClient: UdpClient;
+  _tcpError: ?Error;
+  _udpError: ?Error;
+  constructor(options: UfoOptions, callback: ?() => void) {
+    super();
+    // Flag that tracks the state of this UFO object.
+    this._dead = false;
+    // Capture the options provided by the user.
+    this._options = Object.freeze(options);
+    this._disconnectCallback = this._options.disconnectCallback;
+    // Create the TCP and UDP clients.
+    this._tcpClient = new TcpClient(this, options);
+    this._udpClient = new UdpClient(this, options);
+    // Define the "client is dead" event handlers.
+    this._tcpError = null;
+    this.on('tcpDead', (err) => {
+      this._dead = true;
+      this._tcpError = err;
+      if (this._udpClient._dead) {
+        this.emit('dead');
       } else {
-        const values = [data.red, data.green, data.blue, data.white];
-        values[position] = value;
-        this.setColor(...values, callback);
+        this._udpClient.disconnect();
+      }
+    });
+    this._udpError = null;
+    this.on('udpDead', (err) => {
+      this._dead = true;
+      this._udpError = err;
+      if (this._tcpClient._dead) {
+        this.emit('dead');
+      } else {
+        this._tcpClient.disconnect();
+      }
+    });
+    // Define the "UFO is dead" event handler, invoked once both clients are closed.
+    this.on('dead', () => {
+      // Invoke the disconnect callback, if one is defined.
+      let error = null;
+      if (this._udpError || this._tcpError) {
+        error = new UfoDisconnectError('UFO disconnected due to an error.', this._udpError, this._tcpError);
+      }
+      const dc = this._disconnectCallback;
+      if (dc) dc(error);
+    });
+    // Make sure this UFO disconnects before NodeJS exits.
+    process.on('exit', (code) => { this.disconnect(); }); // eslint-disable-line no-unused-vars
+    // Connect now, if a callback was requested.
+    if (callback) this.connect(callback);
+  }
+  /**
+   * Searches for UFOs on the network and invokes the given callback with the
+   * resulting list.
+   */
+  static discover(options: UfoDiscoverOptions, callback: UfoDiscoverCallback): void {
+    UdpClient.discover(options, callback);
+  }
+  /*
+   * Connect/disconnect methods
+   */
+  /** Establishes a connection to the UFO, then invokes the given callback. */
+  connect(callback: ?() => void) {
+    this._udpClient.connect(() => {
+      this._tcpClient.connect(callback);
+    });
+  }
+  /**
+   * Disconnects from the UFO. After disconnecting, this object cannot be used;
+   * you must construct a new {@link Ufo} object to reconnect.
+   */
+  disconnect() {
+    if (this._dead) return;
+    this._dead = true;
+    this._tcpClient.disconnect();
+    this._udpClient.disconnect();
+  }
+  /*
+   * Query methods
+   */
+  /**
+   * Gets the UFO's output status and sends it to the given callback.
+   * The callback is guaranteed to have exactly one non-null argument.
+   */
+  getStatus(callback: (error: ?Error, data: ?UfoStatus) => void): void {
+    this._tcpClient.status(callback);
+  }
+  /*
+   * RGBW control methods
+   */
+  /**
+   * Sets the UFO's output flag to the given value, then invokes the given
+   * callback.
+   */
+  setPower(on: boolean, callback: ?() => void): void {
+    if (on) this.turnOn(callback);
+    else this.turnOff(callback);
+  }
+  /** Turns the UFO on, then invokes the given callback. */
+  turnOn(callback: ?() => void): void {
+    this._tcpClient.on(callback);
+  }
+  /** Turns the UFO off, then invokes the given callback. */
+  turnOff(callback: ?() => void): void {
+    this._tcpClient.off(callback);
+  }
+  /** Toggle the UFO's output flag, then invokes the given callback. */
+  togglePower(callback: ?(?Error) => void): void {
+    this.getStatus((err, status) => {
+      if (err) {
+        if (callback) callback(err);
+      } else if (status && status.on) {
+        this.turnOff(callback);
+      } else {
+        this.turnOn(callback);
       }
     });
   }
-};
-Ufo.prototype.setBuiltin = function (name, speed, callback) {
-  this._tcpClient.builtin(name, speed, callback);
-};
-Ufo.prototype.setCustom = function (mode, speed, steps, callback) {
-  this._tcpClient.custom(mode, speed, steps, callback);
-};
-Ufo.prototype.freezeOutput = function (callback) {
-  this.setBuiltin('noFunction', 0, callback);
-};
-Ufo.prototype.zeroOutput = function (callback) {
-  this.setColor(0, 0, 0, 0, callback);
-};
-
-/*
- * Core reconfiguration methods
- */
-// Reboots the UFO. This method invalidates the owning UFO object.
-//
-// Callback is optional and overrides any already-defined disconnect callback.
-Ufo.prototype.reboot = function (callback) {
-  this._udpClient.reboot(callback);
-};
-// Resets the UFO to factory defaults. This object can no longer be used after this method is called.
-//
-// Callback is optional and overrides any already-defined disconnect callback.
-Ufo.prototype.factoryReset = function (callback) {
-  this._udpClient.factoryReset(callback);
-};
-Ufo.prototype.setNtpServer = function (ipAddress, callback) {
-  this._udpClient.setNtpServer(ipAddress, callback);
-};
-Ufo.prototype.setUdpPassword = function (password, callback) {
-  this._udpClient.setUdpPassword(password, callback);
-};
-Ufo.prototype.setTcpPort = function (port, callback) {
-  this._udpClient.setTcpPort(port, callback);
-};
-Ufo.prototype.setWifiAutoSwitch = function (value, callback) {
-  this._udpClient.setWifiAutoSwitch(value, callback);
-};
-Ufo.prototype.setWifiMode = function (mode, callback) {
-  this._udpClient.setWifiMode(mode, callback);
-};
-
-/*
- * WiFi AP reconfiguration methods
- */
-Ufo.prototype.setWifiApIp = function (ip, mask, callback) {
-  this._udpClient.setWifiApIp(ip, mask, callback);
-};
-Ufo.prototype.setWifiApBroadcast = function (mode, ssid, channel, callback) {
-  this._udpClient.setWifiApBroadcast(mode, ssid, channel, callback);
-};
-Ufo.prototype.setWifiApPassphrase = function (passphrase, callback) {
-  this._udpClient.setWifiApPassphrase(passphrase, callback);
-};
-Ufo.prototype.setWifiApLed = function (onOff, callback) {
-  this._udpClient.setWifiApLed(onOff, callback);
-};
-Ufo.prototype.setWifiApDhcp = function (start, end, callback) {
-  this._udpClient.setWifiApDhcp(start, end, callback);
-};
-Ufo.prototype.disableWifiApDhcp = function (callback) {
-  this._udpClient.disableWifiApDhcp(callback);
-};
-
-/*
- * WiFi client reconfiguration methods
- */
-Ufo.prototype.setWifiClientIpDhcp = function (callback) {
-  this._udpClient.setWifiClientIpDhcp(callback);
-};
-Ufo.prototype.setWifiClientIpStatic = function (ip, mask, gateway, callback) {
-  this._udpClient.setWifiClientIpStatic(ip, mask, gateway, callback);
-};
-Ufo.prototype.setWifiClientSsid = function (ssid, callback) {
-  this._udpClient.setWifiClientSsid(ssid, callback);
-};
-Ufo.prototype.setWifiClientAuth = function (auth, encryption, passphrase, callback) {
-  this._udpClient.setWifiClientAuth(auth, encryption, passphrase, callback);
-};
+  /**
+   * Sets the UFO output to the static values specified, then invokes the given
+   * calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
+   * and 255 is fully on/100% output.
+   */
+  setColor(red: number, green: number, blue: number, white: number, callback: ?() => void): void {
+    this._tcpClient.rgbw(red, green, blue, white, callback);
+  }
+  /**
+   * Sets the red output value, then invokes the given callback. If solo is
+   * true, all other output values are set to zero. Input value is clamped to
+   * 0-255 inclusive.
+   */
+  setRed(value: number, solo: boolean, callback: (?Error) => void) {
+    this._setSingle(0, value, solo, callback);
+  }
+  /**
+   * Sets the green output value, then invokes the given callback. If solo is
+   * true, all other output values are set to zero. Input value is clamped to
+   * 0-255 inclusive.
+   */
+  setGreen(value: number, solo: boolean, callback: (?Error) => void) {
+    this._setSingle(1, value, solo, callback);
+  }
+  /**
+   * Sets the blue output value, then invokes the given callback. If solo is
+   * true, all other output values are set to zero. Input value is clamped to
+   * 0-255 inclusive.
+   */
+  setBlue(value: number, solo: boolean, callback: (?Error) => void) {
+    this._setSingle(2, value, solo, callback);
+  }
+  /**
+   * Sets the white output value, then invokes the given callback. If solo is
+   * true, all other output values are set to zero. Input value is clamped to
+   * 0-255 inclusive.
+   */
+  setWhite(value: number, solo: boolean, callback: (?Error) => void) {
+    this._setSingle(3, value, solo, callback);
+  }
+  /**
+   * Sets the given position in the RGBW byte array, then invokes the given
+   * callback. If solo is true, all other output values are set to zero. Input
+   * value is clamped to 0-255 inclusive.
+   * @private
+   */
+  _setSingle(position: number, value: number, solo: boolean, callback: (?Error) => void) {
+    if (solo) {
+      const values = [0, 0, 0, 0];
+      values[position] = value;
+      this.setColor(...values, callback);
+    } else {
+      this.getStatus((err, data) => {
+        if (err) {
+          callback(err);
+        } else if (data) {
+          const values = [data.red, data.green, data.blue, data.white];
+          values[position] = value;
+          this.setColor(...values, callback);
+        }
+      });
+    }
+  }
+  /**
+   * Starts one of the UFO's built-in functions at the given speed, then invokes
+   * the given callback. The error is always null unless an invalid function
+   * name is given.
+   *
+   * The speed is clamped from 0-100 inclusive. Speed values do not result in
+   * the same durations across all functions (e.g. sevenColorStrobeFlash is
+   * much faster at speed 100 than sevenColorJumpingChange); you will need to
+   * experiment with different values to get the desired timing for the function
+   * you wish to use.
+   */
+  setBuiltin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => void): void {
+    this._tcpClient.builtin(name, speed, callback);
+  }
+  /**
+   * Starts the given custom function, then invokes the given callback. The
+   * error is always null unless an invalid mode is given.
+   * - The speed is clamped from 0-30 inclusive. Below is a list of step
+   * durations measured with a stopwatch when using the "jumping" mode. These
+   * values should be treated as approximations. Based on this list, it appears
+   * decrementing the speed by 1 increases step duration by 0.14 seconds.
+   *    - 30 = 0.4 seconds
+   *    - 25 = 1.1 seconds
+   *    - 20 = 1.8 seconds
+   *    - 15 = 2.5 seconds
+   *    - 10 = 3.2 seconds
+   *    - 5 = 3.9 seconds
+   *    - 0 = 4.6 seconds
+   * - Only the first 16 steps in the given array are considered. Any additional
+   * steps are ignored.
+   * - If any null steps are specified in the array, they are dropped *before*
+   * the limit of 16 documented above is considered.
+   */
+  setCustom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => void): void {
+    this._tcpClient.custom(mode, speed, steps, callback);
+  }
+  /**
+   * Freezes the playback of whatever built-in or custom function is currently
+   * running. The output remains on after being frozen.
+   */
+  freezeOutput(callback: ?(error: ?Error) => void): void {
+    this.setBuiltin('noFunction', 0, callback);
+  }
+  /** Sets all output to zero. */
+  zeroOutput(callback: ?(error: ?Error) => void): void {
+    this.setColor(0, 0, 0, 0, callback);
+  }
+  /*
+   * UFO configuration getter methods
+   */
+  /** Returns the UFO's hardware/firmware version. */
+  getVersion(callback: (?Error, string) => void): void {
+    this._udpClient.getVersion(callback);
+  }
+  /** Returns the UFO's NTP server IP address. */
+  getNtpServer(callback: (?Error, string) => void): void {
+    this._udpClient.getNtpServer(callback);
+  }
+  /**
+   * Returns the UFO's WiFi "auto-switch" setting, which is one of the
+   * following:
+   * - "off", which means auto-switch is disabled.
+   * - "on", which means 1 minutes.
+   * - "auto", which means 10 minutes.
+   * - The number of minutes, 3-120 inclusive.
+   *
+   * If auto-switch is anything but "off", and if the UFO fails to connect to
+   * its client AP or otherwise enters any abnormal state, the UFO will reset
+   * itself and enable its AP mode after the specified number of minutes have
+   * passed.
+   *
+   * Note that this method always returns a string even if the value is a
+   * number.
+   */
+  getWifiAutoSwitch(callback: (?Error, string) => void): void {
+    this._udpClient.getWifiAutoSwitch(callback);
+  }
+  /**
+   * Returns the UFO's WiFi mode:
+   * - "AP" (AP mode)
+   * - "STA" (client mode)
+   * - "APSTA" (client and AP mode)
+   */
+  getWifiMode(callback: (?Error, string) => void): void {
+    this._udpClient.getWifiMode(callback);
+  }
+  /** Performs a WiFi AP scan from the UFO and returns the results. */
+  doWifiScan(callback: (?Error, Array<WifiNetwork>) => void): void {
+    this._udpClient.doWifiScan(callback);
+  }
+  /** Returns the IP address and netmask of the UFO AP. */
+  getWifiApIp(callback: (?Error, ?{ip: string, mask: string}) => void): void {
+    this._udpClient.getWifiApIp(callback);
+  }
+  /** Returns the UFO AP's broadcast information. Channel is 1-11 inclusive. */
+  getWifiApBroadcast(callback: (?Error, ?{mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number}) => void): void {
+    this._udpClient.getWifiApBroadcast(callback);
+  }
+  /** Returns the UFO AP's passphrase. If null, AP network is open. */
+  getWifiApPassphrase(callback: (?Error, ?string) => void): void {
+    this._udpClient.getWifiApPassphrase(callback);
+  }
+  /**
+   * Returns the UFO AP's connection LED flag. If on, the UFO's blue LED will
+   * turn on when any client is connected to the AP.
+   */
+  getWifiApLed(callback: (?Error, boolean) => void): void {
+    this._udpClient.getWifiApLed(callback);
+  }
+  /**
+   * Returns the UFO AP's DHCP server settings. If DHCP is on, the returned
+   * object's "start" and "end" properties will be 0-254 inclusive.
+   */
+  getWifiApDhcp(callback: (?Error, ?{on: boolean, start?: number, end?: number}) => void): void {
+    this._udpClient.getWifiApDhcp(callback);
+  }
+  /**
+   * Returns the UFO client's AP SSID and MAC address. If the UFO is not
+   * connected to any AP, the returned object will be null.
+   */
+  getWifiClientApInfo(callback: (?Error, ?{ssid: string, mac: string}) => void): void {
+    this._udpClient.getWifiClientApInfo(callback);
+  }
+  /** Returns the UFO client's AP signal strength, as seen by the UFO. */
+  getWifiClientApSignal(callback: (?Error, string) => void): void {
+    this._udpClient.getWifiClientApSignal(callback);
+  }
+  /** Returns the UFO client's IP configuration. */
+  getWifiClientIp(callback: (?Error, ?{dhcp: boolean, ip: string, mask: string, gateway: string}) => void): void {
+    this._udpClient.getWifiClientIp(callback);
+  }
+  /** Returns the UFO client's AP SSID. */
+  getWifiClientSsid(callback: (?Error, string) => void): void {
+    this._udpClient.getWifiClientSsid(callback);
+  }
+  /** Returns the UFO client's AP auth settings. */
+  getWifiClientAuth(callback: (?Error, ?{auth: string, encryption: string, passphrase: string | null}) => void): void {
+    this._udpClient.getWifiClientAuth(callback);
+  }
+  /*
+   * UFO configuration setter methods
+   */
+  /** Sets the NTP server IP address. */
+  setNtpServer(ipAddress: string, callback: ?(?Error) => void): void {
+    this._udpClient.setNtpServer(ipAddress, callback);
+  }
+  /**
+   * Sets the UFO's UDP password. If an error occurs while executing this
+   * command, the owning UFO object will be disconnected and the given callback
+   * (if any) will override whatever disconnect callback was previously defined.
+   */
+  setUdpPassword(password: string, callback: ?(?Error) => void): void {
+    this._udpClient.setUdpPassword(password, callback);
+  }
+  /**
+   * Sets the UFO's TCP port. The owning UFO object will be disconnected after
+   * this method is invoked. If a callback is provided to this method, it
+   * overrides whatever disconnect callback was defined when the client was
+   * constructed.
+   */
+  setTcpPort(port: number, callback?: UfoDisconnectCallback): void {
+    this._udpClient.setTcpPort(port, callback);
+  }
+  /**
+   * Sets the UFO's WiFi "auto-switch" setting, which is one of the following:
+   * - "off", which means auto-switch is disabled.
+   * - "on", which means 1 minutes.
+   * - "auto", which means 10 minutes.
+   * - The number of minutes, 3-120 inclusive.
+   *
+   * If auto-switch is anything but "off", and if the UFO fails to connect to
+   * its client AP or otherwise enters any abnormal state, the UFO will reset
+   * itself and enable its AP mode after the specified number of minutes have
+   * passed.
+   */
+  setWifiAutoSwitch(value: 'off' | 'on' | 'auto' | number, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiAutoSwitch(value, callback);
+  }
+  /**
+   * Sets the UFO's WiFi mode:
+   * - "AP" (AP mode)
+   * - "STA" (client mode)
+   * - "APSTA" (client and AP mode)
+   */
+  setWifiMode(mode: 'AP' | 'STA' | 'APSTA', callback: ?(?Error) => void): void {
+    this._udpClient.setWifiMode(mode, callback);
+  }
+  /** Sets the IP address and netmask of the UFO AP. */
+  setWifiApIp(ip: string, mask: string, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiApIp(ip, mask, callback);
+  }
+  /** Sets the UFO AP's broadcast information. Channel is 1-11 inclusive. */
+  setWifiApBroadcast(mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiApBroadcast(mode, ssid, channel, callback);
+  }
+  /** Sets the UFO's AP passphrase. If null, network will be open. */
+  setWifiApPassphrase(passphrase: string | null, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiApPassphrase(passphrase, callback);
+  }
+  /**
+   * Sets the UFO AP's connection LED flag. If on, the UFO's blue LED will turn
+   * on when any client is connected to the AP.
+   */
+  setWifiApLed(on: boolean, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiApLed(on, callback);
+  }
+  /**
+   * Sets the UFO AP's DHCP address range. Both arguments are 0-254 inclusive.
+   * This command implicitly enables the DHCP server.
+   */
+  setWifiApDhcp(start: number, end: number, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiApDhcp(start, end, callback);
+  }
+  /** Disables the UFO AP's DHCP server. */
+  disableWifiApDhcp(callback: ?(?Error) => void): void {
+    this._udpClient.disableWifiApDhcp(callback);
+  }
+  /** Enables DHCP mode for the UFO client. */
+  setWifiClientIpDhcp(callback: ?(?Error) => void): void {
+    this._udpClient.setWifiClientIpDhcp(callback);
+  }
+  /** Sets the IP configuration for the UFO client. Implicitly disables DHCP. */
+  setWifiClientIpStatic(ip: string, mask: string, gateway: string, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiClientIpStatic(ip, mask, gateway, callback);
+  }
+  /** Sets the UFO client's AP SSID. */
+  setWifiClientSsid(ssid: string, callback: ?(?Error) => void): void {
+    this._udpClient.setWifiClientSsid(ssid, callback);
+  }
+  /** Sets the UFO client's AP auth settings. */
+  setWifiClientAuth(
+    auth: 'OPEN' | 'SHARED' | 'WPAPSK' | 'WPA2PSK',
+    encryption: 'NONE' | 'WEP-H' | 'WEP-A' | 'TKIP' | 'AES',
+    passphrase?: string | null,
+    callback: ?(?Error) => void,
+  ): void {
+    this._udpClient.setWifiClientAuth(auth, encryption, passphrase, callback);
+  }
+  /*
+   * Miscellaneous methods
+   */
+  /**
+   * Reboots the UFO. The owning UFO object will be disconnected after this
+   * method is invoked. If a callback is provided to this method, it overrides
+   * whatever disconnect callback was defined when the client was constructed.
+   */
+  reboot(callback?: UfoDisconnectCallback): void {
+    this._udpClient.reboot(callback);
+  }
+  /**
+   * Resets the UFO to factory defaults. The owning UFO object will be
+   * disconnected after this method is invoked. If a callback is provided to
+   * this method, it overrides whatever disconnect callback was defined when the
+   * client was constructed.
+   */
+  factoryReset(callback?: UfoDisconnectCallback): void {
+    this._udpClient.factoryReset(callback);
+  }
+}
+export default Ufo;

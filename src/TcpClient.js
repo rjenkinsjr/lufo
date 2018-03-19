@@ -1,6 +1,7 @@
 // @flow
 import * as net from 'net';
 import _ from 'lodash';
+import Ufo from './Ufo';
 import type { UfoOptions } from './Misc';
 
 /** One of the possible built-in function names. */
@@ -188,8 +189,8 @@ const _isNullStep = function (step: CustomStep) {
  * Provides an API to UFOs for interacting with the UFO's TCP server.
  * @private
  */
-export default class {
-  _ufo: Object;
+export class TcpClient {
+  _ufo: Ufo;
   _options: TcpOptions;
   _dead: boolean;
   _statusArray: Uint8Array;
@@ -197,7 +198,7 @@ export default class {
   _socket: net.Socket;
   _error: ?Error;
   _statusCallback: ?(?Error, ?UfoStatus) => void
-  constructor(ufo: Object, options: UfoOptions) {
+  constructor(ufo: Ufo, options: UfoOptions) {
     this._ufo = ufo;
     this._options = {
       localPort: options.localTcpPort || -1,
@@ -637,3 +638,4 @@ export default class {
   /** Indicates whether or not the given object is equivalent to a null custom step. */
   static isNullStep(step: CustomStep): boolean { return _isNullStep(step); }
 }
+export default TcpClient;
