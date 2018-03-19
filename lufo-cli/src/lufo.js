@@ -6,7 +6,19 @@ import promptly from 'promptly';
 import { Address4 } from 'ip-address';
 import Ufo from 'lufo-api';
 
+const cli = require('commander');
+
 let theUfo = null;
+// Helper function for printing errors and setting the exit code.
+const quitError = function (obj) {
+  if (_.isError(obj)) {
+    console.error(obj);
+  } else {
+    console.error(`Error: ${obj}`);
+  }
+  if (theUfo) theUfo.disconnect();
+  process.exitCode = 1;
+};
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
 const go = function (action) {
@@ -17,7 +29,7 @@ const go = function (action) {
     if (new Address4(cli.ufo).isValid()) {
       const ufoOptions = {
         host: cli.ufo,
-        disconnectCallback: function(err) {
+        disconnectCallback(err) {
           if (err) quitError(err);
         },
       };
@@ -54,21 +66,9 @@ const getAndStop = function (isJson, transformer) {
     }
   };
 };
-// Helper function for printing errors and setting the exit code.
-const quitError = function (obj) {
-  if (_.isError(obj)) {
-    console.error(obj);
-  } else {
-    console.error(`Error: ${obj}`);
-  }
-  if (theUfo) theUfo.disconnect();
-  process.exitCode = 1;
-};
 
 // Define core CLI options.
-var cli = require('commander');
-
-cli.version(require(`${__dirname}/../package.json`).version)
+cli.version(require(`${__dirname}/../package.json`).version) // eslint-disable-line import/no-dynamic-require
   .usage('[options] <command> [command-options ...]')
   .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover". If unspecified, the LUFO_ADDRESS environment variable is used.');
 cli.on('--help', () => {
@@ -228,7 +228,7 @@ cli.command('white <value>')
 cli.command('function <name> <speed>')
   .alias('f')
   .description('Plays a built-in function. Speed is 0-100 (slow to fast) inclusive.')
-  .action((name, speed, options) => {
+  .action((name, speed, options) => { // eslint-disable-line no-unused-vars
     go(function () {
       this.setBuiltin(name, speed, stop());
     });
@@ -241,7 +241,7 @@ cli.command('function-list')
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')
   .description('Plays a custom function. Type is "gradual", "jumping" or "strobe". Speed is 0-30 (slow to fast) inclusive. Each step is a comma-separated RGB triplets (each value in the triplet ranges 0-255 inclusive); maximum of 16 steps (extras are ignored).')
-  .action((type, speed, values, options) => {
+  .action((type, speed, values, options) => { // eslint-disable-line no-unused-vars
     const steps = [];
     values.forEach((v) => {
       const splitV = v.split(',');
@@ -250,7 +250,7 @@ cli.command('custom <type> <speed> [steps...]')
         green: parseInt(splitV[1], 10),
         blue: parseInt(splitV[2], 10),
       };
-      if (!TcpClient.isNullStep(newValue)) steps.push(newValue);
+      if (!Ufo.isNullStep(newValue)) steps.push(newValue);
     });
     go(function () {
       this.setCustom(type, speed, steps, stop());
@@ -285,21 +285,24 @@ cli.command('ntp [server]')
   .description('Gets/sets the NTP server.')
   .action((server) => {
     go(function () {
-      server ? this.setNtpServer(server, stop()) : this.getNtpServer(getAndStop());
+      if (server) this.setNtpServer(server, stop());
+      else this.getNtpServer(getAndStop());
     });
   });
 cli.command('password [pwd]')
   .description('Gets/sets the UDP password.')
   .action((pwd) => {
     go(function () {
-      pwd ? this.setUdpPassword(pwd, stop()) : this.getUdpPassword(getAndStop());
+      if (pwd) this.setUdpPassword(pwd, stop());
+      else this.getUdpPassword(getAndStop());
     });
   });
 cli.command('port [port]')
   .description('Gets/sets the TCP port.')
   .action((port) => {
     go(function () {
-      port ? this.setTcpPort(port, stop()) : this.getTcpPort(getAndStop());
+      if (port) this.setTcpPort(port, stop());
+      else this.getTcpPort(getAndStop());
     });
   });
 
@@ -315,51 +318,58 @@ cli.command('wifi-auto-switch [mode]')
   .description('Gets/sets the WiFi auto-switch setting. Possible values are (no quotes): "off" (AP mode will never turn on), "on" (AP mode will turn on after 1 minute), "auto" (after 10 minutes), or integers 3-120 inclusive (after X minutes).')
   .action((mode) => {
     go(function () {
-      mode ? this.setWifiAutoSwitch(mode, stop()) : this.getWifiAutoSwitch(getAndStop());
+      if (mode) this.setWifiAutoSwitch(mode, stop());
+      else this.getWifiAutoSwitch(getAndStop());
     });
   });
 cli.command('wifi-mode [mode]')
   .description('Gets/sets the WiFi mode. Possible values are (no quotes): "AP", "STA" or "APSTA".')
   .action((mode) => {
     go(function () {
-      mode ? this.setWifiMode(mode, stop()) : this.getWifiMode(getAndStop());
+      if (mode) this.setWifiMode(mode, stop());
+      else this.getWifiMode(getAndStop());
     });
   });
 
 // WiFi AP commands
 cli.command('wifi-ap-ip [ip] [mask]')
   .description('Gets/sets the IP address/netmask when in AP mode [json].')
-  .action((ip) => {
+  .action((ip, mask) => {
     go(function () {
-      ip ? this.setWifiApIp(ip, mask, stop()) : this.getWifiApIp(getAndStop(true));
+      if (ip) this.setWifiApIp(ip, mask, stop());
+      else this.getWifiApIp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
   .description('Gets/sets the WiFi broadcast info when in AP mode [json]. Mode is one of "b", "bg" or "bgn" (no quotes, case insensitive). SSID is 32 characters or less, ASCII only. Channel is 1-11 inclusive.')
   .action((mode, ssid, channel) => {
     go(function () {
-      mode ? this.setWifiApBroadcast(`11${mode.toUpperCase()}`, ssid, `CH${_.clamp(channel, 1, 11)}`, stop()) : this.getWifiApBroadcast(getAndStop(true));
+      if (mode) this.setWifiApBroadcast(`11${mode.toUpperCase()}`, ssid, `CH${_.clamp(channel, 1, 11)}`, stop());
+      else this.getWifiApBroadcast(getAndStop(true));
     });
   });
 cli.command('wifi-ap-passphrase [pwd]')
   .description('Gets/sets the WiFi passphrase when in AP mode. 8-63 characters inclusive. Use "false" (no quotes) to disable security and configure the AP as an open network.')
   .action((pwd) => {
     go(function () {
-      pwd ? this.setWifiApPassphrase(pwd.toLowerCase() === 'false' ? null : pwd, stop()) : this.getWifiApPassphrase(getAndStop(false, value => (value ? value : '<No passphrase, open network>')));
+      if (pwd) this.setWifiApPassphrase(pwd.toLowerCase() === 'false' ? null : pwd, stop());
+      else this.getWifiApPassphrase(getAndStop(false, value => (value || '<No passphrase, open network>')));
     });
   });
 cli.command('wifi-ap-led [value]')
   .description('Gets/sets the connection LED state when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
   .action((value) => {
     go(function () {
-      value ? this.setWifiApLed(value === 'on', stop()) : this.getWifiApLed(getAndStop(false, value => (value ? 'on' : 'off')));
+      if (value) this.setWifiApLed(value === 'on', stop());
+      else this.getWifiApLed(getAndStop(false, flag => (flag ? 'on' : 'off')));
     });
   });
 cli.command('wifi-ap-dhcp [start] [end]')
   .description('Gets/sets the DHCP range when in AP mode. Ranges are 0-254 inclusive. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
   .action((start, end) => {
     go(function () {
-      start ? this.setWifiApDhcp(start, end, stop()) : this.getWifiApDhcp(getAndStop(true));
+      if (start) this.setWifiApDhcp(start, end, stop());
+      else this.getWifiApDhcp(getAndStop(true));
     });
   });
 cli.command('wifi-ap-dhcp-disable')
@@ -390,7 +400,8 @@ cli.command('wifi-client-ip [ip] [mask] [gateway]')
   .action((ip, mask, gateway) => {
     go(function () {
       if (ip) {
-        (ip === 'dhcp' || ip === 'DHCP') ? this.setWifiClientIpDhcp(stop()) : this.setWifiClientIpStatic(ip, mask, gateway, stop());
+        if ((ip === 'dhcp' || ip === 'DHCP')) this.setWifiClientIpDhcp(stop());
+        else this.setWifiClientIpStatic(ip, mask, gateway, stop());
       } else {
         this.getWifiClientIp(getAndStop(true));
       }
@@ -400,7 +411,8 @@ cli.command('wifi-client-ssid [ssid]')
   .description('Gets/sets the SSID when in client mode.')
   .action((ssid) => {
     go(function () {
-      ssid ? this.setWifiClientSsid(ssid, stop()) : this.getWifiClientSsid(getAndStop());
+      if (ssid) this.setWifiClientSsid(ssid, stop());
+      else this.getWifiClientSsid(getAndStop());
     });
   });
 cli.command('wifi-client-auth [auth] [encryption] [passphrase]')

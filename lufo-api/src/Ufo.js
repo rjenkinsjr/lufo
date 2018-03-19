@@ -76,6 +76,10 @@ class Ufo extends EventEmitter {
   static getBuiltinFunctions(): Array<BuiltinFunction> {
     return TcpClient.getBuiltinFunctions();
   }
+  /** Indicates whether or not the given custom step is a null step. */
+  static isNullStep(step: CustomStep): boolean {
+    return TcpClient.isNullStep(step);
+  }
   /*
    * Connect/disconnect methods
    */
