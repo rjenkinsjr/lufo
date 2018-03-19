@@ -16,7 +16,7 @@ const go = function (action) {
     if (new Address4(cli.ufo).isValid()) {
       const ufoOptions = {
         host: cli.ufo,
-        disconnectCallback(err) {
+        disconnectCallback: function(err) {
           if (err) quitError(err);
         },
       };
