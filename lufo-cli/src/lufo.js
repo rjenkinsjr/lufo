@@ -1,9 +1,10 @@
 #! /usr/bin/env node
+// @lufo
+/* eslint no-console: 0 */
 import _ from 'lodash';
 import promptly from 'promptly';
 import { Address4 } from 'ip-address';
-import Ufo from './Ufo';
-import TcpClient from './TcpClient';
+import Ufo from 'lufo-api';
 
 let theUfo = null;
 // Helper function for assembling the UFO object based on the given args.
@@ -235,7 +236,7 @@ cli.command('function <name> <speed>')
 cli.command('function-list')
   .description('Lists all possible built-in function names usable by the "function" command.')
   .action(() => {
-    console.log(TcpClient.getBuiltinFunctions().join(', '));
+    console.log(Ufo.getBuiltinFunctions().join(', '));
   });
 cli.command('custom <type> <speed> [steps...]')
   .alias('c')

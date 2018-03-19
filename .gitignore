@@ -61,5 +61,7 @@ typings/
 .env
 
 #### lufo ####
-docs/
-lib/
+lufo-api/docs/
+lufo-api/lib/
+lufo-cli/docs/
+lufo-cli/lib/

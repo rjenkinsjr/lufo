@@ -72,6 +72,10 @@ class Ufo extends EventEmitter {
   static discover(options: UfoDiscoverOptions, callback: UfoDiscoverCallback): void {
     UdpClient.discover(options, callback);
   }
+  /** Returns the list of built-in functions usable by the API/CLI. */
+  static getBuiltinFunctions(): Array<BuiltinFunction> {
+    return TcpClient.getBuiltinFunctions();
+  }
   /*
    * Connect/disconnect methods
    */
