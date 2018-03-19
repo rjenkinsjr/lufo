@@ -1034,7 +1034,18 @@ export class UdpClient {
       }
     });
   }
-  /** Sets the UFO client's AP auth settings. */
+  /**
+   * Sets the UFO client's AP auth settings.
+   * - If auth is OPEN, encryption must be NONE, WEP-H or WEP-A.
+   * - If auth is SHARED, encryption must be WEP-H or WEP-A.
+   * - If auth is WPAPSK or WPA2PSK, encryption must be TKIP or AES.
+   * - If encryption is NONE, paraphrase must be null.
+   * - If encryption is WEP-H, paraphrase must be ???.
+   * - If encryption is WEP-A, paraphrase must be exactly 5 or 13 characters in
+   * length.
+   * - If encryption is TKIP or AES, paraphrase must be 8-63 characters in
+   * length, inclusive.
+   */
   setWifiClientAuth(
     auth: 'OPEN' | 'SHARED' | 'WPAPSK' | 'WPA2PSK',
     encryption: 'NONE' | 'WEP-H' | 'WEP-A' | 'TKIP' | 'AES',
