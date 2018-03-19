@@ -430,10 +430,11 @@ class Ufo extends EventEmitter {
    * - If auth is SHARED, encryption must be WEP-H or WEP-A.
    * - If auth is WPAPSK or WPA2PSK, encryption must be TKIP or AES.
    * - If encryption is NONE, paraphrase must be null.
-   * - If encryption is WEP-H, paraphrase must be ???.
-   * - If encryption is WEP-A, paraphrase must be exactly 5 or 13 characters in
-   * length.
-   * - If encryption is TKIP or AES, paraphrase must be 8-63 characters in
+   * - If encryption is WEP-H, paraphrase must be exactly 10 or 26 hexadecimal
+   * characters in length.
+   * - If encryption is WEP-A, paraphrase must be exactly 5 or 13 ASCII
+   * characters in length.
+   * - If encryption is TKIP or AES, paraphrase must be 8-63 ASCII characters in
    * length, inclusive.
    */
   setWifiClientAuth(

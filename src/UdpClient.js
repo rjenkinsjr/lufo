@@ -1040,10 +1040,11 @@ export class UdpClient {
    * - If auth is SHARED, encryption must be WEP-H or WEP-A.
    * - If auth is WPAPSK or WPA2PSK, encryption must be TKIP or AES.
    * - If encryption is NONE, paraphrase must be null.
-   * - If encryption is WEP-H, paraphrase must be ???.
-   * - If encryption is WEP-A, paraphrase must be exactly 5 or 13 characters in
-   * length.
-   * - If encryption is TKIP or AES, paraphrase must be 8-63 characters in
+   * - If encryption is WEP-H, paraphrase must be exactly 10 or 26 hexadecimal
+   * characters in length.
+   * - If encryption is WEP-A, paraphrase must be exactly 5 or 13 ASCII
+   * characters in length.
+   * - If encryption is TKIP or AES, paraphrase must be 8-63 ASCII characters in
    * length, inclusive.
    */
   setWifiClientAuth(
@@ -1082,20 +1083,36 @@ export class UdpClient {
       }
     }
     if (encryption === 'NONE' && passphrase !== null) {
-      if (callback) callback(new Error('Invocation error: encryption is NONE but passphrase is not null.'));
+      if (callback) callback(new Error('Invocation error: encryption is NONE but passphrase was provided.'));
+      return;
+    } else if (!passphrase) {
+      if (callback) callback(new Error('Invocation error: encryption is enabled but passphrase was not provided.'));
       return;
     } else if (encryption === 'WEP-H') {
-      // TODO support WEP-H by validating/constructing passphrase correctly
-      if (callback) callback(new Error('Invocation error: WEP-H is not yet supported by this library.'));
-      return;
-    } else if (encryption === 'WEP-A') {
-      if (passphrase && passphrase.length !== 5 && passphrase.length !== 13) {
-        if (callback) callback(new Error(`Invocation error: encryption is WEP-A but passphrase length is ${passphrase.length} characters and must be either 5 or 13 characters.`));
+      if (passphrase.length !== 10 && passphrase.length !== 26) {
+        if (callback) callback(new Error(`Invocation error: encryption is WEP-H but passphrase length is ${passphrase.length}, not 10 or 26.`));
         return;
       }
-    } else if (encryption === 'TKIP' || encryption === 'AES') {
-      if (passphrase && (passphrase.length < 8 || passphrase.length > 63)) {
-        if (callback) callback(new Error(`Invocation error: encryption is ${encryption} but passphrase length is ${passphrase.length} characters and must be 8-63 inclusive.`));
+      if (passphrase.replace(/[0-9a-fA-F]/g, '').length !== 0) {
+        if (callback) callback(new Error('Invocation error: encryption is WEP-H but passphrase contains non-hexadecimal characters.'));
+        return;
+      }
+    } else if (encryption === 'WEP-A') {
+      if (passphrase.length !== 5 && passphrase.length !== 13) {
+        if (callback) callback(new Error(`Invocation error: encryption is WEP-A but passphrase length is ${passphrase.length}, not 5 or 13.`));
+        return;
+      }
+      if (passphrase.replace(/[\x00-\x7F]/g, '').length !== 0) { // eslint-disable-line no-control-regex
+        if (callback) callback(new Error('Invocation error: encryption is WEP-A but passphrase contains non-ASCII characters.'));
+        return;
+      }
+    } else { // TKIP or AES
+      if (passphrase.length < 8 || passphrase.length > 63) {
+        if (callback) callback(new Error(`Invocation error: encryption is ${encryption} but passphrase length is ${passphrase.length}, not 8-63 inclusive.`));
+        return;
+      }
+      if (passphrase.replace(/[\x00-\x7F]/g, '').length !== 0) { // eslint-disable-line no-control-regex
+        if (callback) callback(new Error(`Invocation error: encryption is ${encryption} but passphrase contains non-ASCII characters.`));
         return;
       }
     }
