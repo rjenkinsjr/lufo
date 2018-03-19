@@ -330,7 +330,19 @@ class Ufo extends EventEmitter {
   getWifiClientSsid(callback: (?Error, string) => void): void {
     this._udpClient.getWifiClientSsid(callback);
   }
-  /** Returns the UFO client's AP auth settings. */
+  /**
+   * Returns the UFO client's AP auth settings.
+   * - If auth is OPEN, encryption is NONE, WEP-H or WEP-A.
+   * - If auth is SHARED, encryption is WEP-H or WEP-A.
+   * - If auth is WPAPSK or WPA2PSK, encryption is TKIP or AES.
+   * - If encryption is NONE, paraphrase is null.
+   * - If encryption is WEP-H, paraphrase is exactly 10 or 26 hexadecimal
+   * characters in length.
+   * - If encryption is WEP-A, paraphrase is exactly 5 or 13 ASCII characters in
+   * length.
+   * - If encryption is TKIP or AES, paraphrase is 8-63 ASCII characters in
+   * length, inclusive.
+   */
   getWifiClientAuth(callback: (?Error, ?{auth: string, encryption: string, passphrase: string | null}) => void): void {
     this._udpClient.getWifiClientAuth(callback);
   }
