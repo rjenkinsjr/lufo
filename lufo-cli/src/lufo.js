@@ -88,7 +88,7 @@ cli.version(require(`${__dirname}/../package.json`).version) // eslint-disable-l
   .option('-i, --immediate', 'If enabled, send TCP data immediately; otherwise, the CLI may buffer data before it is sent. If unspecified, the LUFO_IMMEDIATE environment variable is used, or otherwise it is enabled by default.');
 cli.on('--help', () => {
   console.log('');
-  console.log('Commands marked [json] return well-formed JSON to stdout; no commands accept JSON input.');
+  console.log('Commands marked {json} return well-formed JSON to stdout; no commands accept JSON input.');
   console.log('');
 });
 
@@ -104,7 +104,7 @@ const discover = function (args) {
 };
 cli.command('discover [timeout]')
   .alias('d')
-  .description('Searches for UFOs on the network. Timeout is in seconds, defaults to 3 [json].')
+  .description('Searches for UFOs on the network. Timeout is in seconds, defaults to 3. {json}')
   .on('--help', () => { console.log(); })
   .action((timeout, options) => { // eslint-disable-line no-unused-vars
     const cliOptions = getOptions();
@@ -137,7 +137,7 @@ cli.command('discover [timeout]')
 // Output commands
 cli.command('status')
   .alias('s')
-  .description('Returns the UFO\'s current status [json].')
+  .description('Returns the UFO\'s current status. {json}')
   .action(() => {
     go(function () {
       this.getStatus((err, data) => {
@@ -303,26 +303,26 @@ cli.command('ntp [server]')
       else this.getNtpServer(getAndStop());
     });
   });
-cli.command('password [pwd]')
-  .description('Gets/sets the UDP password.')
+cli.command('password <pwd>')
+  .description('Sets the UDP password.')
   .action((pwd) => {
     go(function () {
       if (pwd) this.setUdpPassword(pwd, stop());
-      else this.getUdpPassword(getAndStop());
+      else quitError(new Error('No password provided.'));
     });
   });
-cli.command('port [port]')
-  .description('Gets/sets the TCP port.')
+cli.command('port <port>')
+  .description('Sets the TCP port.')
   .action((port) => {
     go(function () {
       if (port) this.setTcpPort(port, stop());
-      else this.getTcpPort(getAndStop());
+      else quitError(new Error('No port provided.'));
     });
   });
 
 // Generic WiFi commands
 cli.command('wifi-scan')
-  .description('Scans for nearby WiFi networks and returns their channel, SSID, AP MAC address, security config and signal strength [json].')
+  .description('Scans for nearby WiFi networks and returns their channel, SSID, AP MAC address, security config and signal strength. {json}')
   .action(() => {
     go(function () {
       this.doWifiScan(getAndStop(true));
@@ -347,7 +347,7 @@ cli.command('wifi-mode [mode]')
 
 // WiFi AP commands
 cli.command('wifi-ap-ip [ip] [mask]')
-  .description('Gets/sets the IP address/netmask when in AP mode [json].')
+  .description('Gets/sets the IP address/netmask when in AP mode. {json}')
   .action((ip, mask) => {
     go(function () {
       if (ip) this.setWifiApIp(ip, mask, stop());
@@ -355,7 +355,7 @@ cli.command('wifi-ap-ip [ip] [mask]')
     });
   });
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
-  .description('Gets/sets the WiFi broadcast info when in AP mode [json]. Mode is one of "b", "bg" or "bgn" (no quotes, case insensitive). SSID is 32 characters or less, ASCII only. Channel is 1-11 inclusive.')
+  .description('Gets/sets the WiFi broadcast info when in AP mode. {json} Mode is one of "b", "bg" or "bgn" (no quotes, case insensitive). SSID is 32 characters or less, ASCII only. Channel is 1-11 inclusive.')
   .action((mode, ssid, channel) => {
     go(function () {
       if (mode) this.setWifiApBroadcast(`11${mode.toUpperCase()}`, ssid, `CH${_.clamp(channel, 1, 11)}`, stop());
@@ -396,7 +396,7 @@ cli.command('wifi-ap-dhcp-disable')
 
 // WiFi client commands
 cli.command('wifi-client-ap-info')
-  .description('Shows the connected AP\'s SSID/MAC address when in client mode [json].')
+  .description('Shows the connected AP\'s SSID/MAC address when in client mode. {json}')
   .action(() => {
     go(function () {
       this.getWifiClientApInfo(getAndStop(true));
@@ -410,7 +410,7 @@ cli.command('wifi-client-ap-signal')
     });
   });
 cli.command('wifi-client-ip [ip] [mask] [gateway]')
-  .description('Gets/sets the IP configuration when in client mode [json]. To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
+  .description('Gets/sets the IP configuration when in client mode. {json} To use DHCP, pass only one argument "dhcp" or "DHCP" (no quotes); setting all 3 arguments implies static IP assignment.')
   .action((ip, mask, gateway) => {
     go(function () {
       if (ip) {
@@ -430,7 +430,7 @@ cli.command('wifi-client-ssid [ssid]')
     });
   });
 cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
-  .description('Gets/sets the authentication parameters when in client mode [json]. WARNING: when getting, credentials are printed in plaintext!')
+  .description('Gets/sets the authentication parameters when in client mode. {json} WARNING: when getting, credentials are printed in plaintext!')
   .action((auth, encryption, passphrase) => {
     go(function () {
       if (!auth) {
