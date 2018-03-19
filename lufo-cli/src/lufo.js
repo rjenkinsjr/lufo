@@ -19,24 +19,32 @@ const quitError = function (obj) {
   if (theUfo) theUfo.disconnect();
   process.exitCode = 1;
 };
+// Helper function to construct a UfoOptions object.
+const getOptions = function () {
+  return {
+    host: cli.ufo || process.env.LUFO_ADDRESS,
+    password: cli.password || process.env.LUFO_PASSWORD || undefined,
+    localHost: cli.localHost || process.env.LUFO_LOCALHOST || undefined,
+    localUdpPort: cli.localUdpPort || process.env.LUFO_LOCAL_UDP || undefined,
+    remoteUdpPort: cli.remoteUdpPort || process.env.LUFO_REMOTE_UDP || undefined,
+    localTcpPort: cli.localTcpPort || process.env.LUFO_LOCAL_TCP || undefined,
+    remoteTcpPort: cli.remoteTcpPort || process.env.LUFO_REMOTE_TCP || undefined,
+    immediate: cli.immediate || process.env.LUFO_IMMEDIATE || undefined,
+  };
+};
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
 const go = function (action) {
-  if (!cli.ufo) {
-    cli.ufo = process.env.LUFO_ADDRESS;
-  }
-  if (cli.ufo) {
-    if (new Address4(cli.ufo).isValid()) {
-      const ufoOptions = {
-        host: cli.ufo,
-        disconnectCallback(err) {
-          if (err) quitError(err);
-        },
+  const cliOptions = getOptions();
+  if (cliOptions.host) {
+    if (new Address4(cliOptions.host).isValid()) {
+      cliOptions.disconnectCallback = (err) => {
+        if (err) quitError(err);
       };
-      theUfo = new Ufo(ufoOptions);
+      theUfo = new Ufo(cliOptions);
       theUfo.connect(action.bind(theUfo));
     } else {
-      quitError(`Invalid UFO IP address provided: ${cli.ufo}.`);
+      quitError(`Invalid UFO IP address provided: ${cliOptions.host}.`);
     }
   } else {
     quitError('No UFO IP address provided.');
@@ -70,7 +78,14 @@ const getAndStop = function (isJson, transformer) {
 // Define core CLI options.
 cli.version(require(`${__dirname}/../package.json`).version) // eslint-disable-line import/no-dynamic-require
   .usage('[options] <command> [command-options ...]')
-  .option('-u, --ufo <ip>', 'specify UFO IP address; required for all commands except "discover". If unspecified, the LUFO_ADDRESS environment variable is used.');
+  .option('-o, --ufo <ip>', 'The UFO IP address; required for all commands except "discover" and "function-list". If unspecified, the LUFO_ADDRESS environment variable is used.')
+  .option('-p, --password [password]', 'The UFO password. If set but with no value, you will be prompted. If unspecified, the LUFO_PASSWORD environment variable is used, or otherwise the default hardcoded password is used.')
+  .option('--local-host <localHost>', 'The local host to use when opening the listener ports. If unspecified, the LUFO_LOCALHOST environment variable is used.')
+  .option('--local-udp <localUdpPort>', 'The UDP port to use on this computer to search. If unspecified, the LUFO_LOCAL_UDP environment variable, or otherwise a random port is used.')
+  .option('-u, --remote-udp <remoteUdpPort>', 'The UDP port to which expected UFOs are bound. If unspecified, the LUFO_REMOTE_UDP environment variable is used, or otherwise the default port 48899 is used.')
+  .option('--local-tcp <localTcpPort>', 'The TCP port to use on this computer to search. If unspecified, the LUFO_LOCAL_TCP environment variable, or otherwise a random port is used.')
+  .option('-t, --remote-tcp <remoteTcpPort>', 'The TCP port to which expected UFOs are bound. If unspecified, the LUFO_REMOTE_TCP environment variable is used, or otherwise the default port 5577 is used.')
+  .option('-i, --immediate', 'If enabled, send TCP data immediately; otherwise, the CLI may buffer data before it is sent. If unspecified, the LUFO_IMMEDIATE environment variable is used, or otherwise it is enabled by default.');
 cli.on('--help', () => {
   console.log('');
   console.log('Commands marked [json] return well-formed JSON to stdout; no commands accept JSON input.');
@@ -90,18 +105,17 @@ const discover = function (args) {
 cli.command('discover [timeout]')
   .alias('d')
   .description('Searches for UFOs on the network. Timeout is in milliseconds [json].')
-  .option('-p, --password [password]', 'The UDP password used to search for UFOs. If this option is set but has no value, you will be prompted for a password (not suitable for programmatic JSON consumption).')
-  .option('-l, --local-port <localPort>', 'The UDP port to use on this computer to search. If unspecified, a random port is used.')
-  .option('-r, --remote-port <remotePort>', 'The UDP port to which expected UFOs are bound. Default is 48899.')
   .on('--help', () => { console.log(); })
-  .action((timeout, options) => {
+  .action((timeout, options) => { // eslint-disable-line no-unused-vars
+    const cliOptions = getOptions();
     const discoverArgs = {
       timeout,
-      password: options.password,
-      localPort: options.localPort,
-      remotePort: options.remotePort,
+      password: cliOptions.password,
+      remotePort: cliOptions.remoteUdpPort,
+      localPort: cliOptions.localUdpPort,
+      localAddress: cliOptions.localHost,
     };
-    if (options.password === true) {
+    if (discoverArgs.password === true) {
       const promptOptions = {
         validator(value) {
           if (value.length > 20) throw new Error('Length must be less than 20 characters.');

@@ -36,6 +36,8 @@ export class UfoDisconnectError extends Error { // eslint-disable-line import/pr
  * If unspecified, the default is used. You can use the CLI to change the UFO's
  * password for greater security, since the default password is well-known and
  * hardcoded into this library.
+ * @property {string} [localHost] The local host used for establishing the
+ * TCP socket.
  * @property {number} [localUdpPort] the port number that will be bound on this
  * machine for UDP traffic to the  UFO. If unspecified, a random port is used.
  * @property {number} [remoteUdpPort] the UDP port number on the UFO. If
@@ -43,8 +45,6 @@ export class UfoDisconnectError extends Error { // eslint-disable-line import/pr
  * CLI.
  * @property {number} [localTcpPort] the port number that will be bound on this
  * machine for UDP traffic to the  UFO. If unspecified, a random port is used.
- * @property {string} [localHost] The local host used for establishing the
- * TCP socket.
  * @property {number} [remoteTcpPort] the UDP port number on the UFO. If
  * unspecified, the default port 5577 is used. You can change this using the
  * CLI.
@@ -61,10 +61,10 @@ export class UfoDisconnectError extends Error { // eslint-disable-line import/pr
 export type UfoOptions = {
   host: string,
   password?: string,
+  localHost?: string,
   localUdpPort?: number,
   remoteUdpPort?: number,
   localTcpPort?: number,
-  localHost?: string,
   remoteTcpPort?: number,
   immediate?: boolean,
   disconnectCallback?: UfoDisconnectCallback,
