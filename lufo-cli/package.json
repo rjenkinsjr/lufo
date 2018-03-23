@@ -8,22 +8,8 @@
   },
   "dependencies": {
     "lufo-api": "0.1.0",
-    "ip-address": "^5.8.9",
-    "lodash": "^4.17.4",
     "commander": "^2.12.2",
     "promptly": "^2.2.0"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^8.2.2",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-flow": "^6.23.0",
-    "eslint": "^4.9.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-flowtype": "^2.46.1",
-    "eslint-plugin-import": "^2.7.0",
-    "flow-bin": "^0.67.1"
   },
   "scripts": {
     "lint": "eslint src",
@@ -36,12 +22,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rjenkinsjr/ledenet-ufo.git"
+    "url": "git+https://github.com/rjenkinsjr/lufo.git"
   },
   "author": "Ronald J. Jenkins Jr.",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rjenkinsjr/ledenet-ufo/issues"
+    "url": "https://github.com/rjenkinsjr/lufo/issues"
   },
-  "homepage": "https://github.com/rjenkinsjr/ledenet-ufo#readme"
+  "homepage": "https://github.com/rjenkinsjr/lufo#readme"
 }

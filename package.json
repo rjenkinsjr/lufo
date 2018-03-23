@@ -1,17 +1,31 @@
 {
-  "name": "lufo",
-  "version": "0.1.0",
-  "description": "API/CLI for LEDENET UFO WiFi RGBW controllers.",
   "private": true,
-  "workspaces": ["lufo-api", "lufo-cli"],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rjenkinsjr/ledenet-ufo.git"
+  "workspaces": [
+    "lufo-api",
+    "lufo-cli"
+  ],
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.2.2",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
+    "documentation": "^6.1.0",
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.46.1",
+    "eslint-plugin-import": "^2.7.0",
+    "flow-bin": "^0.67.1",
+    "flow-copy-source": "^1.3.0"
   },
-  "author": "Ronald J. Jenkins Jr.",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/rjenkinsjr/ledenet-ufo/issues"
-  },
-  "homepage": "https://github.com/rjenkinsjr/ledenet-ufo#readme"
+  "scripts": {
+    "api-lint": "cd lufo-api ; eslint src",
+    "api-build": "cd lufo-api ; rm -rf lib ; babel -q src/ -d lib/ ; flow-copy-source src lib",
+    "api-doc": "cd lufo-api ; rm -rf docs ; documentation build src/** -f html -o docs",
+    "api-test": "cd lufo-api ; echo \"Error: no tests exist!\" && exit 1",
+    "cli-lint": "cd lufo-cli ; eslint src",
+    "cli-build": "cd lufo-cli ; rm -rf lib ; babel -q src/ -d lib/ ; chmod +x lib/lufo.js",
+    "cli-run": "cd lufo-cli ; yarn run build && ./lib/lufo.js",
+    "cli-test": "cd lufo-cli ; echo \"Error: no tests exist!\" && exit 1"
+  }
 }
