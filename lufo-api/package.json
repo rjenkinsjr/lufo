@@ -14,11 +14,12 @@
     "test": "echo \"Error: no tests exist!\" && exit 1"
   },
   "files": [
-    "lib"
+    "lib",
+    "../LICENSE"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rjenkinsjr/lufo.git"
+    "url": "github:rjenkinsjr/lufo"
   },
   "author": "Ronald J. Jenkins Jr.",
   "license": "MIT",
