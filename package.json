@@ -22,10 +22,12 @@
     "api-lint": "cd lufo-api ; eslint src",
     "api-build": "cd lufo-api ; rm -rf lib ; babel -q src/ -d lib/ ; flow-copy-source src lib",
     "api-doc": "cd lufo-api ; rm -rf docs ; documentation build src/** -f html -o docs",
-    "api-test": "cd lufo-api ; echo \"Error: no tests exist!\" && exit 1",
+    "api-test": "echo \"Error: no tests exist!\" && exit 1",
+    "api-pack": "yarn run api-lint ; yarn run api-build ; cd lufo-api ; yarn pack",
     "cli-lint": "cd lufo-cli ; eslint src",
-    "cli-build": "cd lufo-cli ; rm -rf lib ; babel -q src/ -d lib/ ; chmod +x lib/lufo.js",
-    "cli-run": "cd lufo-cli ; yarn run build && ./lib/lufo.js",
-    "cli-test": "cd lufo-cli ; echo \"Error: no tests exist!\" && exit 1"
+    "cli-build": "cd lufo-cli ; rm -rf lib ; babel -q src/ -d . ; chmod +x lufo.js",
+    "cli-run": "yarn run cli-lint ; yarn run cli-build ; cd lufo-cli ; ./lufo.js",
+    "cli-test": "echo \"Error: no tests exist!\" && exit 1",
+    "cli-pack": "yarn run cli-lint ; yarn run cli-build ; cd lufo-cli ; yarn pack"
   }
 }

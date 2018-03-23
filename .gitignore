@@ -64,4 +64,4 @@ typings/
 lufo-api/docs/
 lufo-api/lib/
 lufo-cli/docs/
-lufo-cli/lib/
+lufo-cli/lufo.js

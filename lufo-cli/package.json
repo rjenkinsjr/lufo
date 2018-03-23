@@ -2,24 +2,19 @@
   "name": "lufo-cli",
   "version": "0.1.0",
   "description": "CLI for LEDENET UFO WiFi RGBW controllers.",
-  "main": "src/lufo.js",
+  "main": "lufo.js",
   "bin": {
-    "lufo": "lib/lufo.js"
+    "lufo": "./lufo.js"
   },
   "dependencies": {
     "lufo-api": "0.1.0",
+    "ip-address": "^5.8.9",
+    "lodash": "^4.17.4",
     "commander": "^2.12.2",
     "promptly": "^2.2.0"
   },
-  "scripts": {
-    "lint": "eslint src",
-    "build": "rm -rf lib ; babel -q src/ -d lib/ ; chmod +x lib/lufo.js",
-    "cli": "yarn run build && ./lib/lufo.js",
-    "test": "echo \"Error: no tests exist!\" && exit 1"
-  },
   "files": [
-    "lib",
-    "../LICENSE"
+    "./lufo.js"
   ],
   "repository": {
     "type": "git",

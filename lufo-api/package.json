@@ -7,15 +7,8 @@
     "ip-address": "^5.8.9",
     "lodash": "^4.17.4"
   },
-  "scripts": {
-    "lint": "eslint src",
-    "build": "rm -rf lib ; babel -q src/ -d lib/ ; flow-copy-source src lib",
-    "doc": "rm -rf docs ; documentation build src/** -f html -o docs",
-    "test": "echo \"Error: no tests exist!\" && exit 1"
-  },
   "files": [
-    "lib",
-    "../LICENSE"
+    "lib"
   ],
   "repository": {
     "type": "git",
