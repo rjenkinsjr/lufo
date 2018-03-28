@@ -11,9 +11,9 @@ jobs:
             - add_ssh_keys
             - checkout
             - restore_cache:
-                key: {{ .Environment.NVM_CACHE_VERSION }-nvm-cache-{{ arch }}-{{ checksum ".nvm" }}
+                key: {{ .Environment.NVM_CACHE_VERSION }}-nvm-cache-{{ arch }}-{{ checksum ".nvm" }}
             - restore_cache:
-                key: {{ .Environment.YARN_CACHE_VERSION }-yarn-cache-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
+                key: {{ .Environment.YARN_CACHE_VERSION }}-yarn-cache-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
             - run:
                 name: Install nvm/NodeJS/Yarn
                 command: |
@@ -47,11 +47,11 @@ jobs:
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do TESTEN_VERSIONS="$TESTEN_VERSIONS -n $v"; done
                   yarn run testen $TESTEN_VERSIONS
             - save_cache:
-                key: {{ .Environment.NVM_CACHE_VERSION }-nvm-cache-{{ arch }}-{{ checksum ".nvm" }}
+                key: {{ .Environment.NVM_CACHE_VERSION }}-nvm-cache-{{ arch }}-{{ checksum ".nvm" }}
                 paths:
                     - /home/circleci/.nvm
                     - /home/circleci/.yarn
             - save_cache:
-                key: {{ .Environment.YARN_CACHE_VERSION }-yarn-cache-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
+                key: {{ .Environment.YARN_CACHE_VERSION }}-yarn-cache-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
                 paths:
                     - /home/circleci/lufo/node_modules
