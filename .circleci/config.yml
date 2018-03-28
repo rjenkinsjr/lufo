@@ -11,7 +11,7 @@ jobs:
             - add_ssh_keys
             - checkout
             - run:
-                name: Install NodeJS
+                name: Install nvm/NodeJS/Yarn
                 command: |
                   # Install nvm.
                   cd ~
@@ -19,15 +19,15 @@ jobs:
                   cd .nvm
                   git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
                   . nvm.sh
-                  # Install default, stable NodeJS.
+                  # Install default/stable NodeJS.
                   nvm install stable
                   # Make nvm available in future shells.
-                  echo 'export NVM_DIR="$HOME/.nvm"' >> $HOME/.bashrc
-                  echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $HOME/.bashrc
+                  echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
+                  echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
                   # Install Yarn.
                   curl -o- -L https://yarnpkg.com/install.sh | bash
                   # Make yarn available in future shells.
-                  echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $HOME/.bashrc
+                  echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
             - run:
                 name: Run tests
                 command: |
