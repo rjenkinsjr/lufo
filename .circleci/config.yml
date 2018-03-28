@@ -19,8 +19,8 @@ jobs:
                   cd "$NVM_DIR"
                   git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
                   # Install nvm and a default, stable NodeJS.
-                  chmod +x $NVM_DIR/nvm.sh install stable
-                  $NVM_DIR/nvm.sh
+                  chmod +x $NVM_DIR/nvm.sh
+                  $NVM_DIR/nvm.sh install stable
                   # Make nvm available in future shells.
                   echo 'export NVM_DIR="$HOME/.nvm"' >> $HOME/.profile
                   echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $HOME/.profile
