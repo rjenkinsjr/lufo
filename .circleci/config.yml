@@ -6,7 +6,7 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         docker:
-            - image: circleci/buildpack-deps:xenial-scm-dind
+            - image: circleci/buildpack-deps:xenial-browsers
         steps:
             - add_ssh_keys
             - checkout
