@@ -16,7 +16,8 @@
     "eslint-plugin-flowtype": "^2.46.1",
     "eslint-plugin-import": "^2.7.0",
     "flow-bin": "^0.67.1",
-    "flow-copy-source": "^1.3.0"
+    "flow-copy-source": "^1.3.0",
+    "testen": "^2.2.1"
   },
   "scripts": {
     "api-lint": "cd lufo-api ; eslint src",
@@ -28,6 +29,7 @@
     "cli-build": "cd lufo-cli ; rm -rf lib ; babel -q src/ -d . ; chmod +x lufo.js",
     "cli-run": "yarn run cli-lint ; yarn run cli-build ; cd lufo-cli ; ./lufo.js",
     "cli-test": "echo \"Error: no tests exist!\" && exit 1",
-    "cli-pack": "yarn run cli-lint ; yarn run cli-build ; cd lufo-cli ; yarn pack"
+    "cli-pack": "yarn run cli-lint ; yarn run cli-build ; cd lufo-cli ; yarn pack",
+    "test": "yarn run api-build && yarn run cli-build"
   }
 }
