@@ -18,6 +18,7 @@ jobs:
                   git clone https://github.com/creationix/nvm.git "$NVM_DIR"
                   cd "$NVM_DIR"
                   git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
+                  sudo chown -R circleci:circleci $NVM_DIR
                   # Install nvm.
                   $NVM_DIR/nvm.sh
                   # Make nvm available in future shells.
