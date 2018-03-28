@@ -37,7 +37,7 @@ jobs:
                   # Make yarn available in future shells.
                   echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
             - run:
-                name: Install project dependenciesfor v in "$(cat .nvm | xargs)";
+                name: Install project dependencies
                 command: |
                   yarn
             - run:
