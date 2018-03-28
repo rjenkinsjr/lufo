@@ -11,9 +11,9 @@ jobs:
             - add_ssh_keys
             - checkout
             - restore_cache:
-                key: {{ .Environment.NVM_CACHE_VERSION }}-nvm-cache-{{ arch }}-{{ checksum ".nvm" }}
-            - restore_cache:
-                key: {{ .Environment.YARN_CACHE_VERSION }}-yarn-cache-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
+                keys:
+                  - nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".nvm" }}
+                  - yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
             - run:
                 name: Install nvm/NodeJS/Yarn
                 command: |
@@ -26,7 +26,7 @@ jobs:
                   . nvm.sh
                   # Install NodeJS.
                   echo 'Installing NodeJS versions necessary for testing...'
-                  . ~/lufo/.node-versions
+                  . ~/lufo/.nvm
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do nvm install $v; done
                   nvm alias default $DEFAULT_LUFO_NODE_VERSION
                   # Make nvm available in future shells.
@@ -37,21 +37,21 @@ jobs:
                   # Make yarn available in future shells.
                   echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
             - run:
-                name: Install project dependenciesfor v in "$(cat .node-versions | xargs)";
+                name: Install project dependenciesfor v in "$(cat .nvm | xargs)";
                 command: |
                   yarn
             - run:
                 name: Run tests
                 command: |
-                  . ~/lufo/.node-versions
+                  . ~/lufo/.nvm
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do TESTEN_VERSIONS="$TESTEN_VERSIONS -n $v"; done
                   yarn run testen $TESTEN_VERSIONS
             - save_cache:
-                key: {{ .Environment.NVM_CACHE_VERSION }}-nvm-cache-{{ arch }}-{{ checksum ".nvm" }}
+                key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".nvm" }}
                 paths:
                     - /home/circleci/.nvm
                     - /home/circleci/.yarn
             - save_cache:
-                key: {{ .Environment.YARN_CACHE_VERSION }}-yarn-cache-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
+                key: yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
                 paths:
                     - /home/circleci/lufo/node_modules
