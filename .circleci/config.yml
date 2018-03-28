@@ -22,12 +22,12 @@ jobs:
                   # Install default, stable NodeJS.
                   nvm install stable
                   # Make nvm available in future shells.
-                  echo 'export NVM_DIR="$HOME/.nvm"' >> $HOME/.profile
-                  echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $HOME/.profile
+                  echo 'export NVM_DIR="$HOME/.nvm"' >> $HOME/.bashrc
+                  echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $HOME/.bashrc
                   # Install Yarn.
                   curl -o- -L https://yarnpkg.com/install.sh | bash
                   # Make yarn available in future shells.
-                  echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $HOME/.profile
+                  echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $HOME/.bashrc
             - run:
                 name: Run tests
                 command: |
