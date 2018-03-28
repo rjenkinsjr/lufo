@@ -13,14 +13,14 @@ jobs:
             - run:
                 name: Install NodeJS
                 command: |
-                  # Download nvm.
-                  export NVM_DIR="$HOME/.nvm"
-                  git clone https://github.com/creationix/nvm.git "$NVM_DIR"
-                  cd "$NVM_DIR"
+                  # Install nvm.
+                  cd ~
+                  git clone https://github.com/creationix/nvm.git .nvm
+                  cd .nvm
                   git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
-                  # Install nvm and a default, stable NodeJS.
-                  chmod +x $NVM_DIR/nvm.sh
-                  $NVM_DIR/nvm.sh install stable
+                  . nvm.sh
+                  # Install default, stable NodeJS.
+                  nvm install stable
                   # Make nvm available in future shells.
                   echo 'export NVM_DIR="$HOME/.nvm"' >> $HOME/.profile
                   echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $HOME/.profile
