@@ -1,0 +1,29 @@
+version: 2
+
+jobs:
+    build:
+        environment:
+            TZ: "/usr/share/zoneinfo/America/Detroit"
+        working_directory: ~/app
+        docker:
+            - image: circleci/buildpack-deps:xenial-scm-dind
+        steps:
+            - add_ssh_keys
+            - checkout
+            - run:
+                name: Install NodeJS
+                command: |
+                  # Download nvm.
+                  export NVM_DIR="$HOME/.nvm"
+                  git clone https://github.com/creationix/nvm.git "$NVM_DIR"
+                  cd "$NVM_DIR"
+                  git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
+                  # Install nvm.
+                  $NVM_DIR/nvm.sh
+                  # Make nvm available in future shells.
+                  echo 'export NVM_DIR="$HOME/.nvm"' >> $HOME/.profile
+                  echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $HOME/.profile
+                  # Install Yarn.
+                  curl -o- -L https://yarnpkg.com/install.sh | bash
+                  # Make yarn available in future shells.
+                  # TODO
