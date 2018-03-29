@@ -11,7 +11,7 @@ jobs:
             - add_ssh_keys
             - checkout
             - restore_cache:
-                key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".nvm" }}
+                key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
             - restore_cache:
                 key: yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
             - run:
@@ -22,18 +22,18 @@ jobs:
                   cd ~
                   [ ! -d ".nvm" ] && git clone https://github.com/creationix/nvm.git .nvm
                   cd .nvm
-                  git checkout $NVM_VERSION
+                  git checkout $LUFO_NVM_VERSION
                   . nvm.sh
                   # Install NodeJS.
                   echo 'Installing NodeJS versions necessary for testing...'
-                  . ~/lufo/.nvm
+                  . ~/lufo/.lufoDependencies
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do nvm install $v; done
-                  nvm alias default $DEFAULT_LUFO_NODE_VERSION
+                  nvm alias default $LUFO_DEFAULT_NODE_VERSION
                   # Make nvm available in future shells.
                   echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
                   echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
                   # Install Yarn.
-                  [ ! -d ".yarn" ] && curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version $YARN_VERSION
+                  [ ! -d ".yarn" ] && curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version $LUFO_YARN_VERSION
                   # Make yarn available in future shells.
                   echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
             - run:
@@ -43,11 +43,11 @@ jobs:
             - run:
                 name: Run tests
                 command: |
-                  . ~/lufo/.nvm
+                  . ~/lufo/.lufoDependencies
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do TESTEN_VERSIONS="$TESTEN_VERSIONS -n $v"; done
                   yarn run testen $TESTEN_VERSIONS
             - save_cache:
-                key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".nvm" }}
+                key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
                 paths:
                     - /home/circleci/.nvm
                     - /home/circleci/.yarn
