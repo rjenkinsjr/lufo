@@ -43,9 +43,7 @@ jobs:
             - run:
                 name: Run tests
                 command: |
-                  . ~/lufo/.lufoDependencies
-                  for v in "${LUFO_NODE_VERSIONS[@]}"; do TESTEN_VERSIONS="$TESTEN_VERSIONS -n $v"; done
-                  ./node_modules/.bin/testen $TESTEN_VERSIONS -- .circleci/test.sh
+                  .circleci/test.sh
             - run:
                 name: Deploy
                 command: |
