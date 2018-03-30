@@ -1,9 +1,8 @@
 #!/bin/bash
 set +e
 . ~/lufo/.lufoDependencies
-PARALLEL_ARGFILE="/tmp/lufoTest-$RANDOM"
 for v in "${LUFO_NODE_VERSIONS[@]}"; do
-  echo "nvm exec $v yarn run api-test" >> $PARALLEL_ARGFILE
-  echo "nvm exec $v yarn run cli-test" >> $PARALLEL_ARGFILE
+  echo "=== $v ==="
+  nvm exec $v yarn run api-test
+  nvm exec $v yarn run cli-test
 done
-parallel --no-notice --keep-order --tag --group :::: $PARALLEL_ARGFILE

@@ -26,7 +26,7 @@
     "api-pack": "yarn run api-build && cd lufo-api ; yarn pack",
     "api-doc": "yarn run api-lint && cd lufo-api ; rm -rf docs ; documentation build src/** -f html -o docs",
     "cli-lint": "cd lufo-cli ; eslint src",
-    "cli-build": "yarn run cli-lint && cd lufo-cli ; rm -rf lib ; babel -q src/ -d . ; chmod +x lufo.js",
+    "cli-build": "yarn run cli-lint && cd lufo-cli ; rm -rf lufo.js ; babel -q src/ -d . ; chmod +x lufo.js",
     "cli-test": "yarn run cli-build && cd lufo-cli ; jasmine",
     "cli-pack": "yarn run cli-build && cd lufo-cli ; yarn pack",
     "cli-run": "yarn run cli-build && cd lufo-cli ; ./lufo.js"
