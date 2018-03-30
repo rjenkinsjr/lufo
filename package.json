@@ -17,18 +17,19 @@
     "eslint-plugin-import": "^2.7.0",
     "flow-bin": "^0.67.1",
     "flow-copy-source": "^1.3.0",
+    "jasmine": "^3.1.0",
     "testen": "^2.2.1"
   },
   "scripts": {
     "api-lint": "cd lufo-api ; eslint src",
-    "api-build": "cd lufo-api ; eslint src ; rm -rf lib ; babel -q src/ -d lib/ ; flow-copy-source src lib",
-    "api-test": "cd lufo-api ; eslint src ; echo \"Error: no tests exist!\" && exit 1",
-    "api-pack": "yarn run api-build ; cd lufo-api ; yarn pack",
-    "api-doc": "cd lufo-api ; eslint src ; rm -rf docs ; documentation build src/** -f html -o docs",
+    "api-build": "yarn run api-lint && cd lufo-api ; rm -rf lib ; babel -q src/ -d lib/ ; flow-copy-source src lib",
+    "api-test": "yarn run api-build && cd lufo-api ; jasmine",
+    "api-pack": "yarn run api-build && cd lufo-api ; yarn pack",
+    "api-doc": "yarn run api-lint && cd lufo-api ; rm -rf docs ; documentation build src/** -f html -o docs",
     "cli-lint": "cd lufo-cli ; eslint src",
-    "cli-build": "cd lufo-cli ; eslint src ; rm -rf lib ; babel -q src/ -d . ; chmod +x lufo.js",
-    "cli-test": "cd lufo-cli ; eslint src ; echo \"Error: no tests exist!\" && exit 1",
-    "cli-pack": "yarn run cli-build ; cd lufo-cli ; yarn pack",
-    "cli-run": "yarn run cli-lint ; yarn run cli-build ; cd lufo-cli ; ./lufo.js"
+    "cli-build": "yarn run cli-lint && cd lufo-cli ; rm -rf lib ; babel -q src/ -d . ; chmod +x lufo.js",
+    "cli-test": "yarn run cli-build && cd lufo-cli ; jasmine",
+    "cli-pack": "yarn run cli-build && cd lufo-cli ; yarn pack",
+    "cli-run": "yarn run cli-build && cd lufo-cli ; ./lufo.js"
   }
 }
