@@ -6,7 +6,7 @@ for v in "${LUFO_NODE_VERSIONS[@]}"; do
   if [[ "$HEADER" == "false" ]]; then
     HEADER="true"
   else
-    echo; echo; echo
+    echo -n '\n\n\n\n\n'
   fi
   echo "=== $v ==="
   echo '--- API ---'
