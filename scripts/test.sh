@@ -10,4 +10,5 @@ else
   echo 'ERROR: component not specified.'
   exit 1
 fi
+echo "[test:$1]"
 ../node_modules/.bin/jasmine

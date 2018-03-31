@@ -4,7 +4,7 @@
 import _ from 'lodash';
 import promptly from 'promptly';
 import { Address4 } from 'ip-address';
-import Ufo from 'lufo-api';
+import Ufo from 'lufo-api'; // eslint-disable-line
 
 const cli = require('commander');
 
