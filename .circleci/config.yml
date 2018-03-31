@@ -26,7 +26,7 @@ jobs:
                   . nvm.sh
                   # Install NodeJS.
                   echo 'Installing NodeJS versions necessary for testing...'
-                  . ~/lufo/.lufoDependencies
+                  eval . "$CIRCLE_WORKING_DIRECTORY/.lufoDependencies"
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do nvm install $v; done
                   nvm alias default $LUFO_DEFAULT_NODE_VERSION
                   # Make nvm available in future shells.
@@ -41,13 +41,34 @@ jobs:
                 command: |
                   yarn
             - run:
-                name: Run tests
+                name: Lint and build
                 command: |
-                  .circleci/test.sh
+                  scripts/lint.sh api
+                  scripts/lint.sh cli
+                  scripts/build.sh api
+                  scripts/build.sh cli
+            - run:
+                name: Run unit tests
+                command: |
+                  set +e
+                  HEADER="false"
+                  . .lufoDependencies
+                  for v in "${LUFO_NODE_VERSIONS[@]}"; do
+                    if [[ "$HEADER" == "false" ]]; then
+                      HEADER="true"
+                    else
+                      echo -n -e '\n\n\n\n\n'
+                    fi
+                    echo "=== $v ==="
+                    echo '--- API ---'
+                    scripts/test.sh api
+                    echo '--- CLI ---'
+                    scripts/test.sh cli
+                  done
             - run:
                 name: Deploy
                 command: |
-                  .circleci/deploy.sh
+                  scripts/deploy.sh
             - save_cache:
                 key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
                 paths:
