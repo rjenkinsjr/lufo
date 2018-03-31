@@ -45,6 +45,7 @@ jobs:
                 command: |
                   scripts/lint.sh api
                   scripts/lint.sh cli
+                  yarn run flow check --show-all-errors
                   scripts/build.sh api
                   scripts/build.sh cli
             - run:
