@@ -1,10 +1,10 @@
 #! /usr/bin/env node
-// @lufo
+// @flow
 /* eslint no-console: 0 */
 import _ from 'lodash';
 import promptly from 'promptly';
 import { Address4 } from 'ip-address';
-import Ufo from 'lufo-api'; // eslint-disable-line
+import Ufo from 'lufo-api';
 
 const cli = require('commander');
 
@@ -14,23 +14,35 @@ const quitError = function (obj) {
   if (_.isError(obj)) {
     console.error(obj);
   } else {
-    console.error(`Error: ${obj}`);
+    console.error(obj.toString());
   }
   if (theUfo) theUfo.disconnect();
   process.exitCode = 1;
 };
+// Helper function for parsing boolean CLI arguments.
+const parseBoolean = function (...args) {
+  let value = false;
+  args.forEach((arg) => {
+    if (value === false) {
+      if (arg === true || (typeof arg === 'string' && arg.toLowerCase() === 'true') || arg === 1) {
+        value = true;
+      }
+    }
+  });
+  return value;
+};
 // Helper function to construct a UfoOptions object.
 const getOptions = function () {
-  return {
-    host: cli.ufo || process.env.LUFO_ADDRESS,
-    password: cli.password || process.env.LUFO_PASSWORD || undefined,
-    localHost: cli.localHost || process.env.LUFO_LOCALHOST || undefined,
-    localUdpPort: cli.localUdpPort || process.env.LUFO_LOCAL_UDP || undefined,
-    remoteUdpPort: cli.remoteUdpPort || process.env.LUFO_REMOTE_UDP || undefined,
-    localTcpPort: cli.localTcpPort || process.env.LUFO_LOCAL_TCP || undefined,
-    remoteTcpPort: cli.remoteTcpPort || process.env.LUFO_REMOTE_TCP || undefined,
-    immediate: cli.immediate || process.env.LUFO_IMMEDIATE || undefined,
-  };
+  const options = {};
+  options.host = cli.ufo || process.env.LUFO_ADDRESS || '';
+  options.password = cli.password || process.env.LUFO_PASSWORD || undefined;
+  options.localHost = cli.localHost || process.env.LUFO_LOCALHOST || undefined;
+  options.localUdpPort = parseInt(cli.localUdpPort || process.env.LUFO_LOCAL_UDP, 10) || undefined;
+  options.remoteUdpPort = parseInt(cli.remoteUdpPort || process.env.LUFO_REMOTE_UDP, 10) || undefined;
+  options.localTcpPort = parseInt(cli.localTcpPort || process.env.LUFO_LOCAL_TCP, 10) || undefined;
+  options.remoteTcpPort = parseInt(cli.remoteTcpPort || process.env.LUFO_REMOTE_TCP, 10) || undefined;
+  options.immediate = parseBoolean(cli.immediate, process.env.LUFO_IMMEDIATE) || undefined;
+  return options;
 };
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
@@ -54,7 +66,7 @@ const go = function (action) {
 const stop = function () {
   return function (err) {
     if (err) quitError(err);
-    else theUfo.disconnect();
+    else if (theUfo) theUfo.disconnect();
   };
 };
 // Helper function to reduce boilerplate when running getter commands.
@@ -70,12 +82,13 @@ const getAndStop = function (isJson, transformer) {
       } else {
         console.log(value);
       }
-      theUfo.disconnect();
+      if (theUfo) theUfo.disconnect();
     }
   };
 };
 
 // Define core CLI options.
+// $FlowFixMe
 cli.version(require(`${__dirname}/../package.json`).version) // eslint-disable-line import/no-dynamic-require
   .usage('[options] <command> [command-options ...]')
   .option('-o, --ufo <ip>', 'The UFO IP address; required for all commands except "discover" and "function-list". If unspecified, the LUFO_ADDRESS environment variable is used.')
@@ -357,8 +370,21 @@ cli.command('wifi-ap-ip [ip] [mask]')
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
   .description('Gets/sets the WiFi broadcast info when in AP mode. {json} Mode is one of "b", "bg" or "bgn" (no quotes, case insensitive). SSID is 32 characters or less, ASCII only. Channel is 1-11 inclusive.')
   .action((mode, ssid, channel) => {
+    let actualMode = '';
+    if (mode) {
+      actualMode = mode.toLowerCase();
+      switch (actualMode) {
+        case 'b':
+        case 'bg':
+        case 'bgn':
+          break;
+        default:
+          quitError(`Invalid mode: ${mode}`);
+          return;
+      }
+    }
     go(function () {
-      if (mode) this.setWifiApBroadcast(`11${mode.toUpperCase()}`, ssid, `CH${_.clamp(channel, 1, 11)}`, stop());
+      if (actualMode) this.setWifiApBroadcast(actualMode, ssid, _.clamp(channel, 1, 11), stop());
       else this.getWifiApBroadcast(getAndStop(true));
     });
   });
