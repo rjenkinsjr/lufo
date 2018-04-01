@@ -13,7 +13,9 @@ jobs:
             - restore_cache:
                 key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
             - restore_cache:
-                key: yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
+                key: api-yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "lufo-api/package.json" }}
+            - restore_cache:
+                key: cli-yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "lufo-cli/package.json" }}
             - run:
                 name: Install nvm/NodeJS/Yarn
                 command: |
@@ -27,7 +29,7 @@ jobs:
                   # Install NodeJS.
                   echo 'Installing NodeJS versions necessary for testing...'
                   eval . "$CIRCLE_WORKING_DIRECTORY/.lufoDependencies"
-                  for v in "${LUFO_NODE_VERSIONS[@]}"; do nvm install $v; done
+                  for v in "${LUFO_NODE_VERSIONS[@]}"; do nvm install $v; echo '---'; done
                   nvm alias default $LUFO_DEFAULT_NODE_VERSION
                   # Make nvm available in future shells.
                   echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
@@ -37,23 +39,13 @@ jobs:
                   # Make yarn available in future shells.
                   echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
             - run:
-                name: Install project dependencies
+                name: API
                 command: |
+                  cd lufo-api
+                  rm -rf node_modules
                   yarn
-            - run:
-                name: Lint and build
-                command: |
-                  scripts/lint.sh api
-                  scripts/lint.sh cli
-                  yarn run flow check --show-all-errors
-                  scripts/build.sh api
-                  scripts/build.sh cli
-            - run:
-                name: Run unit tests
-                command: |
-                  set +e
                   HEADER="false"
-                  . .lufoDependencies
+                  . ../.lufoDependencies
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do
                     if [[ "$HEADER" == "false" ]]; then
                       HEADER="true"
@@ -61,21 +53,40 @@ jobs:
                       echo -n -e '\n\n\n\n\n'
                     fi
                     echo "=== $v ==="
-                    echo '--- API ---'
-                    scripts/test.sh api
-                    echo '--- CLI ---'
-                    scripts/test.sh cli
+                    nvm exec $v yarn run test
                   done
+            - run:
+                name: CLI
+                command: |
+                  cd lufo-cli
+                  rm -rf node_modules
+                  yarn
+                  HEADER="false"
+                  . ../.lufoDependencies
+                  for v in "${LUFO_NODE_VERSIONS[@]}"; do
+                    if [[ "$HEADER" == "false" ]]; then
+                      HEADER="true"
+                    else
+                      echo -n -e '\n\n\n\n\n'
+                    fi
+                    echo "=== $v ==="
+                    nvm exec $v yarn run test
+                  done
+                  rm -rf node_modules/lufo-api
             - run:
                 name: Deploy
                 command: |
-                  scripts/deploy.sh
+                  echo 'No deployment yet.'
             - save_cache:
                 key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
                 paths:
                     - /home/circleci/.nvm
                     - /home/circleci/.yarn
             - save_cache:
-                key: yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "lufo-api/package.json" }}-{{ checksum "lufo-cli/package.json" }}
+                key: api-yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "lufo-api/package.json" }}
                 paths:
-                    - /home/circleci/lufo/node_modules
+                    - /home/circleci/lufo/lufo-api/node_modules
+            - save_cache:
+                key: cli-yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "lufo-cli/package.json" }}
+                paths:
+                    - /home/circleci/lufo/lufo-cli/node_modules
