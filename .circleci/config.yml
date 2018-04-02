@@ -44,16 +44,12 @@ jobs:
                   cd lufo-api
                   rm -rf node_modules
                   yarn
-                  HEADER="false"
                   . ../.lufoDependencies
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do
-                    if [[ "$HEADER" == "false" ]]; then
-                      HEADER="true"
-                    else
-                      echo -n -e '\n\n\n\n\n'
-                    fi
+                    echo -n -e '\n\n\n\n\n'
                     echo "=== $v ==="
-                    nvm exec $v yarn run test
+                    nvm use $v
+                    scripts/test.sh
                   done
             - run:
                 name: CLI
@@ -61,16 +57,12 @@ jobs:
                   cd lufo-cli
                   rm -rf node_modules
                   yarn
-                  HEADER="false"
                   . ../.lufoDependencies
                   for v in "${LUFO_NODE_VERSIONS[@]}"; do
-                    if [[ "$HEADER" == "false" ]]; then
-                      HEADER="true"
-                    else
-                      echo -n -e '\n\n\n\n\n'
-                    fi
+                    echo -n -e '\n\n\n\n\n'
                     echo "=== $v ==="
-                    nvm exec $v yarn run test
+                    nvm use $v
+                    scripts/test.sh
                   done
                   rm -rf node_modules/lufo-api
             - run:

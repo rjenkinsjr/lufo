@@ -26,9 +26,9 @@
     "lib"
   ],
   "scripts": {
-    "lint": "eslint src && flow check",
-    "build": "yarn run lint && rm -rf lib && babel -q src/ -d lib/ && flow-copy-source src lib",
-    "test": "yarn run build && jasmine",
+    "lint": "scripts/lint.sh",
+    "build": "scripts/build.sh",
+    "test": "scripts/test.sh",
     "pack": "yarn run build && yarn pack",
     "doc": "yarn run lint && rm -rf docs && documentation build src/** -f html -o docs"
   },

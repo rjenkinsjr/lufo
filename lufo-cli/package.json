@@ -30,9 +30,9 @@
     "./lufo.js"
   ],
   "scripts": {
-    "lint": "eslint src && flow check",
-    "build": "yarn run lint && rm -f lufo.js && babel -q src/ -d . && chmod +x lufo.js",
-    "test": "yarn run build && jasmine",
+    "lint": "scripts/lint.sh",
+    "build": "scripts/build.sh",
+    "test": "scripts/test.sh",
     "pack": "yarn run build && yarn pack",
     "run": "yarn run build && ./lufo.js"
   },
