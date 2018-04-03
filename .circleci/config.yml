@@ -64,7 +64,7 @@ jobs:
                     nvm use $v
                     scripts/test.sh
                   done
-                  linklocal unlink # Prevent CircleCI caching.
+                  ./node_modules/.bin/linklocal unlink # Prevent CircleCI caching.
             - run:
                 name: Deploy
                 command: |
