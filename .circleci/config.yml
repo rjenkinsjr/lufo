@@ -64,11 +64,11 @@ jobs:
                     nvm use $v
                     scripts/test.sh
                   done
-                  rm -rf node_modules/lufo-api
+                  linklocal unlink # Prevent CircleCI caching.
             - run:
                 name: Deploy
                 command: |
-                  echo 'No deployment yet.'
+                  scripts/deploy.sh
             - save_cache:
                 key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
                 paths:

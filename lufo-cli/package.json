@@ -10,7 +10,7 @@
     "commander": "^2.12.2",
     "ip-address": "^5.8.9",
     "lodash": "^4.17.4",
-    "lufo-api": "../lufo-api",
+    "lufo-api": "file:../lufo-api",
     "promptly": "^2.2.0"
   },
   "devDependencies": {
@@ -24,12 +24,14 @@
     "eslint-plugin-flowtype": "^2.46.1",
     "eslint-plugin-import": "^2.7.0",
     "flow-bin": "^0.67.1",
-    "jasmine": "^3.1.0"
+    "jasmine": "^3.1.0",
+    "linklocal": "^2.8.2"
   },
   "files": [
     "./lufo.js"
   ],
   "scripts": {
+    "postinstall": "linklocal",
     "lint": "scripts/lint.sh",
     "build": "scripts/build.sh",
     "test": "scripts/test.sh",
