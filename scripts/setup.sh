@@ -16,6 +16,7 @@ nvm alias default $LUFO_DEFAULT_NODE_VERSION
 echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
 echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
 # Install Yarn.
+echo 'Installing Yarn...'
 [ ! -d ".yarn" ] && curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version $LUFO_YARN_VERSION
 # Make yarn available in future shells.
 echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
