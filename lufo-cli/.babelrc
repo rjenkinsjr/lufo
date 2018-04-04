@@ -9,7 +9,13 @@
       }
     ],
     "flow",
-    "minify"
+    [
+      "minify",
+      {
+        "mangle": false,
+        "evaluate": false
+      }
+    ]
   ],
   "plugins": [
     "add-module-exports"
