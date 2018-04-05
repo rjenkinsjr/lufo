@@ -38,7 +38,7 @@
     "build": "scripts/build.sh",
     "test": "scripts/test.sh",
     "pack": "yarn run build && yarn pack",
-    "cli": "yarn run build && ./lufo.js"
+    "cli": "scripts/cli.sh"
   },
   "repository": {
     "type": "git",

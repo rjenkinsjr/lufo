@@ -89,7 +89,7 @@ const getAndStop = function (isJson, transformer) {
 
 // Define core CLI options.
 // $FlowFixMe
-cli.version(require(`${__dirname}/../package.json`).version) // eslint-disable-line import/no-dynamic-require
+cli.version(require(`${__dirname}/package.json`).version) // eslint-disable-line import/no-dynamic-require
   .usage('[options] <command> [command-options ...]')
   .option('-o, --ufo <ip>', 'The UFO IP address; required for all commands except "discover" and "function-list". If unspecified, the LUFO_ADDRESS environment variable is used.')
   .option('-p, --password [password]', 'The UFO password. If set but with no value, you will be prompted. If unspecified, the LUFO_PASSWORD environment variable is used, or otherwise the default hardcoded password is used.')
