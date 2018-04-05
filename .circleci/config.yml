@@ -30,7 +30,8 @@ jobs:
                 command: |
                   cd lufo-cli
                   ../scripts/test.sh
-                  ./node_modules/.bin/linklocal -u # Prevent CircleCI caching.
+                  # Prevent CircleCI caching.
+                  ./node_modules/.bin/linklocal -u > /dev/null 2>&1
             - run:
                 name: Deploy
                 command: |

@@ -3,17 +3,23 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$DIR/.."
 
+echo '--------------------------------------------------'
 echo '[pack:api]'
+echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api
 yarn pack
 
 echo
+echo '--------------------------------------------------'
 echo '[pack:cli]'
+echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
 yarn pack
 
 echo
+echo '--------------------------------------------------'
 echo '[pack:cli:merge]'
+echo '--------------------------------------------------'
 cd $ROOT_DIR
 API_TARBALL=$(ls lufo-api/*.tgz)
 CLI_TARBALL=$(ls lufo-cli/*.tgz)
