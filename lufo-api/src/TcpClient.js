@@ -180,9 +180,10 @@ const _customFlipSpeed = function (speed: number): number {
  * @private
  */
 const _isNullStep = function (step: CustomStep) {
-  return step.red === nullStep.red &&
-    step.green === nullStep.green &&
-    step.blue === nullStep.blue;
+  return step != null &&
+    step.red != null && step.red === nullStep.red &&
+    step.green != null && step.green === nullStep.green &&
+    step.blue != null && step.blue === nullStep.blue;
 };
 
 /**
@@ -205,7 +206,7 @@ export class TcpClient {
       localAddress: options.localHost || '',
       remotePort: options.remoteTcpPort || defaultPort,
       remoteAddress: options.host,
-      immediate: options.immediate || true,
+      immediate: options.immediate !== undefined ? options.immediate : true,
     };
     this._createSocket();
   }
