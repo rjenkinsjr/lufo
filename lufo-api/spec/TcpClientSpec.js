@@ -1,11 +1,9 @@
+const Util = require('./Util');
 const { TcpClient } = require('../lib/TcpClient');
 const net = require('net');
+
 const serverHost = '127.0.0.1';
 const defaultPort = 5577;
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 describe("TcpClient#constructorNonDefault", function() {
   const server = net.createServer();
@@ -18,11 +16,11 @@ describe("TcpClient#constructorNonDefault", function() {
   };
   beforeEach(async function() {
     server.listen(options.remoteTcpPort, serverHost);
-    while (!server.listening) await sleep(100);
+    while (!server.listening) await Util.sleep(100);
   });
   afterEach(async function() {
     server.close();
-    while (server.listening) await sleep(100);
+    while (server.listening) await Util.sleep(100);
   });
   it("accepts default overrides", function() {
     const client = new TcpClient(null, options);
@@ -45,7 +43,7 @@ describe("TcpClient", function() {
       });
     });
     server.listen(defaultPort, serverHost);
-    while (!server.listening) await sleep(100);
+    while (!server.listening) await Util.sleep(100);
   });
   afterEach(function() { server.close(); });
   it("#constructor applies correct defaults", function() {
@@ -60,48 +58,48 @@ describe("TcpClient", function() {
     const cb = jasmine.createSpy('connect');
     const client = new TcpClient(null, {host:serverHost});
     client.connect(cb);
-    await sleep(100);
+    await Util.sleep(100);
     expect(cb).toHaveBeenCalled();
   });
   it("#on works", async function() {
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.on(); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x71, 0x23, 0x0F, 0xA3]));
   });
   it("#off works", async function() {
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.off(); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x71, 0x24, 0x0F, 0xA4]));
   });
   it("#rgbw works", async function() {
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.rgbw(255, 255, 255, 255); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x31, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x0F, 0x3C]));
   });
   it("#rgbw clamps out-of-range values", async function() {
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.rgbw(256, -1, 256, -1); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x31, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x0F, 0x3E]));
   });
   it("#builtin works", async function() {
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.builtin('redGradualChange', 75); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x61, 0x26, 0x19, 0x0F, 0xAF]));
   });
   it("#builtin clamps out-of-range values", async function() {
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.builtin('redGradualChange', 101); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x61, 0x26, 0x00, 0x0F, 0x96]));
   });
@@ -110,7 +108,7 @@ describe("TcpClient", function() {
     const cb = jasmine.createSpy('builtin');
     const client = new TcpClient(null, {host:serverHost});
     client.connect(function() { client.builtin(funcName, 0, cb); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(0);
     expect(cb).toHaveBeenCalled();
     expect(cb.calls.first().args.length).toBe(1);
@@ -125,7 +123,7 @@ describe("TcpClient", function() {
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
     ]); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
       0xFF, 0x00, 0x00, 0x00,
@@ -154,7 +152,7 @@ describe("TcpClient", function() {
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
     ]); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
       0xFF, 0x00, 0x00, 0x00,
@@ -184,7 +182,7 @@ describe("TcpClient", function() {
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
     ]); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
       0xFF, 0x00, 0x00, 0x00,
@@ -227,7 +225,7 @@ describe("TcpClient", function() {
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
     ]); });
-    await sleep(100);
+    await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
       0xFF, 0x00, 0x00, 0x00,
