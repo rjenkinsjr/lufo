@@ -283,11 +283,68 @@ describe("TcpClient#status", function() {
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+    expect(err).toBe(null);
     expect(status).toBeDefined();
     expect(status.raw).toEqual(sendResponse);
     expect(status.on).toBe(true);
     expect(status.mode).toBe('static');
     expect(status.speed).toBeUndefined();
+    expect(status.red).toBe(255);
+    expect(status.green).toBe(255);
+    expect(status.blue).toBe(255);
+    expect(status.white).toBe(255);
+  });
+  it('custom mode', async function() {
+    sendResponse = Buffer.from([0x81, 0x04,
+      0x23, 0x60,
+      0x21,
+      0x00,
+      0xFF, 0xFF, 0xFF, 0xFF,
+      0x03, 0x00, 0x00,
+    0x28]);
+    const client = new TcpClient(null, {host:serverHost});
+    var err, status;
+    client.connect(function() { client.status(function(a, b) {
+      err = a;
+      status = b;
+    })});
+    await Util.sleep(100);
+    expect(recv.length).toBe(1);
+    expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+    expect(err).toBe(null);
+    expect(status).toBeDefined();
+    expect(status.raw).toEqual(sendResponse);
+    expect(status.on).toBe(true);
+    expect(status.mode).toBe('custom');
+    expect(status.speed).toBe(30);
+    expect(status.red).toBe(255);
+    expect(status.green).toBe(255);
+    expect(status.blue).toBe(255);
+    expect(status.white).toBe(255);
+  });
+  it('function mode', async function() {
+    sendResponse = Buffer.from([0x81, 0x04,
+      0x23, 0x25,
+      0x21,
+      0x00,
+      0xFF, 0xFF, 0xFF, 0xFF,
+      0x03, 0x00, 0x00,
+    0xED]);
+    const client = new TcpClient(null, {host:serverHost});
+    var err, status;
+    client.connect(function() { client.status(function(a, b) {
+      err = a;
+      status = b;
+    })});
+    await Util.sleep(100);
+    expect(recv.length).toBe(1);
+    expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+    expect(err).toBe(null);
+    expect(status).toBeDefined();
+    expect(status.raw).toEqual(sendResponse);
+    expect(status.on).toBe(true);
+    expect(status.mode).toBe('function:sevenColorCrossFade');
+    expect(status.speed).toBe(100);
     expect(status.red).toBe(255);
     expect(status.green).toBe(255);
     expect(status.blue).toBe(255);

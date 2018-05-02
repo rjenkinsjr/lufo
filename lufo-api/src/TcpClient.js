@@ -369,7 +369,7 @@ export class TcpClient {
             default: {
               let name: ?string = null;
               builtinFunctionMap.forEach((v, k) => {
-                if (name !== null && v === mode) name = k;
+                if (name === null && v === mode) name = k;
               });
               if (name) {
                 result.mode = `function:${name}`;
