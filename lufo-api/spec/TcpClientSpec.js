@@ -249,6 +249,52 @@ describe("TcpClient", function() {
   });
 });
 
+describe("TcpClient#status", function() {
+  var server, recv, sendResponse;
+  beforeEach(async function() {
+    server = net.createServer();
+    recv = [];
+    // 0x81 ???a POWER MODE ???b SPEED RED GREEN BLUE WHITE [UNUSED] CHECKSUM
+    sendResponse = null;
+    server.on('connection', function(socket) {
+      socket.on('data', function(data) {
+        recv.push(data);
+        socket.write(sendResponse);
+      });
+    });
+    server.listen(defaultPort, serverHost);
+    while (!server.listening) await Util.sleep(100);
+  });
+  afterEach(function() { server.close(); });
+  it('static mode', async function() {
+    sendResponse = Buffer.from([0x81, 0x04,
+      0x23, 0x61,
+      0x21,
+      0x00,
+      0xFF, 0xFF, 0xFF, 0xFF,
+      0x03, 0x00, 0x00,
+    0x29]);
+    const client = new TcpClient(null, {host:serverHost});
+    var err, status;
+    client.connect(function() { client.status(function(a, b) {
+      err = a;
+      status = b;
+    })});
+    await Util.sleep(100);
+    expect(recv.length).toBe(1);
+    expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+    expect(status).toBeDefined();
+    expect(status.raw).toEqual(sendResponse);
+    expect(status.on).toBe(true);
+    expect(status.mode).toBe('static');
+    expect(status.speed).toBeUndefined();
+    expect(status.red).toBe(255);
+    expect(status.green).toBe(255);
+    expect(status.blue).toBe(255);
+    expect(status.white).toBe(255);
+  });
+});
+
 describe("TcpClient.getBuiltinFunctions", function() {
   it("does not contain reserved function names", function() {
     const functions = TcpClient.getBuiltinFunctions();
