@@ -28,7 +28,8 @@ describe("UdpClient", function() {
   var server, listening, recv, remotePort, remoteAddr, cmdMode;
   const ufo = {
     disconnect: function() {
-      if (this._disconnectCallback) this._disconnectCallback();
+      // Always pass null as the error.
+      if (this._disconnectCallback) this._disconnectCallback(null);
     }
   }
   const ip = '0.0.0.0';
@@ -75,10 +76,15 @@ describe("UdpClient", function() {
         case 'AT+NTPSER\r':
           server.send(`${ntpServer}${term}`, remotePort, remoteAddr);
           break;
+        case 'AT+NETP\r':
+          server.send('TCP,Server,0,0.0.0.0\r\n\r\n', remotePort, remoteAddr);
+          break;
         default:
           // Setters
           switch (true) {
             case /AT\+NTPSER=[^,]+\r/.test(message):
+            case /AT\+ASWD=[^,]+\r/.test(message):
+            case /AT\+NETP=[^,]+,[^,]+,[^,]+,[^,]+\r/.test(message):
               server.send(ok, remotePort, remoteAddr);
               break;
             default:
@@ -154,6 +160,26 @@ describe("UdpClient", function() {
     var recvErr;
     client.connect(function() {
       client.setNtpServer('1.2.3.4', function(a) { recvErr = a; });
+    });
+    await Util.sleep(100);
+    expect(recvErr).toBe(null);
+  });
+  it("#setUdpPassword works", async function() {
+    const client = new UdpClient(ufo, {host:serverHost});
+    const newPassword = 'blahblahblah';
+    var recvErr;
+    client.connect(function() {
+      client.setUdpPassword(newPassword, function(a) { recvErr = a; });
+    });
+    await Util.sleep(100);
+    expect(recvErr).toBe(null);
+    expect(client._options.password).toBe(newPassword);
+  });
+  it("#setTcpPort works", async function() {
+    const client = new UdpClient(ufo, {host:serverHost});
+    var recvErr;
+    client.connect(function() {
+      client.setTcpPort('11111', function(a) { recvErr = a; });
     });
     await Util.sleep(100);
     expect(recvErr).toBe(null);

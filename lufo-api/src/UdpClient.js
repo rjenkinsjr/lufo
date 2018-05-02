@@ -673,7 +673,7 @@ export class UdpClient {
         // Update the password in the options object so we can continue
         // using this client to communicate.
         this._options.password = password;
-        if (callback) callback();
+        if (callback) callback(null);
       }
     });
   }
