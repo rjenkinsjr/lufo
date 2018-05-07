@@ -1,8 +1,8 @@
 // @flow
 import * as util from 'util';
 import * as dgram from 'dgram';
+import * as net from 'net';
 import _ from 'lodash';
-import { Address4 } from 'ip-address';
 import Ufo from './Ufo';
 import type { UfoDisconnectCallback, UfoOptions } from './Misc';
 
@@ -646,7 +646,7 @@ export class UdpClient {
   }
   /** Sets the NTP server IP address. */
   setNtpServer(ipAddress: string, callback: ?(?Error) => void): void {
-    if (!new Address4(ipAddress).isValid()) {
+    if (!net.isIPv4(ipAddress)) {
       if (callback) callback(new Error(`Invalid IP address provided: ${ipAddress}.`));
       return;
     }
@@ -827,11 +827,11 @@ export class UdpClient {
   }
   /** Sets the IP address and netmask of the UFO AP. */
   setWifiApIp(ip: string, mask: string, callback: ?(?Error) => void): void {
-    if (!new Address4(ip).isValid()) {
+    if (!net.isIPv4(ip)) {
       if (callback) callback(new Error(`Invalid IP address provided: ${ip}.`));
       return;
     }
-    if (!new Address4(mask).isValid()) {
+    if (!net.isIPv4(mask)) {
       if (callback) callback(new Error(`Invalid subnet mask provided: ${mask}.`));
       return;
     }
@@ -992,15 +992,15 @@ export class UdpClient {
   }
   /** Sets the IP configuration for the UFO client. Implicitly disables DHCP. */
   setWifiClientIpStatic(ip: string, mask: string, gateway: string, callback: ?(?Error) => void): void {
-    if (!new Address4(ip).isValid()) {
+    if (!net.isIPv4(ip)) {
       if (callback) callback(new Error(`Invalid IP address provided: ${ip}.`));
       return;
     }
-    if (!new Address4(mask).isValid()) {
+    if (!net.isIPv4(mask)) {
       if (callback) callback(new Error(`Invalid subnet mask provided: ${mask}.`));
       return;
     }
-    if (!new Address4(gateway).isValid()) {
+    if (!net.isIPv4(gateway)) {
       if (callback) callback(new Error(`Invalid gateway provided: ${gateway}.`));
       return;
     }

@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "commander": "^2.12.2",
-    "ip-address": "^5.8.9",
     "lodash": "^4.17.4",
     "lufo-api": "file:../lufo-api",
     "promptly": "^2.2.0"

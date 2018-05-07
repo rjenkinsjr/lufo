@@ -4,7 +4,6 @@
   "description": "API for LEDENET UFO WiFi RGBW controllers.",
   "main": "lib/Ufo.js",
   "dependencies": {
-    "ip-address": "^5.8.9",
     "lodash": "^4.17.4"
   },
   "devDependencies": {

@@ -1,9 +1,9 @@
 #! /usr/bin/env node
 // @flow
 /* eslint no-console: 0 */
+import * as net from 'net';
 import _ from 'lodash';
 import promptly from 'promptly';
-import { Address4 } from 'ip-address';
 import Ufo from 'lufo-api';
 
 const cli = require('commander');
@@ -49,7 +49,7 @@ const getOptions = function () {
 const go = function (action) {
   const cliOptions = getOptions();
   if (cliOptions.host) {
-    if (new Address4(cliOptions.host).isValid()) {
+    if (net.isIPv4(cliOptions.host)) {
       cliOptions.disconnectCallback = (err) => {
         if (err) quitError(err);
       };
