@@ -1,6 +1,10 @@
 # `lufo`
 These NodeJS modules provide an API and CLI for controlling [WiFi RGBW controllers made by LEDENET](https://www.amazon.com/dp/B00MDKOSN0/).
 
+## Documentation
+- [API](https://rjenkinsjr.github.com/lufo/api/index.html)
+- [CLI](https://rjenkinsjr.github.com/lufo/cli)
+
 ## Unimplemented Features
 The following features from the mobile app are not implemented and are unlikely to be implemented in the future:
 - Remote access and device naming (these are cloud features; this module is intended to be used in closed/controlled environments)
