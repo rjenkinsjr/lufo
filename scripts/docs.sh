@@ -4,22 +4,23 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$DIR/.."
 
 VERSION=$(cd $ROOT_DIR/lufo-api ; npx -c 'echo "$npm_package_version"')
-mkdir ~/docs
+TMP_DIR="/tmp/lufo-docs-$RANDOM"
+mkdir $TMP_DIR
 
 echo '--------------------------------------------------'
 echo '[docs:api]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api
 yarn run doc
-mv docs ~/docs/api
+mv docs $TMP_DIR/api
 
 echo
 echo '--------------------------------------------------'
 echo '[docs:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
-mkdir ~/docs/cli
-cp ./README.md ~/docs/cli
+mkdir $TMP_DIR/cli
+cp ./README.md $TMP_DIR/cli
 
 echo
 echo '--------------------------------------------------'
@@ -31,7 +32,7 @@ git checkout gh-pages
 shopt -s extglob
 rm -rf !(.git) || true
 git clean -qfdx
-mv ~/docs/* .
+mv $TMP_DIR/* .
 git config user.email "do-not-reply@ronjenkins.info"
 git config user.name "CircleCI"
 git add .
