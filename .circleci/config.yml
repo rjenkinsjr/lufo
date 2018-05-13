@@ -49,3 +49,7 @@ jobs:
                 key: cli-yarn-cache-{{ .Environment.YARN_CACHE_VERSION }}-{{ arch }}-{{ checksum "lufo-cli/package.json" }}
                 paths:
                     - /home/circleci/lufo/lufo-cli/node_modules
+            - run:
+                name: Publish docs
+                command: |
+                  scripts/docs.sh
