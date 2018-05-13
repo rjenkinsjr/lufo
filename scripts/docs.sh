@@ -36,3 +36,4 @@ git config user.email "do-not-reply@ronjenkins.info"
 git config user.name "CircleCI"
 git add .
 git commit -m "$VERSION"
+git push
