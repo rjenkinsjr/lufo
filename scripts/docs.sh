@@ -27,7 +27,8 @@ echo '--------------------------------------------------'
 cd $ROOT_DIR
 git fetch
 git checkout gh-pages
-git rm -rf .
+shopt -s extglob
+rm -rf !(.git)
 git clean -qfdx
 mv ~/docs/* .
 VERSION=$(cd $ROOT_DIR/lufo-api ; npx -c 'echo "$npm_package_version"')

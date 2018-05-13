@@ -24,14 +24,14 @@ jobs:
                 name: API
                 command: |
                   cd lufo-api
-                  ../scripts/test.sh
+                  #../scripts/test.sh
             - run:
                 name: CLI
                 command: |
                   cd lufo-cli
-                  ../scripts/test.sh
+                  #../scripts/test.sh
                   # Prevent CircleCI caching.
-                  ./node_modules/.bin/linklocal -u > /dev/null 2>&1
+                  #./node_modules/.bin/linklocal -u > /dev/null 2>&1
             - run:
                 name: Deploy
                 command: |
