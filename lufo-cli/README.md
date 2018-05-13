@@ -5,6 +5,10 @@ A CLI for controlling [WiFi RGBW controllers made by LEDENET](https://www.amazon
 
 `npm install -g lufo-cli`
 
+## Documentation
+
+[https://rjenkinsjr.github.com/lufo/cli](https://rjenkinsjr.github.com/lufo/cli)
+
 ## Command Reference
 
 ### Usage and Options
