@@ -3,6 +3,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$DIR/.."
 
+VERSION=$(cd $ROOT_DIR/lufo-api ; npx -c 'echo "$npm_package_version"')
 mkdir ~/docs
 
 echo '--------------------------------------------------'
@@ -31,6 +32,7 @@ shopt -s extglob
 rm -rf !(.git) || true
 git clean -qfdx
 mv ~/docs/* .
-VERSION=$(cd $ROOT_DIR/lufo-api ; npx -c 'echo "$npm_package_version"')
+git config user.email "do-not-reply@ronjenkins.info"
+git config user.name "CircleCI"
 git add .
 git commit -m "$VERSION"
