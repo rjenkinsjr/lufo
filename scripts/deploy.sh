@@ -47,17 +47,32 @@ echo 'Done merging.'
 
 echo
 echo '--------------------------------------------------'
+echo '[deploy:login]'
+echo '--------------------------------------------------'
+cd ~
+npm install -g npm-cli-login
+npm-cli-login
+
+echo
+echo '--------------------------------------------------'
 echo '[deploy:api]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api
-echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $(ls *.tgz)
+npm publish $(ls *.tgz)
 
 echo
 echo '--------------------------------------------------'
 echo '[deploy:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
-echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $(ls *.tgz)
+npm publish $(ls *.tgz)
+
+echo
+echo '--------------------------------------------------'
+echo '[deploy:logout]'
+echo '--------------------------------------------------'
+cd ~
+npm logout
 
 echo
 echo '--------------------------------------------------'
