@@ -71,5 +71,5 @@ echo '--------------------------------------------------'
 echo '[tag]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR
-git tag $VERSION
-git push origin --tags
+git tag -a $VERSION -m "$VERSION [skip ci]"
+git push origin $VERSION
