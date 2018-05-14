@@ -35,7 +35,9 @@ jobs:
             - run:
                 name: Deploy
                 command: |
-                  scripts/deploy.sh
+                  if [[ "CIRCLE_BRANCH" == "publish" ]]; then
+                    scripts/deploy.sh
+                  fi
             - save_cache:
                 key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
                 paths:
@@ -52,4 +54,6 @@ jobs:
             - run:
                 name: Publish docs
                 command: |
-                  #scripts/docs.sh
+                  if [[ "CIRCLE_BRANCH" == "publish" ]]; then
+                    scripts/docs.sh
+                  fi

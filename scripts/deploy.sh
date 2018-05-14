@@ -44,3 +44,15 @@ mv $PACKAGE_JSON_TMP $PACKAGE_JSON
 rm -f $CLI_TARBALL
 tar -czf $CLI_TARBALL -C $TMP_DIR $ROOT_DIR
 echo 'Done merging.'
+
+echo '--------------------------------------------------'
+echo '[deploy:api]'
+echo '--------------------------------------------------'
+cd $ROOT_DIR/lufo-api
+echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $API_TARBALL
+
+echo '--------------------------------------------------'
+echo '[deploy:cli]'
+echo '--------------------------------------------------'
+cd $ROOT_DIR/lufo-cli
+echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $CLI_TARBALL
