@@ -56,3 +56,10 @@ echo '[deploy:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
 echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $CLI_TARBALL
+
+echo '--------------------------------------------------'
+echo '[tag]'
+echo '--------------------------------------------------'
+cd $ROOT_DIR
+git tag $VERSION
+git push origin --tags
