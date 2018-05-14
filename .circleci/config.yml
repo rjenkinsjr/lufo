@@ -35,7 +35,7 @@ jobs:
             - run:
                 name: Deploy
                 command: |
-                  if [[ "CIRCLE_BRANCH" == "publish" ]]; then
+                  if [[ "$CIRCLE_BRANCH" == "publish" ]]; then
                     scripts/deploy.sh
                   fi
             - save_cache:
@@ -54,6 +54,6 @@ jobs:
             - run:
                 name: Publish docs
                 command: |
-                  if [[ "CIRCLE_BRANCH" == "publish" ]]; then
+                  if [[ "$CIRCLE_BRANCH" == "publish" ]]; then
                     scripts/docs.sh
                   fi
