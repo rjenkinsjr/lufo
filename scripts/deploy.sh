@@ -50,8 +50,7 @@ echo '--------------------------------------------------'
 echo '[deploy:login]'
 echo '--------------------------------------------------'
 cd ~
-npm install -g npm-cli-login
-npm-cli-login
+echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
 
 echo
 echo '--------------------------------------------------'
@@ -66,13 +65,6 @@ echo '[deploy:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
 npm publish $(ls *.tgz)
-
-echo
-echo '--------------------------------------------------'
-echo '[deploy:logout]'
-echo '--------------------------------------------------'
-cd ~
-npm logout
 
 echo
 echo '--------------------------------------------------'
