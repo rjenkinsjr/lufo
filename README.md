@@ -1,5 +1,6 @@
 # `lufo`
 [![CircleCI](https://circleci.com/gh/rjenkinsjr/lufo/tree/master.svg?style=svg)](https://circleci.com/gh/rjenkinsjr/lufo/tree/master)
+
 These NodeJS modules provide an API and CLI for controlling [WiFi RGBW controllers made by LEDENET](https://www.amazon.com/dp/B00MDKOSN0/).
 
 ## Documentation
