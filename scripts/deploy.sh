@@ -49,13 +49,15 @@ echo
 echo '--------------------------------------------------'
 echo '[deploy:api]'
 echo '--------------------------------------------------'
-echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION "$ROOT_DIR/$API_TARBALL"
+cd $ROOT_DIR
+echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $API_TARBALL
 
 echo
 echo '--------------------------------------------------'
 echo '[deploy:cli]'
 echo '--------------------------------------------------'
-echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION "$ROOT_DIR/$CLI_TARBALL"
+cd $ROOT_DIR
+echo -e "$NPMJS_USERNAME\n$NPMJS_EMAIL\n$NPMJS_PASSWORD" | yarn publish --new-version $VERSION $CLI_TARBALL
 
 echo
 echo '--------------------------------------------------'
