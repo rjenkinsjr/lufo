@@ -1,20 +1,5 @@
 // @flow
 /**
- * Errors of this type are thrown when communication with a UFO fails. The error
- * object contains a message and an optional error from the UDP and TCP sockets
- * that may have contributed to this error.
- */
-export class UfoDisconnectError extends Error { // eslint-disable-line import/prefer-default-export
-  udpError: ?Error;
-  tcpError: ?Error;
-  constructor(message: string, udpError: ?Error, tcpError: ?Error) {
-    super(message);
-    Error.captureStackTrace(this, UfoDisconnectError);
-    this.udpError = udpError;
-    this.tcpError = tcpError;
-  }
-}
-/**
  * Available configuration options for the {@link Ufo} object.
  * @typedef {Object} UfoOptions
  * @property {string} host The IP address of the UFO. If you want a fixed IP

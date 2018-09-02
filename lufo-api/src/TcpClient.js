@@ -2,7 +2,7 @@
 import * as net from 'net';
 import _ from 'lodash';
 import Ufo from './Ufo';
-import type { UfoOptions } from './Misc';
+import type { UfoOptions } from './UfoOptions';
 
 /** One of the possible built-in function names. */
 export type BuiltinFunction =

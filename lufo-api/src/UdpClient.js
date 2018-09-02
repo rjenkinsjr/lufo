@@ -4,7 +4,7 @@ import * as dgram from 'dgram';
 import * as net from 'net';
 import _ from 'lodash';
 import Ufo from './Ufo';
-import type { UfoOptions } from './Misc';
+import type { UfoOptions } from './UfoOptions';
 
 /**
  * Details of a UFO found by {@link Ufo.discover}.

@@ -4,8 +4,23 @@ import { TcpClient } from './TcpClient';
 import type { BuiltinFunction, CustomMode, CustomStep, UfoStatus } from './TcpClient';
 import { UdpClient } from './UdpClient';
 import type { DiscoveredUfo, UfoDiscoverOptions, WifiNetwork } from './UdpClient';
-import { UfoDisconnectError } from './Misc';
-import type { UfoOptions } from './Misc';
+import type { UfoOptions } from './UfoOptions';
+
+/**
+ * Errors of this type are thrown when communication with a UFO fails. The error
+ * object contains a message and an optional error from the UDP and TCP sockets
+ * that may have contributed to this error.
+ */
+class UfoDisconnectError extends Error { // eslint-disable-line import/prefer-default-export
+  udpError: ?Error;
+  tcpError: ?Error;
+  constructor(message: string, udpError: ?Error, tcpError: ?Error) {
+    super(message);
+    Error.captureStackTrace(this, UfoDisconnectError);
+    this.udpError = udpError;
+    this.tcpError = tcpError;
+  }
+}
 
 /**
  * The API for interfacing with UFO devices. If a callback is provided during
