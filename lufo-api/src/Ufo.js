@@ -19,7 +19,7 @@ class Ufo extends EventEmitter {
   _udpClient: UdpClient;
   _tcpError: ?Error;
   _udpError: ?Error;
-  constructor(options: UfoOptions, callback: ?() => void) {
+  constructor(options: UfoOptions) {
     super();
     // Flag that tracks the state of this UFO object.
     this._dead = false;
@@ -62,8 +62,6 @@ class Ufo extends EventEmitter {
     });
     // Make sure this UFO disconnects before NodeJS exits.
     process.on('exit', (code) => { this.disconnect(); }); // eslint-disable-line no-unused-vars
-    // Connect now, if a callback was requested.
-    if (callback) this.connect(callback);
   }
   /** Searches for UFOs on the network. Returned array may be empty. */
   static discover(options: UfoDiscoverOptions): Promise<Array<DiscoveredUfo>> {
@@ -80,10 +78,15 @@ class Ufo extends EventEmitter {
   /*
    * Connect/disconnect methods
    */
-  /** Establishes a connection to the UFO, then invokes the given callback. */
-  connect(callback: ?() => void) {
-    this._udpClient.connect(() => {
-      this._tcpClient.connect(callback);
+  /**
+   * Establishes a connection to the UFO. If this method fails, it is safe to
+   * retry connecting unless the error implies that retrying is not ppropriate.
+   */
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => { // eslint-disable-line no-unused-vars
+      this._udpClient.connect().then(() => {
+        this._tcpClient.connect().then(resolve).catch(reject);
+      }).catch(reject);
     });
   }
   /**

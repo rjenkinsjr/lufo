@@ -383,13 +383,6 @@ export class UdpClient {
         if (callback) callback(error, message);
       }
     });
-    // Capture socket errors so we can respond appropriately.
-    // These are not AT command errors; we handle those separately.
-    this._socket.on('error', (err) => {
-      this._dead = true;
-      this._error = err;
-      this._socket.close();
-    });
     // The socket has been closed; react appropriately.
     this._socket.on('close', () => {
       this._socket.unref();
@@ -561,13 +554,34 @@ export class UdpClient {
   /*
    * Core methods
    */
-  /** Binds the UDP socket on this machine, then invokes the given callback. */
-  connect(callback: ?() => void): void {
-    if (this._dead) return;
-    let port = 0;
-    if (this._options.localPort > 0) port = this._options.localPort;
-    if (callback) this._socket.bind(port, this._options.localAddress, callback);
-    else this._socket.bind(port, this._options.localAddress);
+  /** Binds the UDP socket on this machine. */
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      let port = 0;
+      if (this._options.localPort > 0) port = this._options.localPort;
+      try {
+        // Intercept/reject any emitted errors when we attempt to bind.
+        this._socket.on('error', reject);
+        this._socket.bind(port, this._options.localAddress, () => {
+          // Remove the intercept listener since we bound successfully.
+          this._socket.removeListener('error', reject);
+          // Now we can define our true error handler.
+          //
+          // Capture socket errors so we can respond appropriately.
+          // These are not AT command errors; we handle those separately.
+          this._socket.on('error', (err) => {
+            this._dead = true;
+            this._error = err;
+            this._socket.close();
+          });
+          resolve();
+        });
+      } catch (e) {
+        // APIs say that bind() can throw an Error, so we need to capture that too.
+        reject(e);
+      }
+    });
   }
   /**
    * Closes the UDP socket on this machine. The disconnect callback, if defined

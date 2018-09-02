@@ -54,7 +54,9 @@ const go = function (action) {
         if (err) quitError(err);
       };
       theUfo = new Ufo(cliOptions);
-      theUfo.connect(action.bind(theUfo));
+      theUfo.connect()
+        .then(action.bind(theUfo))
+        .catch(quitError);
     } else {
       quitError(`Invalid UFO IP address provided: ${cliOptions.host}.`);
     }

@@ -194,6 +194,7 @@ export class TcpClient {
   _ufo: Ufo;
   _options: TcpOptions;
   _dead: boolean;
+  _connectFailed: boolean;
   _statusArray: Uint8Array;
   _statusIndex: number;
   _socket: net.Socket;
@@ -219,6 +220,9 @@ export class TcpClient {
    * @private
    */
   _closeSocket(): void {
+    // If we're closing the socket due to initial connection failure, there's
+    // nothing to do, so no-op.
+    if (this._connectFailed) return;
     // Assume the UFO closed on its own.
     // Otherwise, the socket closed intentionally and no error has occurred.
     let reconnect = !this._dead;
@@ -256,6 +260,9 @@ export class TcpClient {
     // Once this flag becomes true, this object is unusable and all public
     // methods resort to no-op.
     this._dead = false;
+    // This flag tells the close handler that the initial socket connect failed,
+    // so the close handler should no-op because it has nothing to do.
+    this._connectFailed = false;
     // Storage/tracking for the status response.
     this._statusArray = new Uint8Array(statusResponseSize);
     this._statusIndex = 0;
@@ -264,12 +271,6 @@ export class TcpClient {
     this._socket.setNoDelay(this._options.immediate);
     // Capture errors so we can respond appropriately.
     this._error = null;
-    this._socket.on('error', (err) => {
-      // Do NOT set the dead flag here!
-      // The close handler needs its current status.
-      this._error = err;
-      // NodeJS automatically emits a "close" event after an "error" event.
-    });
     // Both sides have FIN'ed. No more communication is allowed on this socket.
     this._socket.on('close', () => { this._closeSocket(); });
     // Any TCP data received from the UFO is a status update.
@@ -457,24 +458,41 @@ export class TcpClient {
     this._write(_prepareBytes(buf), callback);
   }
   /**
-   * Opens the TCP socket on this machine and connects to the UFO's TCP server,
-   * then invokes the given callback.
+   * Opens the TCP socket on this machine and connects to the UFO's TCP server.
    */
-  connect(callback: ?() => void): void {
-    if (this._dead) return;
-    const options = {};
-    options.family = 4;
-    options.host = this._options.remoteAddress;
-    options.port = this._options.remotePort;
-    if (this._options.localAddress.length > 0) {
-      options.localAddress = this._options.localAddress;
-    }
-    if (this._options.localPort > 0) {
-      options.localPort = this._options.localPort;
-    }
-    // Connect.
-    if (callback) this._socket.connect(options, callback);
-    else this._socket.connect(options);
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      const options = {};
+      options.family = 4;
+      options.host = this._options.remoteAddress;
+      options.port = this._options.remotePort;
+      if (this._options.localAddress.length > 0) {
+        options.localAddress = this._options.localAddress;
+      }
+      if (this._options.localPort > 0) {
+        options.localPort = this._options.localPort;
+      }
+      // Intercept/reject any emitted errors when we attempt to connect.
+      const connectFailure = (err) => {
+        // _connectFailed tells the close handler to no-op.
+        this._connectFailed = true;
+        reject(err);
+      };
+      this._socket.on('error', connectFailure);
+      this._socket.connect(options, () => {
+        // Remove the intercept listener since we connected successfully.
+        this._socket.removeListener('error', connectFailure);
+        // Now we can define our true error handler.
+        this._socket.on('error', (err) => {
+          // Do NOT set the dead flag here!
+          // The close handler needs its current status.
+          this._error = err;
+          // NodeJS automatically emits a "close" event after an "error" event.
+        });
+        resolve();
+      });
+    });
   }
   /**
    * Closes the TCP socket on this machine. This object cannot be used after
