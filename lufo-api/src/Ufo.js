@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 import { TcpClient } from './TcpClient';
 import type { BuiltinFunction, CustomMode, CustomStep, UfoStatus } from './TcpClient';
 import { UdpClient } from './UdpClient';
-import type { UfoDiscoverOptions, UfoDiscoverCallback, WifiNetwork } from './UdpClient';
+import type { DiscoveredUfo, UfoDiscoverOptions, WifiNetwork } from './UdpClient';
 import { UfoDisconnectError } from './Misc';
 import type { UfoDisconnectCallback, UfoOptions } from './Misc';
 
@@ -65,12 +65,9 @@ class Ufo extends EventEmitter {
     // Connect now, if a callback was requested.
     if (callback) this.connect(callback);
   }
-  /**
-   * Searches for UFOs on the network and invokes the given callback with the
-   * resulting list.
-   */
-  static discover(options: UfoDiscoverOptions, callback: UfoDiscoverCallback): void {
-    UdpClient.discover(options, callback);
+  /** Searches for UFOs on the network. Returned array may be empty. */
+  static discover(options: UfoDiscoverOptions): Promise<Array<DiscoveredUfo>> {
+    return UdpClient.discover(options);
   }
   /** Returns the list of built-in functions usable by the API/CLI. */
   static getBuiltinFunctions(): Array<BuiltinFunction> {

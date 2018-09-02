@@ -41,14 +41,6 @@ export type UfoDiscoverOptions = {
   localAddress: ?string,
 };
 /**
- * A callback function that receives an array of discovered UFOs.
- * @callback
- * @param {Error} [error] Possibly-null error object.
- * @param {Array<DiscoveredUfo>} ufos The list of UFOs that were discovered; may
- * be empty.
- */
-export type UfoDiscoverCallback = (error: ?Error, ufos: Array<DiscoveredUfo>) => void;
-/**
  * A WiFi network discovered by the {@link Ufo#doWifiScan} method.
  * @typedef {Object} WifiNetwork
  * @property {number} channel The network channel number, 1-11 inclusive.
@@ -404,14 +396,8 @@ export class UdpClient {
       this._ufo.emit('udpDead', this._error);
     });
   }
-  /**
-   * Searches for UFOs on the network and invokes the given callback with the
-   * resulting list.
-   */
-  static discover(options: UfoDiscoverOptions, callback: UfoDiscoverCallback): void {
-    // Return variables.
-    let error = null;
-    const data = [];
+  /** Searches for UFOs on the network. Returned array may be empty. */
+  static discover(options: UfoDiscoverOptions): Promise<Array<DiscoveredUfo>> {
     // Set the default password if none was given.
     const hello = Buffer.from(options.password ? options.password : defaultHello);
     // Set the default timeout if none was given.
@@ -420,44 +406,50 @@ export class UdpClient {
     // Set the default remote port if none was given.
     let remotePort = options.remotePort || -1;
     if (remotePort < 0) remotePort = defaultPort;
-    // Setup the socket. Let Node exit if this socket is still active.
-    let stopDiscover: ?TimeoutID = null;
-    const socket: dgram$Socket = dgram.createSocket('udp4');
-    socket.unref();
-    // Define the listener's event handlers.
-    socket.on('close', () => {
-      if (stopDiscover) clearTimeout(stopDiscover);
-      callback(error, data);
-    });
-    socket.on('error', (err) => {
-      if (stopDiscover) clearTimeout(stopDiscover);
-      error = err;
-      socket.close();
-    });
-    socket.on('message', (msg, rinfo) => { // eslint-disable-line no-unused-vars
-      if (!error) {
-        const message = msg.toString('utf8');
-        // The socket sends itself the request message. Ignore this.
-        if (message !== hello) {
-          // Add the result to our array.
-          data.push(_parseHelloResponse(message));
-        }
-      }
-    });
-    // Send the request and start listening for responses.
-    const closeSocket = function () { socket.close(); };
-    socket.on('listening', () => {
-      socket.setBroadcast(true);
-      socket.send(hello, remotePort, '255.255.255.255', (err) => {
-        if (err) socket.emit('error', err);
-        else stopDiscover = setTimeout(closeSocket, timeout);
+    // Begin async.
+    return new Promise((resolve, reject) => {
+      // Return variables.
+      let error = null;
+      const data = [];
+      // Setup the socket. Let Node exit if this socket is still active.
+      let stopDiscover: ?TimeoutID = null;
+      const socket: dgram$Socket = dgram.createSocket('udp4');
+      socket.unref();
+      // Define the listener's event handlers.
+      socket.on('close', () => {
+        if (stopDiscover) clearTimeout(stopDiscover);
+        if (error) reject(error); else resolve(data);
       });
+      socket.on('error', (err) => {
+        if (stopDiscover) clearTimeout(stopDiscover);
+        error = err;
+        socket.close();
+      });
+      socket.on('message', (msg, rinfo) => { // eslint-disable-line no-unused-vars
+        if (!error) {
+          const message = msg.toString('utf8');
+          // The socket sends itself the request message. Ignore this.
+          if (message !== hello) {
+            // Add the result to our array.
+            data.push(_parseHelloResponse(message));
+          }
+        }
+      });
+      // Send the request and start listening for responses.
+      const closeSocket = function () { socket.close(); };
+      socket.on('listening', () => {
+        socket.setBroadcast(true);
+        socket.send(hello, remotePort, '255.255.255.255', (err) => {
+          if (err) socket.emit('error', err);
+          else stopDiscover = setTimeout(closeSocket, timeout);
+        });
+      });
+      // Use the specified port, or a random one.
+      // Also use the given local address, or none if not specified.
+      let port = 0;
+      if (options.localPort && options.localPort > 0) port = options.localPort;
+      socket.bind(port, options.localAddress || undefined);
     });
-    // Use the specified port, or a random one.
-    // Also use the given local address, or none if not specified.
-    let port = 0;
-    if (options.localPort && options.localPort > 0) port = options.localPort;
-    socket.bind(port, options.localAddress || undefined);
   }
   /*
    * Private methods

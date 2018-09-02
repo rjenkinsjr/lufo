@@ -110,10 +110,9 @@ cli.on('--help', () => {
  */
 // Discover command
 const discover = function (args) {
-  Ufo.discover(args, (err, data) => {
-    if (err) quitError(err);
-    else console.log(JSON.stringify(data, null, 2));
-  });
+  Ufo.discover(args)
+    .then(data => console.log(JSON.stringify(data, null, 2)))
+    .catch(quitError);
 };
 cli.command('discover [timeout]')
   .alias('d')
