@@ -195,6 +195,7 @@ export class TcpClient {
   _options: TcpOptions;
   _dead: boolean;
   _connectFailed: boolean;
+  _disconnectCallback: ?Function;
   _statusArray: Uint8Array;
   _statusIndex: number;
   _socket: net.Socket;
@@ -243,7 +244,10 @@ export class TcpClient {
     } else {
       // Mark this client as dead and notify the UFO object.
       this._dead = true;
-      this._ufo.emit('tcpDead', this._error);
+      this._ufo.emit('tcpDead', {
+        error: this._error,
+        callback: this._disconnectCallback,
+      });
     }
   }
   /**
@@ -263,6 +267,11 @@ export class TcpClient {
     // This flag tells the close handler that the initial socket connect failed,
     // so the close handler should no-op because it has nothing to do.
     this._connectFailed = false;
+    // This property contains the reject callback for the currently active
+    // Promise. If an error occurs, this callback is passed up to the enclosing
+    // UFO object so it can eventually be invoked after the UFO object is fully
+    // disconnected.
+    this._disconnectCallback = null;
     // Storage/tracking for the status response.
     this._statusArray = new Uint8Array(statusResponseSize);
     this._statusIndex = 0;
@@ -411,12 +420,15 @@ export class TcpClient {
   }
   /**
    * Sends the data in the given buffer to the TCP socket, then invokes the
-   * given callback.
+   * appropriate promise method.
    * @private
    */
-  _write(buffer: Buffer, callback: ?() => void): void {
-    if (callback) this._socket.write(buffer, callback);
-    else this._socket.write(buffer);
+  _writePromise(buffer: Buffer, resolve: Function, reject: Function): void {
+    this._disconnectCallback = reject;
+    this._socket.write(buffer, () => {
+      this._disconnectCallback = null;
+      resolve();
+    });
   }
   /**
    * The TCP command sent by this method appears to set/synchronize time on the
@@ -432,30 +444,32 @@ export class TcpClient {
    * - The response of this command always seems to be: 0x0f 0x10 0x00 0x1f.
    * @private
    */
-  _time(callback: ?() => void): void {
-    if (this._dead) return;
-    // 0x10 yy yy mm dd hh mm ss 0x07 0x00
-    // The first "yy" is the first 2 digits of the year.
-    // The second "yy" is the last 2 digits of the year.
-    // "mm" ranges from decimal "01" to "12".
-    // "hh" is 24-hour format.
-    // 0x07 0x00 seems to be a constant terminator.
-    const buf = Buffer.alloc(10);
-    buf.writeUInt8(0x10, 0);
-    const now = new Date();
-    const yearString = now.getFullYear().toString();
-    const first2Year = parseInt(yearString.substring(0, 2), 10);
-    const last2Year = parseInt(yearString.substring(2), 10);
-    buf.writeUInt8(first2Year, 1);
-    buf.writeUInt8(last2Year, 2);
-    buf.writeUInt8(now.getMonth() + 1, 3);
-    buf.writeUInt8(now.getDate(), 4);
-    buf.writeUInt8(now.getHours(), 5);
-    buf.writeUInt8(now.getMinutes(), 6);
-    buf.writeUInt8(now.getSeconds(), 7);
-    buf.writeUInt8(0x07, 8);
-    buf.writeUInt8(0, 9);
-    this._write(_prepareBytes(buf), callback);
+  _time(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      // 0x10 yy yy mm dd hh mm ss 0x07 0x00
+      // The first "yy" is the first 2 digits of the year.
+      // The second "yy" is the last 2 digits of the year.
+      // "mm" ranges from decimal "01" to "12".
+      // "hh" is 24-hour format.
+      // 0x07 0x00 seems to be a constant terminator.
+      const buf = Buffer.alloc(10);
+      buf.writeUInt8(0x10, 0);
+      const now = new Date();
+      const yearString = now.getFullYear().toString();
+      const first2Year = parseInt(yearString.substring(0, 2), 10);
+      const last2Year = parseInt(yearString.substring(2), 10);
+      buf.writeUInt8(first2Year, 1);
+      buf.writeUInt8(last2Year, 2);
+      buf.writeUInt8(now.getMonth() + 1, 3);
+      buf.writeUInt8(now.getDate(), 4);
+      buf.writeUInt8(now.getHours(), 5);
+      buf.writeUInt8(now.getMinutes(), 6);
+      buf.writeUInt8(now.getSeconds(), 7);
+      buf.writeUInt8(0x07, 8);
+      buf.writeUInt8(0, 9);
+      this._writePromise(_prepareBytes(buf), resolve, reject);
+    });
   }
   /**
    * Opens the TCP socket on this machine and connects to the UFO's TCP server.
@@ -508,51 +522,64 @@ export class TcpClient {
     this._socket.emit('close');
   }
   /**
-   * Gets the UFO's output status and sends it to the given callback.
-   * The callback is guaranteed to have exactly one non-null argument.
+   * Gets the UFO's output status.
+   * Result is null iff this UFO object is dead.
    */
-  status(callback: (error: ?Error, data: ?UfoStatus) => void): void {
-    if (this._dead) return;
-    this._socket.resume();
-    this._statusCallback = function (err, data) {
-      this._statusCallback = null;
-      this._socket.pause();
-      callback(err, data);
-    }.bind(this);
-    this._socket.write(statusRequest);
+  status(): Promise<?UfoStatus> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._socket.resume();
+      this._statusCallback = function (err, data) {
+        this._statusCallback = null;
+        this._socket.pause();
+        if (err) {
+          reject(err);
+        } else {
+          this._disconnectCallback = null;
+          resolve(data);
+        }
+      }.bind(this);
+      this._disconnectCallback = reject;
+      this._socket.write(statusRequest);
+    });
   }
-  /** Turns the UFO output on, then invokes the given callback. */
-  on(callback: ?() => void): void {
-    if (this._dead) return;
-    this._write(powerOn, callback);
+  /** Turns the UFO output on. */
+  on(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._writePromise(powerOn, resolve, reject);
+    });
   }
-  /** Turns the UFO output off, then invokes the given callback. */
-  off(callback: ?() => void): void {
-    if (this._dead) return;
-    this._write(powerOff, callback);
+  /** Turns the UFO output off. */
+  off(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._writePromise(powerOff, resolve, reject);
+    });
   }
   /**
-   * Sets the UFO output to the static values specified, then invokes the given
-   * calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
-   * and 255 is fully on/100% output.
+   * Sets the UFO output to the static values specified. The RGBW values are
+   * clamped from 0-255 inclusive, where 0 is off and 255 is fully on/100%
+   * output.
    */
-  rgbw(red: number, green: number, blue: number, white: number, callback: ?() => void): void {
-    if (this._dead) return;
-    // 0x31 rr gg bb ww 0x00
-    // 0x00 seems to be a constant terminator.
-    const buf = Buffer.alloc(6);
-    buf.writeUInt8(0x31, 0);
-    buf.writeUInt8(_clampRGBW(red), 1);
-    buf.writeUInt8(_clampRGBW(green), 2);
-    buf.writeUInt8(_clampRGBW(blue), 3);
-    buf.writeUInt8(_clampRGBW(white), 4);
-    buf.writeUInt8(0, 5);
-    this._write(_prepareBytes(buf), callback);
+  rgbw(red: number, green: number, blue: number, white: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      // 0x31 rr gg bb ww 0x00
+      // 0x00 seems to be a constant terminator.
+      const buf = Buffer.alloc(6);
+      buf.writeUInt8(0x31, 0);
+      buf.writeUInt8(_clampRGBW(red), 1);
+      buf.writeUInt8(_clampRGBW(green), 2);
+      buf.writeUInt8(_clampRGBW(blue), 3);
+      buf.writeUInt8(_clampRGBW(white), 4);
+      buf.writeUInt8(0, 5);
+      this._writePromise(_prepareBytes(buf), resolve, reject);
+    });
   }
   /**
-   * Starts one of the UFO's built-in functions at the given speed, then invokes
-   * the given callback. The error is always null unless an invalid function
-   * name is given.
+   * Starts one of the UFO's built-in functions at the given speed. The promise
+   * will be rejected if an invalid function name is given.
    *
    * The speed is clamped from 0-100 inclusive. Speed values do not result in
    * the same durations across all functions (e.g. sevenColorStrobeFlash is
@@ -560,23 +587,25 @@ export class TcpClient {
    * experiment with different values to get the desired timing for the function
    * you wish to use.
    */
-  builtin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => void): void {
-    if (this._dead) return;
-    const functionId = builtinFunctionMap.get(name);
-    if (functionId !== undefined) {
-      // 0x61 id speed
-      const buf = Buffer.alloc(3);
-      buf.writeUInt8(0x61, 0);
-      buf.writeUInt8(functionId, 1);
-      buf.writeUInt8(_builtinFlipSpeed(speed), 2);
-      this._write(_prepareBytes(buf), callback);
-    } else if (callback) {
-      callback(new Error(`No such built-in function ${name}`));
-    }
+  builtin(name: BuiltinFunction, speed: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      const functionId = builtinFunctionMap.get(name);
+      if (functionId === undefined) {
+        reject(new Error(`No such built-in function ${name}`));
+      } else {
+        // 0x61 id speed
+        const buf = Buffer.alloc(3);
+        buf.writeUInt8(0x61, 0);
+        buf.writeUInt8(functionId, 1);
+        buf.writeUInt8(_builtinFlipSpeed(speed), 2);
+        this._writePromise(_prepareBytes(buf), resolve, reject);
+      }
+    });
   }
   /**
-   * Starts the given custom function, then invokes the given callback. The
-   * error is always null unless an invalid mode is given.
+   * Starts the given custom function. The promise will be rejected if an
+   * invalid mode is given.
    * - The speed is clamped from 0-30 inclusive. Below is a list of step
    * durations measured with a stopwatch when using the "jumping" mode. These
    * values should be treated as approximations. Based on this list, it appears
@@ -593,62 +622,64 @@ export class TcpClient {
    * - If any null steps are specified in the array, they are dropped *before*
    * the limit of 16 documented above is considered.
    */
-  custom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => void): void {
-    if (this._dead) return;
-    // Validate the mode.
-    let modeId;
-    switch (mode) {
-      case 'gradual':
-        modeId = 0x3A;
-        break;
-      case 'jumping':
-        modeId = 0x3B;
-        break;
-      case 'strobe':
-        modeId = 0x3C;
-        break;
-      default:
-        if (callback) callback(new Error(`Invalid mode '${mode}'.`));
-        return;
-    }
-    // 0x51 steps(16xUInt8) speed mode 0xFF
-    // 0xFF seems to be a constant terminator.
-    const buf = Buffer.alloc(68);
-    buf.writeUInt8(0x51, 0);
-    let index = 1;
-    // First, remove from the steps array any null steps that were set by the
-    // user. The UFO stops playing the function upon the first occurrence of a
-    // null step, so we cannot accept them in the steps array argument.
-    //
-    // Then:
-    // - If there are fewer than 16 steps, "null" steps must be added so we have
-    // exactly 16 steps.
-    // - Otherwise, truncate the array so it has exactly 16 steps.
-    const stepsCopy = steps.filter(s => !_isNullStep(s)).slice(0, maxCustomSteps);
-    while (stepsCopy.length < maxCustomSteps) {
-      stepsCopy.push(nullStep);
-    }
-    // Each step consists of an RGB value and is translated into 4 bytes.
-    // The 4th byte is always zero.
-    stepsCopy.forEach((step) => {
-      buf.writeUInt8(_clampRGBW(step.red), index);
+  custom(mode: CustomMode, speed: number, steps: Array<CustomStep>): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      // Validate the mode.
+      let modeId;
+      switch (mode) {
+        case 'gradual':
+          modeId = 0x3A;
+          break;
+        case 'jumping':
+          modeId = 0x3B;
+          break;
+        case 'strobe':
+          modeId = 0x3C;
+          break;
+        default:
+          reject(new Error(`Invalid mode '${mode}'.`));
+          return;
+      }
+      // 0x51 steps(16xUInt8) speed mode 0xFF
+      // 0xFF seems to be a constant terminator.
+      const buf = Buffer.alloc(68);
+      buf.writeUInt8(0x51, 0);
+      let index = 1;
+      // First, remove from the steps array any null steps that were set by the
+      // user. The UFO stops playing the function upon the first occurrence of a
+      // null step, so we cannot accept them in the steps array argument.
+      //
+      // Then:
+      // - If there are fewer than 16 steps, "null" steps must be added so we have
+      // exactly 16 steps.
+      // - Otherwise, truncate the array so it has exactly 16 steps.
+      const stepsCopy = steps.filter(s => !_isNullStep(s)).slice(0, maxCustomSteps);
+      while (stepsCopy.length < maxCustomSteps) {
+        stepsCopy.push(nullStep);
+      }
+      // Each step consists of an RGB value and is translated into 4 bytes.
+      // The 4th byte is always zero.
+      stepsCopy.forEach((step) => {
+        buf.writeUInt8(_clampRGBW(step.red), index);
+        index += 1;
+        buf.writeUInt8(_clampRGBW(step.green), index);
+        index += 1;
+        buf.writeUInt8(_clampRGBW(step.blue), index);
+        index += 1;
+        buf.writeUInt8(0, index);
+        index += 1;
+      });
+      // The UFO seems to store/report the speed as 1 higher than what it really is.
+      buf.writeUInt8(_customFlipSpeed(speed) + 1, index);
       index += 1;
-      buf.writeUInt8(_clampRGBW(step.green), index);
+      // Set the mode.
+      buf.writeUInt8(modeId, index);
       index += 1;
-      buf.writeUInt8(_clampRGBW(step.blue), index);
-      index += 1;
-      buf.writeUInt8(0, index);
-      index += 1;
+      // Add terminator and write.
+      buf.writeUInt8(0xFF, index);
+      this._writePromise(_prepareBytes(buf), resolve, reject);
     });
-    // The UFO seems to store/report the speed as 1 higher than what it really is.
-    buf.writeUInt8(_customFlipSpeed(speed) + 1, index);
-    index += 1;
-    // Set the mode.
-    buf.writeUInt8(modeId, index);
-    index += 1;
-    // Add terminator and write.
-    buf.writeUInt8(0xFF, index);
-    this._write(_prepareBytes(buf), callback);
   }
   /** Returns the list of built-in functions usable by the API/CLI. */
   static getBuiltinFunctions(): Array<BuiltinFunction> {

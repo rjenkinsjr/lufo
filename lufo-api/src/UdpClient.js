@@ -4,7 +4,7 @@ import * as dgram from 'dgram';
 import * as net from 'net';
 import _ from 'lodash';
 import Ufo from './Ufo';
-import type { UfoDisconnectCallback, UfoOptions } from './Misc';
+import type { UfoOptions } from './Misc';
 
 /**
  * Details of a UFO found by {@link Ufo.discover}.
@@ -605,7 +605,7 @@ export class UdpClient {
    * method is invoked. If a callback is provided to this method, it overrides
    * whatever disconnect callback was defined when the client was constructed.
    */
-  reboot(callback?: UfoDisconnectCallback): void {
+  reboot(callback?: Function): void {
     // Override the callback if requested.
     if (callback) this._ufo._disconnectCallback = callback;
     // Reboot and disconnect.
@@ -623,7 +623,7 @@ export class UdpClient {
    * this method, it overrides whatever disconnect callback was defined when the
    * client was constructed.
    */
-  factoryReset(callback?: UfoDisconnectCallback): void {
+  factoryReset(callback?: Function): void {
     // Override the callback if requested.
     if (callback) this._ufo._disconnectCallback = callback;
     // Request a factory reset.
@@ -688,7 +688,7 @@ export class UdpClient {
    * method is invoked. If a callback is provided to this method, it overrides
    * whatever disconnect callback was defined when the client was constructed.
    */
-  setTcpPort(port: number, callback?: UfoDisconnectCallback): void {
+  setTcpPort(port: number, callback?: Function): void {
     this._commandMode(() => {
       this._sendAndWait(_assembleCommand('tcpServer'), (err, tcpServer) => {
         if (err && callback) callback(err);

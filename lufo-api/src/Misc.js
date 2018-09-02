@@ -1,16 +1,5 @@
 // @flow
 /**
- * A callback function that is invoked once a {@link Ufo} object has
- * disconnected from the UFO, either because the {@link Ufo#disconnect} method
- * was called or because a communication error occurred. The callback accepts a
- * single error argument that, if not null, contains the error that caused the
- * disconnect.
- * @callback
- * @param {Error} [error] the error that caused the UFO to disconnect. If null,
- * disconnect was not due to an error.
- */
-export type UfoDisconnectCallback = (?Error) => mixed;
-/**
  * Errors of this type are thrown when communication with a UFO fails. The error
  * object contains a message and an optional error from the UDP and TCP sockets
  * that may have contributed to this error.
@@ -53,10 +42,6 @@ export class UfoDisconnectError extends Error { // eslint-disable-line import/pr
  * is invoked when the TCP socket is created. This prevents TCP data from being
  * buffered by NodeJS before being sent to the UFO. If this causes communication
  * issues, set this to false.
- * @property {UfoDisconnectCallback} [disconnectCallback] the optional callback
- * invoked when the UFO object disconnects for any reason. If no callback is
- * specified, you will not be notified once a UFO object has disconnected
- * regardless of the cause.
  */
 export type UfoOptions = {
   host: string,
@@ -67,5 +52,4 @@ export type UfoOptions = {
   localTcpPort?: number,
   remoteTcpPort?: number,
   immediate?: boolean,
-  disconnectCallback?: UfoDisconnectCallback,
 };

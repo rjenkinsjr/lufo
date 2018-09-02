@@ -5,7 +5,7 @@ import type { BuiltinFunction, CustomMode, CustomStep, UfoStatus } from './TcpCl
 import { UdpClient } from './UdpClient';
 import type { DiscoveredUfo, UfoDiscoverOptions, WifiNetwork } from './UdpClient';
 import { UfoDisconnectError } from './Misc';
-import type { UfoDisconnectCallback, UfoOptions } from './Misc';
+import type { UfoOptions } from './Misc';
 
 /**
  * The API for interfacing with UFO devices. If a callback is provided during
@@ -14,7 +14,7 @@ import type { UfoDisconnectCallback, UfoOptions } from './Misc';
 class Ufo extends EventEmitter {
   _dead: boolean;
   _options: UfoOptions;
-  _disconnectCallback: ?UfoDisconnectCallback;
+  _disconnectCallback: ?Function;
   _tcpClient: TcpClient;
   _udpClient: UdpClient;
   _tcpError: ?Error;
@@ -25,15 +25,15 @@ class Ufo extends EventEmitter {
     this._dead = false;
     // Capture the options provided by the user.
     this._options = Object.freeze(options);
-    this._disconnectCallback = this._options.disconnectCallback;
     // Create the TCP and UDP clients.
     this._tcpClient = new TcpClient(this, options);
     this._udpClient = new UdpClient(this, options);
     // Define the "client is dead" event handlers.
     this._tcpError = null;
-    this.on('tcpDead', (err) => {
+    this.on('tcpDead', (deadData) => {
       this._dead = true;
-      this._tcpError = err;
+      this._tcpError = deadData.error;
+      this._disconnectCallback = deadData.callback;
       if (this._udpClient._dead) {
         this.emit('dead');
       } else {
@@ -103,110 +103,102 @@ class Ufo extends EventEmitter {
    * Query methods
    */
   /**
-   * Gets the UFO's output status and sends it to the given callback.
-   * The callback is guaranteed to have exactly one non-null argument.
+   * Gets the UFO's output status.
+   * Result is null iff this UFO object is dead.
    */
-  getStatus(callback: (error: ?Error, data: ?UfoStatus) => void): void {
-    this._tcpClient.status(callback);
+  getStatus(): Promise<?UfoStatus> {
+    return this._tcpClient.status();
   }
   /*
    * RGBW control methods
    */
+  /** Sets the UFO's output flag to the given value. */
+  setPower(on: boolean): Promise<void> {
+    return on ? this.turnOn() : this.turnOff();
+  }
+  /** Turns the UFO on. */
+  turnOn(): Promise<void> {
+    return this._tcpClient.on();
+  }
+  /** Turns the UFO off. */
+  turnOff(): Promise<void> {
+    return this._tcpClient.off();
+  }
+  /** Toggle the UFO's output flag. */
+  togglePower(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.getStatus().then((status) => {
+        if (status) {
+          const method = status.on ? this.turnOff : this.turnOn;
+          method().then(resolve).catch(reject);
+        } else {
+          reject(new Error('Status object is null.'));
+        }
+      }).catch(reject);
+    });
+  }
   /**
-   * Sets the UFO's output flag to the given value, then invokes the given
-   * callback.
+   * Sets the UFO output to the static values specified. The RGBW values are
+   * clamped from 0-255 inclusive, where 0 is off and 255 is fully on/100% output.
    */
-  setPower(on: boolean, callback: ?() => void): void {
-    if (on) this.turnOn(callback);
-    else this.turnOff(callback);
+  setColor(red: number, green: number, blue: number, white: number): Promise<void> {
+    return this._tcpClient.rgbw(red, green, blue, white);
   }
-  /** Turns the UFO on, then invokes the given callback. */
-  turnOn(callback: ?() => void): void {
-    this._tcpClient.on(callback);
+  /**
+   * Sets the red output value. If solo is true, all other output values are set
+   * to zero. Input value is clamped to 0-255 inclusive.
+   */
+  setRed(value: number, solo: boolean): Promise<void> {
+    return this._setSingle(0, value, solo);
   }
-  /** Turns the UFO off, then invokes the given callback. */
-  turnOff(callback: ?() => void): void {
-    this._tcpClient.off(callback);
+  /**
+   * Sets the green output value. If solo is true, all other output values are
+   * set to zero. Input value is clamped to 0-255 inclusive.
+   */
+  setGreen(value: number, solo: boolean): Promise<void> {
+    return this._setSingle(1, value, solo);
   }
-  /** Toggle the UFO's output flag, then invokes the given callback. */
-  togglePower(callback: ?(?Error) => void): void {
-    this.getStatus((err, status) => {
-      if (err) {
-        if (callback) callback(err);
-      } else if (status && status.on) {
-        this.turnOff(callback);
+  /**
+   * Sets the blue output value. If solo is true, all other output values are
+   * set to zero. Input value is clamped to 0-255 inclusive.
+   */
+  setBlue(value: number, solo: boolean): Promise<void> {
+    return this._setSingle(2, value, solo);
+  }
+  /**
+   * Sets the white output value. If solo is true, all other output values are
+   * set to zero. Input value is clamped to 0-255 inclusive.
+   */
+  setWhite(value: number, solo: boolean): Promise<void> {
+    return this._setSingle(3, value, solo);
+  }
+  /**
+   * Sets the given position in the RGBW byte array. If solo is true, all other
+   * output values are set to zero. Input value is clamped to 0-255 inclusive.
+   * @private
+   */
+  _setSingle(position: number, value: number, solo: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (solo) {
+        const values = [0, 0, 0, 0];
+        values[position] = value;
+        this.setColor(...values).then(resolve).catch(reject);
       } else {
-        this.turnOn(callback);
+        this.getStatus().then((status) => {
+          if (status) {
+            const values = [status.red, status.green, status.blue, status.white];
+            values[position] = value;
+            this.setColor(...values).then(resolve).catch(reject);
+          } else {
+            reject(new Error('Status object is null.'));
+          }
+        }).catch(reject);
       }
     });
   }
   /**
-   * Sets the UFO output to the static values specified, then invokes the given
-   * calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
-   * and 255 is fully on/100% output.
-   */
-  setColor(red: number, green: number, blue: number, white: number, callback: ?() => void): void {
-    this._tcpClient.rgbw(red, green, blue, white, callback);
-  }
-  /**
-   * Sets the red output value, then invokes the given callback. If solo is
-   * true, all other output values are set to zero. Input value is clamped to
-   * 0-255 inclusive.
-   */
-  setRed(value: number, solo: boolean, callback: (?Error) => void) {
-    this._setSingle(0, value, solo, callback);
-  }
-  /**
-   * Sets the green output value, then invokes the given callback. If solo is
-   * true, all other output values are set to zero. Input value is clamped to
-   * 0-255 inclusive.
-   */
-  setGreen(value: number, solo: boolean, callback: (?Error) => void) {
-    this._setSingle(1, value, solo, callback);
-  }
-  /**
-   * Sets the blue output value, then invokes the given callback. If solo is
-   * true, all other output values are set to zero. Input value is clamped to
-   * 0-255 inclusive.
-   */
-  setBlue(value: number, solo: boolean, callback: (?Error) => void) {
-    this._setSingle(2, value, solo, callback);
-  }
-  /**
-   * Sets the white output value, then invokes the given callback. If solo is
-   * true, all other output values are set to zero. Input value is clamped to
-   * 0-255 inclusive.
-   */
-  setWhite(value: number, solo: boolean, callback: (?Error) => void) {
-    this._setSingle(3, value, solo, callback);
-  }
-  /**
-   * Sets the given position in the RGBW byte array, then invokes the given
-   * callback. If solo is true, all other output values are set to zero. Input
-   * value is clamped to 0-255 inclusive.
-   * @private
-   */
-  _setSingle(position: number, value: number, solo: boolean, callback: (?Error) => void) {
-    if (solo) {
-      const values = [0, 0, 0, 0];
-      values[position] = value;
-      this.setColor(...values, callback);
-    } else {
-      this.getStatus((err, data) => {
-        if (err) {
-          callback(err);
-        } else if (data) {
-          const values = [data.red, data.green, data.blue, data.white];
-          values[position] = value;
-          this.setColor(...values, callback);
-        }
-      });
-    }
-  }
-  /**
-   * Starts one of the UFO's built-in functions at the given speed, then invokes
-   * the given callback. The error is always null unless an invalid function
-   * name is given.
+   * Starts one of the UFO's built-in functions at the given speed. The promise
+   * will be rejected if an invalid function name is given.
    *
    * The speed is clamped from 0-100 inclusive. Speed values do not result in
    * the same durations across all functions (e.g. sevenColorStrobeFlash is
@@ -214,12 +206,12 @@ class Ufo extends EventEmitter {
    * experiment with different values to get the desired timing for the function
    * you wish to use.
    */
-  setBuiltin(name: BuiltinFunction, speed: number, callback: ?(error: ?Error) => void): void {
-    this._tcpClient.builtin(name, speed, callback);
+  setBuiltin(name: BuiltinFunction, speed: number): Promise<void> {
+    return this._tcpClient.builtin(name, speed);
   }
   /**
-   * Starts the given custom function, then invokes the given callback. The
-   * error is always null unless an invalid mode is given.
+   * Starts the given custom function. The promise will be rejected if an
+   * invalid mode is given.
    * - The speed is clamped from 0-30 inclusive. Below is a list of step
    * durations measured with a stopwatch when using the "jumping" mode. These
    * values should be treated as approximations. Based on this list, it appears
@@ -236,19 +228,19 @@ class Ufo extends EventEmitter {
    * - If any null steps are specified in the array, they are dropped *before*
    * the limit of 16 documented above is considered.
    */
-  setCustom(mode: CustomMode, speed: number, steps: Array<CustomStep>, callback: ?(error: ?Error) => void): void {
-    this._tcpClient.custom(mode, speed, steps, callback);
+  setCustom(mode: CustomMode, speed: number, steps: Array<CustomStep>): Promise<void> {
+    return this._tcpClient.custom(mode, speed, steps);
   }
   /**
    * Freezes the playback of whatever built-in or custom function is currently
    * running. The output remains on after being frozen.
    */
-  freezeOutput(callback: ?(error: ?Error) => void): void {
-    this.setBuiltin('noFunction', 0, callback);
+  freezeOutput(): Promise<void> {
+    return this.setBuiltin('noFunction', 0);
   }
   /** Sets all output to zero. */
-  zeroOutput(callback: ?(error: ?Error) => void): void {
-    this.setColor(0, 0, 0, 0, callback);
+  zeroOutput(): Promise<void> {
+    return this.setColor(0, 0, 0, 0);
   }
   /*
    * UFO configuration getter methods
@@ -375,7 +367,7 @@ class Ufo extends EventEmitter {
    * overrides whatever disconnect callback was defined when the client was
    * constructed.
    */
-  setTcpPort(port: number, callback?: UfoDisconnectCallback): void {
+  setTcpPort(port: number, callback?: Function): void {
     this._udpClient.setTcpPort(port, callback);
   }
   /**
@@ -473,7 +465,7 @@ class Ufo extends EventEmitter {
    * method is invoked. If a callback is provided to this method, it overrides
    * whatever disconnect callback was defined when the client was constructed.
    */
-  reboot(callback?: UfoDisconnectCallback): void {
+  reboot(callback?: Function): void {
     this._udpClient.reboot(callback);
   }
   /**
@@ -482,7 +474,7 @@ class Ufo extends EventEmitter {
    * this method, it overrides whatever disconnect callback was defined when the
    * client was constructed.
    */
-  factoryReset(callback?: UfoDisconnectCallback): void {
+  factoryReset(callback?: Function): void {
     this._udpClient.factoryReset(callback);
   }
 }

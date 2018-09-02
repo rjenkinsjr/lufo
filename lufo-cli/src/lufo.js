@@ -154,31 +154,27 @@ cli.command('status')
   .description('Returns the UFO\'s current status. {json}')
   .action(() => {
     go(function () {
-      this.getStatus((err, data) => {
-        if (err) {
-          quitError(err);
-        } else {
-          console.log(JSON.stringify(data, (k, v) => {
-            if (k === 'raw') return undefined;
-            return v;
-          }, 2));
-          this.disconnect();
-        }
-      });
+      this.getStatus().then((status) => {
+        console.log(JSON.stringify(status, (k, v) => {
+          if (k === 'raw') return undefined;
+          return v;
+        }, 2));
+        this.disconnect();
+      }).catch(quitError);
     });
   });
 cli.command('on')
   .description('Turns on UFO output.')
   .action(() => {
     go(function () {
-      this.turnOn(stop());
+      this.turnOn().then(() => this.disconnect()).catch(quitError);
     });
   });
 cli.command('off')
   .description('Turns off UFO output. Does not stop running builtin/custom functions; see "zero" and "freeze" commands.')
   .action(() => {
     go(function () {
-      this.turnOff(stop());
+      this.turnOff().then(() => this.disconnect()).catch(quitError);
     });
   });
 cli.command('toggle')
@@ -186,7 +182,7 @@ cli.command('toggle')
   .description('Toggles UFO output on/off.')
   .action(() => {
     go(function () {
-      this.togglePower(stop());
+      this.togglePower().then(() => this.disconnect()).catch(quitError);
     });
   });
 cli.command('rgbw <values...>')
@@ -197,7 +193,7 @@ cli.command('rgbw <values...>')
       quitError('RGBW takes exactly 4 arguments.');
     } else {
       go(function () {
-        this.setColor(...values, stop());
+        this.setColor(...values).then(() => this.disconnect()).catch(quitError);
       });
     }
   });
@@ -210,7 +206,7 @@ cli.command('red <value>')
       quitError('No value provided.');
     } else {
       go(function () {
-        this.setRed(value, options.solo, stop());
+        this.setRed(value, options.solo).then(() => this.disconnect()).catch(quitError);
       });
     }
   });
@@ -223,7 +219,7 @@ cli.command('green <value>')
       quitError('No value provided.');
     } else {
       go(function () {
-        this.setGreen(value, options.solo, stop());
+        this.setGreen(value, options.solo).then(() => this.disconnect()).catch(quitError);
       });
     }
   });
@@ -236,7 +232,7 @@ cli.command('blue <value>')
       quitError('No value provided.');
     } else {
       go(function () {
-        this.setBlue(value, options.solo, stop());
+        this.setBlue(value, options.solo).then(() => this.disconnect()).catch(quitError);
       });
     }
   });
@@ -249,7 +245,7 @@ cli.command('white <value>')
       quitError('No value provided.');
     } else {
       go(function () {
-        this.setWhite(value, options.solo, stop());
+        this.setWhite(value, options.solo).then(() => this.disconnect()).catch(quitError);
       });
     }
   });
@@ -258,7 +254,7 @@ cli.command('function <name> <speed>')
   .description('Plays a built-in function. Speed is 0-100 (slow to fast) inclusive.')
   .action((name, speed, options) => { // eslint-disable-line no-unused-vars
     go(function () {
-      this.setBuiltin(name, speed, stop());
+      this.setBuiltin(name, speed).then(() => this.disconnect()).catch(quitError);
     });
   });
 cli.command('function-list')
@@ -281,7 +277,7 @@ cli.command('custom <type> <speed> [steps...]')
       if (!Ufo.isNullStep(newValue)) steps.push(newValue);
     });
     go(function () {
-      this.setCustom(type, speed, steps, stop());
+      this.setCustom(type, speed, steps).then(() => this.disconnect()).catch(quitError);
     });
   });
 cli.command('zero')
@@ -289,7 +285,7 @@ cli.command('zero')
   .description('Sets all UFO outputs to zero. Does not alter the power flag (see "on"/"off"/"toggle" commands).')
   .action(() => {
     go(function () {
-      this.zeroOutput(stop());
+      this.zeroOutput().then(() => this.disconnect()).catch(quitError);
     });
   });
 cli.command('freeze')
@@ -297,7 +293,7 @@ cli.command('freeze')
   .description('Stops whatever builtin/custom is playing. Output will remain on; use "zero" to stop and turn off output simultaneously.')
   .action(() => {
     go(function () {
-      this.freezeOutput(stop());
+      this.freezeOutput().then(() => this.disconnect()).catch(quitError);
     });
   });
 
