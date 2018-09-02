@@ -144,8 +144,8 @@ class Ufo extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.getStatus().then((status) => {
         if (status) {
-          const method = status.on ? this.turnOff : this.turnOn;
-          method().then(resolve).catch(reject);
+          const result = status.on ? this.turnOff() : this.turnOn();
+          result.then(resolve).catch(reject);
         } else {
           reject(new Error('Status object is null.'));
         }
