@@ -48,7 +48,7 @@ class Ufo extends EventEmitter {
     this.on('tcpDead', (deadData) => {
       this._dead = true;
       this._tcpError = deadData.error;
-      this._disconnectCallback = deadData.callback;
+      if (!this._disconnectCallback) this._disconnectCallback = deadData.callback;
       if (this._udpClient._dead) {
         this.emit('dead');
       } else {
@@ -56,9 +56,10 @@ class Ufo extends EventEmitter {
       }
     });
     this._udpError = null;
-    this.on('udpDead', (err) => {
+    this.on('udpDead', (deadData) => {
       this._dead = true;
-      this._udpError = err;
+      this._udpError = deadData.error;
+      if (!this._disconnectCallback) this._disconnectCallback = deadData.callback;
       if (this._tcpClient._dead) {
         this.emit('dead');
       } else {
@@ -98,7 +99,7 @@ class Ufo extends EventEmitter {
    * retry connecting unless the error implies that retrying is not ppropriate.
    */
   connect(): Promise<void> {
-    return new Promise((resolve, reject) => { // eslint-disable-line no-unused-vars
+    return new Promise((resolve, reject) => {
       this._udpClient.connect().then(() => {
         this._tcpClient.connect().then(resolve).catch(reject);
       }).catch(reject);
@@ -106,13 +107,17 @@ class Ufo extends EventEmitter {
   }
   /**
    * Disconnects from the UFO. After disconnecting, this object cannot be used;
-   * you must construct a new {@link Ufo} object to reconnect.
+   * you must construct a new {@link Ufo} object to reconnect. The promise is
+   * guaranteed never to be rejected.
    */
-  disconnect() {
-    if (this._dead) return;
-    this._dead = true;
-    this._tcpClient.disconnect();
-    this._udpClient.disconnect();
+  disconnect(): Promise<void> {
+    return new Promise((resolve, reject) => { // eslint-disable-line no-unused-vars
+      if (this._dead) { resolve(); return; }
+      this._dead = true;
+      this._disconnectCallback = resolve;
+      this._udpClient.disconnect();
+      this._tcpClient.disconnect();
+    });
   }
   /*
    * Query methods

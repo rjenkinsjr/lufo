@@ -312,6 +312,7 @@ export class UdpClient {
   _ufo: Ufo;
   _options: UdpOptions;
   _dead: boolean;
+  _disconnectCallback: ?Function;
   _socket: dgram$Socket;
   _error: ?Error;
   _receiveCallback: ?UdpCommandReceiveCallback;
@@ -327,6 +328,11 @@ export class UdpClient {
     this._options = optionsBuilder;
     // Flag that tracks the state of this socket.
     this._dead = false;
+    // This property contains the reject callback for the currently active
+    // Promise. If an error occurs, this callback is passed up to the enclosing
+    // UFO object so it can eventually be invoked after the UFO object is fully
+    // disconnected.
+    this._disconnectCallback = null;
     // Define the UDP socket.
     this._socket = dgram.createSocket('udp4');
     this._error = null;
@@ -386,7 +392,10 @@ export class UdpClient {
     // The socket has been closed; react appropriately.
     this._socket.on('close', () => {
       this._socket.unref();
-      this._ufo.emit('udpDead', this._error);
+      this._ufo.emit('udpDead', {
+        error: this._error,
+        callback: this._disconnectCallback,
+      });
     });
   }
   /** Searches for UFOs on the network. Returned array may be empty. */
