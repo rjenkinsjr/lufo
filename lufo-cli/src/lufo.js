@@ -108,7 +108,6 @@ const discover = function (args) {
 cli.command('discover [timeout]')
   .alias('d')
   .description('Searches for UFOs on the network. Timeout is in seconds, defaults to 3. {json}')
-  .on('--help', () => { console.log(); })
   .action((timeout, options) => { // eslint-disable-line no-unused-vars
     const cliOptions = getOptions();
     const discoverArgs = {
