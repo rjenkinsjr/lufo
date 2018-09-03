@@ -9,8 +9,24 @@ import Ufo from 'lufo-api';
 const cli = require('commander');
 
 let theUfo = null;
+let printHelpOnExit = true;
+// Helper function to reduce boilerplate when running getter commands.
+const quitValue = function (isJson, transformer) {
+  printHelpOnExit = false;
+  return function (value) {
+    if (isJson) {
+      console.log(JSON.stringify(value, null, 2));
+    } else if (typeof transformer === 'function') {
+      console.log(transformer(value));
+    } else {
+      console.log(value);
+    }
+    if (theUfo) theUfo.disconnect();
+  };
+};
 // Helper function for printing errors and setting the exit code.
 const quitError = function (obj) {
+  printHelpOnExit = false;
   if (_.isError(obj)) {
     console.error(obj);
   } else {
@@ -47,6 +63,7 @@ const getOptions = function () {
 // Helper function for assembling the UFO object based on the given args.
 // The UFO object created by this method is bound to "this" in the action callback.
 const go = function (action) {
+  printHelpOnExit = false;
   const cliOptions = getOptions();
   if (cliOptions.host) {
     if (net.isIPv4(cliOptions.host)) {
@@ -64,19 +81,6 @@ const go = function (action) {
     quitError('No UFO IP address provided.');
   }
 };
-// Helper function to reduce boilerplate when running getter commands.
-const quitValue = function (isJson, transformer) {
-  return function (value) {
-    if (isJson) {
-      console.log(JSON.stringify(value, null, 2));
-    } else if (typeof transformer === 'function') {
-      console.log(transformer(value));
-    } else {
-      console.log(value);
-    }
-    if (theUfo) theUfo.disconnect();
-  };
-};
 
 // Define core CLI options.
 // $FlowFixMe
@@ -93,6 +97,17 @@ cli.version(require(`${__dirname}/package.json`).version) // eslint-disable-line
 cli.on('--help', () => {
   console.log('Commands marked {json} return well-formed JSON to stdout; no commands accept JSON input.');
   console.log('');
+});
+// Print a message if an invalid command is given.
+cli.on('command:*', () => {
+  printHelpOnExit = false;
+  quitError('Invalid command provided. See --help for usage information.');
+});
+// Show help on exit, unless told not to.
+// This implicitly ensures that help will be printed if no command, or an
+// invalid command, is provided.
+process.on('beforeExit', () => {
+  if (printHelpOnExit) cli.outputHelp();
 });
 
 /*
@@ -247,6 +262,7 @@ cli.command('function <name> <speed>')
 cli.command('function-list')
   .description('Lists all possible built-in function names usable by the "function" command.')
   .action(() => {
+    printHelpOnExit = false;
     console.log(Ufo.getBuiltinFunctions().join(', '));
   });
 cli.command('custom <type> <speed> [steps...]')
@@ -480,6 +496,4 @@ cli.command('factory-reset')
 // Do not execute subcommands as external processes; rely on defined actions.
 cli.executeSubCommand = () => false;
 // Parse the CLI args and execute whatever was requested.
-const parsedCli = cli.parse(process.argv);
-// Show help if no arguments were provided.
-if (parsedCli.args && !parsedCli.args.length) cli.help();
+cli.parse(process.argv);
