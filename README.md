@@ -33,7 +33,10 @@ Switch from callback-based API to Promise-based API.
     - Converted all public-facing methods (and most private methods) to produce/consume Promises
     - Fixed bug in `setWifiApDhcp` method where the start octet was accidentally used as both start and end octets
 - CLI
-    -
+    - Fix --solo handling for red/green/blue/white commands
+    - Fix --help formatting
+    - Improve error logging
+    - Other fixes
 - Other
     - Drop support for NodeJS 4.x
     - Do not build the gh-pages branch in CircleCI
