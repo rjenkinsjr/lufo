@@ -22,3 +22,19 @@ The following features from the mobile app are not implemented and are unlikely 
 - This code is licensed under the [MIT license](LICENSE).
 - This code is not developed, maintained or supported in any way by LEDENET.
 - I am not affiliated with LEDENET in any capacity.
+
+## Changelog
+
+### 0.2.0
+- API
+    - Converted all public-facing methods (and most private methods) to produce/consume Promises
+- CLI
+    -
+- Other
+    - Do not build the gh-pages branch in CircleCI
+    - Fix Git tagging during the deploy process
+    - Fix permissions on UDP test shell script
+    - Add changelog
+
+### 0.1.0
+First release.
