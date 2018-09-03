@@ -28,6 +28,7 @@ The following features from the mobile app are not implemented and are unlikely 
 ### 0.2.0
 - API
     - Converted all public-facing methods (and most private methods) to produce/consume Promises
+    - Fixed bug in `setWifiApDhcp` method where the start octet was accidentally used as both start and end octets
 - CLI
     -
 - Other
