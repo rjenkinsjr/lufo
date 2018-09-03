@@ -26,6 +26,9 @@ The following features from the mobile app are not implemented and are unlikely 
 ## Changelog
 
 ### 0.2.0
+Switch from callback-based API to Promise-based API.
+*Tested against NodeJS versions 4.8.7, 5.12.0, 6.13.1, 7.10.1, 8.10.0 and 9.9.0.*
+
 - API
     - Converted all public-facing methods (and most private methods) to produce/consume Promises
     - Fixed bug in `setWifiApDhcp` method where the start octet was accidentally used as both start and end octets
@@ -39,3 +42,4 @@ The following features from the mobile app are not implemented and are unlikely 
 
 ### 0.1.0
 First release.
+*Tested against NodeJS versions 4.8.7, 5.12.0, 6.13.1, 7.10.1, 8.10.0 and 9.9.0.*
