@@ -91,7 +91,6 @@ cli.version(require(`${__dirname}/package.json`).version) // eslint-disable-line
   .option('-t, --remote-tcp <remoteTcpPort>', 'The TCP port to which expected UFOs are bound. If unspecified, the LUFO_REMOTE_TCP environment variable is used, or otherwise the default port 5577 is used.')
   .option('-i, --immediate', 'If enabled, send TCP data immediately; otherwise, the CLI may buffer data before it is sent. If unspecified, the LUFO_IMMEDIATE environment variable is used, or otherwise it is enabled by default.');
 cli.on('--help', () => {
-  console.log('');
   console.log('Commands marked {json} return well-formed JSON to stdout; no commands accept JSON input.');
   console.log('');
 });
