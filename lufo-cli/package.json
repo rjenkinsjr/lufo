@@ -7,8 +7,8 @@
     "lufo": "./lufo.js"
   },
   "dependencies": {
-    "commander": "^2.12.2",
-    "lodash": "^4.17.4",
+    "commander": "2.15.0",
+    "lodash": "4.17.10",
     "lufo-api": "file:../lufo-api",
     "promptly": "^2.2.0"
   },
