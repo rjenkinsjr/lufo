@@ -64,28 +64,17 @@ const go = function (action) {
     quitError('No UFO IP address provided.');
   }
 };
-// Helper function to reduce boilerplate when disconnecting the UFO.
-const stop = function () {
-  return function (err) {
-    if (err) quitError(err);
-    else if (theUfo) theUfo.disconnect();
-  };
-};
 // Helper function to reduce boilerplate when running getter commands.
-const getAndStop = function (isJson, transformer) {
-  return function (err, value) {
-    if (err) {
-      quitError(err);
+const quitValue = function (isJson, transformer) {
+  return function (value) {
+    if (isJson) {
+      console.log(JSON.stringify(value, null, 2));
+    } else if (typeof transformer === 'function') {
+      console.log(transformer(value));
     } else {
-      if (isJson) {
-        console.log(JSON.stringify(value, null, 2));
-      } else if (typeof transformer === 'function') {
-        console.log(transformer(value));
-      } else {
-        console.log(value);
-      }
-      if (theUfo) theUfo.disconnect();
+      console.log(value);
     }
+    if (theUfo) theUfo.disconnect();
   };
 };
 
@@ -302,22 +291,22 @@ cli.command('version')
   .description('Returns the UFO\'s firmware version.')
   .action(() => {
     go(function () {
-      this.getVersion(getAndStop());
+      this.getVersion().then(quitValue());
     });
   });
 cli.command('ntp [server]')
   .description('Gets/sets the NTP server.')
   .action((server) => {
     go(function () {
-      if (server) this.setNtpServer(server, stop());
-      else this.getNtpServer(getAndStop());
+      if (server) this.setNtpServer(server).then(() => this.disconnect());
+      else this.getNtpServer().then(quitValue());
     });
   });
 cli.command('password <pwd>')
   .description('Sets the UDP password.')
   .action((pwd) => {
     go(function () {
-      if (pwd) this.setUdpPassword(pwd, stop());
+      if (pwd) this.setUdpPassword(pwd).then(() => this.disconnect());
       else quitError(new Error('No password provided.'));
     });
   });
@@ -325,7 +314,7 @@ cli.command('port <port>')
   .description('Sets the TCP port.')
   .action((port) => {
     go(function () {
-      if (port) this.setTcpPort(port, stop());
+      if (port) this.setTcpPort(port).then(() => this.disconnect());
       else quitError(new Error('No port provided.'));
     });
   });
@@ -335,23 +324,23 @@ cli.command('wifi-scan')
   .description('Scans for nearby WiFi networks and returns their channel, SSID, AP MAC address, security config and signal strength. {json}')
   .action(() => {
     go(function () {
-      this.doWifiScan(getAndStop(true));
+      this.doWifiScan().then(quitValue(true));
     });
   });
 cli.command('wifi-auto-switch [mode]')
   .description('Gets/sets the WiFi auto-switch setting. Possible values are (no quotes): "off" (AP mode will never turn on), "on" (AP mode will turn on after 1 minute), "auto" (after 10 minutes), or integers 3-120 inclusive (after X minutes).')
   .action((mode) => {
     go(function () {
-      if (mode) this.setWifiAutoSwitch(mode, stop());
-      else this.getWifiAutoSwitch(getAndStop());
+      if (mode) this.setWifiAutoSwitch(mode).then(() => this.disconnect());
+      else this.getWifiAutoSwitch().then(quitValue());
     });
   });
 cli.command('wifi-mode [mode]')
   .description('Gets/sets the WiFi mode. Possible values are (no quotes): "AP", "STA" or "APSTA".')
   .action((mode) => {
     go(function () {
-      if (mode) this.setWifiMode(mode, stop());
-      else this.getWifiMode(getAndStop());
+      if (mode) this.setWifiMode(mode).then(() => this.disconnect());
+      else this.getWifiMode().then(quitValue());
     });
   });
 
@@ -360,8 +349,8 @@ cli.command('wifi-ap-ip [ip] [mask]')
   .description('Gets/sets the IP address/netmask when in AP mode. {json}')
   .action((ip, mask) => {
     go(function () {
-      if (ip) this.setWifiApIp(ip, mask, stop());
-      else this.getWifiApIp(getAndStop(true));
+      if (ip) this.setWifiApIp(ip, mask).then(() => this.disconnect());
+      else this.getWifiApIp().then(quitValue(true));
     });
   });
 cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
@@ -381,39 +370,39 @@ cli.command('wifi-ap-broadcast [mode] [ssid] [channel]')
       }
     }
     go(function () {
-      if (actualMode) this.setWifiApBroadcast(actualMode, ssid, _.clamp(channel, 1, 11), stop());
-      else this.getWifiApBroadcast(getAndStop(true));
+      if (actualMode) this.setWifiApBroadcast(actualMode, ssid, _.clamp(channel, 1, 11)).then(() => this.disconnect());
+      else this.getWifiApBroadcast().then(quitValue(true));
     });
   });
 cli.command('wifi-ap-passphrase [pwd]')
   .description('Gets/sets the WiFi passphrase when in AP mode. 8-63 characters inclusive. Use "false" (no quotes) to disable security and configure the AP as an open network.')
   .action((pwd) => {
     go(function () {
-      if (pwd) this.setWifiApPassphrase(pwd.toLowerCase() === 'false' ? null : pwd, stop());
-      else this.getWifiApPassphrase(getAndStop(false, value => (value || '<No passphrase, open network>')));
+      if (pwd) this.setWifiApPassphrase(pwd.toLowerCase() === 'false' ? null : pwd).then(() => this.disconnect());
+      else this.getWifiApPassphrase().then(quitValue(false, value => (value || '<No passphrase, open network>')));
     });
   });
 cli.command('wifi-ap-led [value]')
   .description('Gets/sets the connection LED state when in AP mode. Any argument supplied other than "on" (no quotes) implies "off".')
   .action((value) => {
     go(function () {
-      if (value) this.setWifiApLed(value === 'on', stop());
-      else this.getWifiApLed(getAndStop(false, flag => (flag ? 'on' : 'off')));
+      if (value) this.setWifiApLed(value === 'on').then(() => this.disconnect());
+      else this.getWifiApLed().then(quitValue(false, flag => (flag ? 'on' : 'off')));
     });
   });
 cli.command('wifi-ap-dhcp [start] [end]')
   .description('Gets/sets the DHCP range when in AP mode. Ranges are 0-254 inclusive. Implicitly enables the DHCP server when setting; use the "wifi-ap-dhcp-disable" command to disable DHCP.')
   .action((start, end) => {
     go(function () {
-      if (start) this.setWifiApDhcp(start, end, stop());
-      else this.getWifiApDhcp(getAndStop(true));
+      if (start) this.setWifiApDhcp(start, end).then(() => this.disconnect());
+      else this.getWifiApDhcp().then(quitValue(true));
     });
   });
 cli.command('wifi-ap-dhcp-disable')
   .description('Disables the DHCP server when in AP mode.')
   .action(() => {
     go(function () {
-      this.disableWifiApDhcp(stop());
+      this.disableWifiApDhcp().then(() => this.disconnect());
     });
   });
 
@@ -422,14 +411,14 @@ cli.command('wifi-client-ap-info')
   .description('Shows the connected AP\'s SSID/MAC address when in client mode. {json}')
   .action(() => {
     go(function () {
-      this.getWifiClientApInfo(getAndStop(true));
+      this.getWifiClientApInfo().then(quitValue(true));
     });
   });
 cli.command('wifi-client-ap-signal')
   .description('Shows the connected AP signal strength when in client mode.')
   .action(() => {
     go(function () {
-      this.getWifiClientApSignal(getAndStop(true));
+      this.getWifiClientApSignal().then(quitValue(true));
     });
   });
 cli.command('wifi-client-ip [ip] [mask] [gateway]')
@@ -437,10 +426,10 @@ cli.command('wifi-client-ip [ip] [mask] [gateway]')
   .action((ip, mask, gateway) => {
     go(function () {
       if (ip) {
-        if ((ip === 'dhcp' || ip === 'DHCP')) this.setWifiClientIpDhcp(stop());
-        else this.setWifiClientIpStatic(ip, mask, gateway, stop());
+        if ((ip === 'dhcp' || ip === 'DHCP')) this.setWifiClientIpDhcp().then(() => this.disconnect());
+        else this.setWifiClientIpStatic(ip, mask, gateway).then(() => this.disconnect());
       } else {
-        this.getWifiClientIp(getAndStop(true));
+        this.getWifiClientIp().then(quitValue(true));
       }
     });
   });
@@ -448,8 +437,8 @@ cli.command('wifi-client-ssid [ssid]')
   .description('Gets/sets the SSID when in client mode.')
   .action((ssid) => {
     go(function () {
-      if (ssid) this.setWifiClientSsid(ssid, stop());
-      else this.getWifiClientSsid(getAndStop());
+      if (ssid) this.setWifiClientSsid(ssid).then(() => this.disconnect());
+      else this.getWifiClientSsid().then(quitValue());
     });
   });
 cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
@@ -457,7 +446,7 @@ cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
   .action((auth, encryption, passphrase) => {
     go(function () {
       if (!auth) {
-        this.getWifiClientAuth(getAndStop(true));
+        this.getWifiClientAuth().then(quitValue(true));
         return;
       }
       if (!passphrase) {
@@ -466,10 +455,10 @@ cli.command('wifi-client-auth [auth] [encryption] [passphrase]')
           silent: true,
         };
         promptly.prompt('Passphrase: ', promptOptions, (err, value) => {
-          this.setWifiClientAuth(auth, encryption, value, stop());
+          this.setWifiClientAuth(auth, encryption, value).then(() => this.disconnect());
         });
       } else {
-        this.setWifiClientAuth(auth, encryption, passphrase, stop());
+        this.setWifiClientAuth(auth, encryption, passphrase).then(() => this.disconnect());
       }
     });
   });

@@ -77,7 +77,6 @@ type UdpCommandSchema = {
   send: string,
   recv: UdpCommandReceiveParser,
 };
-type UdpCommandReceiveCallback = (Error | null, (string | Array<string>)) => void;
 
 /* Private variables. */
 const defaultPort = 48899;
@@ -315,7 +314,7 @@ export class UdpClient {
   _disconnectCallback: ?Function;
   _socket: dgram$Socket;
   _error: ?Error;
-  _receiveCallback: ?UdpCommandReceiveCallback;
+  _receiveCallback: ?Function;
   _receiveParser: ?UdpCommandReceiveParser;
   constructor(ufo: Ufo, options: UfoOptions) {
     this._ufo = ufo;
@@ -456,108 +455,173 @@ export class UdpClient {
   /*
    * Private methods
    */
-  /**
-   * Sends the given command to the UFO and runs the callback once the message
-   * is sent. This method is suitable for commands that do not send responses.
-   * @private
+  /*
+   * For methods annotated as @internalUdp, the following comments apply:
+   *
+   * If this promise is resolved, it should be handled normally so as to allow
+   * the result to bubble up to the calling code.
+   *
+   * If this promise is rejected, however, it is rejected with no arguments and
+   * an error will be emitted on the UDP socket; this will disconnect the UFO
+   * object and eventually invoke the calling code's promise reject function. As
+   * such, rejections from this promise should under normal circumstances not
+   * be handled by calling code.
    */
-  _send(cmd: UdpCommandSchema, callback: (?Error) => void): void {
-    this._socket.send(Buffer.from(cmd.send), defaultPort, this._options.host, callback);
-  }
   /**
-   * Sends the given command to the UFO and runs the callback whenever any data
-   * is received from the UFO. The callback has a possibly-null error and a
-   * non-null, possibly-empty result.
+   * Sends the given command to the UFO. This method is suitable for commands
+   * that do not send responses.
    * @private
+   * @internalUdp
    */
-  _sendAndWait(cmd: UdpCommandSchema, callback: UdpCommandReceiveCallback): void {
-    this._receiveCallback = callback;
-    this._receiveParser = cmd.recv;
-    this._socket.send(Buffer.from(cmd.send), defaultPort, this._options.host, (err) => {
-      if (err) callback(err, '');
+  _send(cmd: UdpCommandSchema, reqReject: Function): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._disconnectCallback = reqReject;
+      this._socket.send(Buffer.from(cmd.send), defaultPort, this._options.host, (err) => {
+        // Implement proper error handling according to API docs.
+        if (err) {
+          this._socket.emit('error', err);
+          reject();
+        } else {
+          this._disconnectCallback = null;
+          resolve();
+        }
+      });
     });
   }
   /**
-   * Puts the UFO in command mode. If this method fails, the UFO object is
-   * disconnected with an error.
+   * Sends the given command to the UFO. The promise resolves once any amount
+   * of data is received from the UFO.
+   * @private
+   * @internalUdp
+   */
+  _sendAndWait(cmd: UdpCommandSchema, reqReject: Function): Promise<null | string | Array<string>> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._disconnectCallback = reqReject;
+      // This callback only handles logic errors (e.g. we got a UDP response
+      // but it contains an error code). We treat these errors the same way as
+      // UDP socket errors.
+      this._receiveCallback = (err, data) => {
+        this._disconnectCallback = null;
+        if (err) {
+          reqReject(err);
+          reject();
+        } else {
+          resolve(data);
+        }
+      };
+      this._receiveParser = cmd.recv;
+      // This callback only handles UDP socket errors (e.g. network failures).
+      this._socket.send(Buffer.from(cmd.send), defaultPort, this._options.host, (err) => {
+        if (err) {
+          this._socket.emit('error', err);
+          reject();
+        }
+      });
+    });
+  }
+  /**
+   * Sends the given command to the UFO and indefnitely streams response data
+   * back to the provided callback. The calling code is responsible for any
+   * required logic/error handling with the data/error received. If this UFO
+   * object is dead, the callback is immediately called with two null arguments
+   * and no command is sent to the UFO.
    * @private
    */
-  _commandMode(callback: () => void): void {
-    if (this._dead) return;
-    // Say hello.
-    const cmd = _assembleCommand('hello');
-    if (this._options.password) cmd.send = this._options.password;
-    this._sendAndWait(cmd, (err, msg) => {
-      if (err) {
-        // Give up if we couldn't say hello.
-        if (err) this._socket.emit('error', err);
-      } else {
+  _sendAndStream(cmd: UdpCommandSchema, callback: (Error | null, (string | Array<string> | null)) => void): void {
+    if (this._dead) {
+      callback(null, null);
+      return;
+    }
+    this._receiveCallback = callback;
+    this._receiveParser = cmd.recv;
+    this._socket.send(Buffer.from(cmd.send), defaultPort, this._options.host, (err) => {
+      if (err) callback(err, null);
+    });
+  }
+  /**
+   * Puts the UFO in command mode.
+   * @private
+   * @internalUdp
+   */
+  _commandMode(reqReject: Function): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      // Say hello.
+      const cmd = _assembleCommand('hello');
+      if (this._options.password) cmd.send = this._options.password;
+      this._sendAndWait(cmd, reqReject).then((msg) => {
         // Give up if the response did not come from the expected IP.
         // 0.0.0.0 occurs when connected to a UFO in AP mode.
         const ufo = _parseHelloResponse(msg || '');
         if (ufo.ip === this._options.host || ufo.ip === '0.0.0.0') {
-          // Switch to command mode.
-          this._send(_assembleCommand('helloAck'), function (err2) {
-            // Give up if we couldn't switch to command mode.
-            // Otherwise fire the callback.
-            if (err2) this._socket.emit('error', err2);
-            else callback();
-          });
+          // Switch to command mode, or give up if we can't.
+          this._send(_assembleCommand('helloAck'), reqReject).then(resolve);
         } else {
+          this._disconnectCallback = reqReject;
           this._socket.emit('error', new Error(`Received hello response from unexpected host: ${JSON.stringify(ufo)}`));
+          reject(); // Chain rejection for completeness.
         }
-      }
+      });
     });
   }
   /**
    * Sends the "AT+Q\r" message, ending command transmission and preparing for
    * future commands to be sent.
    * @private
+   * @internalUdp
    */
-  _endCommand(callback: () => void): void {
-    if (this._dead) return;
-    this._send(_assembleCommand('endCmd'), (err) => {
-      if (err) this._socket.emit('error', err);
-      else callback();
+  _endCommand(reqReject: Function): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._send(_assembleCommand('endCmd'), reqReject)
+        .then(resolve).catch(reject); // Chain rejection for completeness.
     });
   }
   /**
-   * Puts the UFO in command mode, sends the given command to the UFO and runs
-   * the callback once a single response is received from the UFO. The callback
-   * has a possibly-null error and a non-null, possibly-empty result.
+   * Puts the UFO in command mode and sends the given command to the UFO. If
+   * successful, the promise resolves with the response.
    * @private
+   * @internalUdp
    */
-  _runCommand(cmd: UdpCommandSchema, callback: UdpCommandReceiveCallback): void {
-    if (this._dead) return;
-    this._commandMode(() => { this._sendAndWait(cmd, callback); });
-  }
-  /**
-   * Puts the UFO in command mode, sends the given command to the UFO and runs
-   * the callback once a single response is received from the UFO. The callback
-   * has a possibly-null error and a non-null, possibly-empty result. The "end"
-   * command is sent to the UFO before the callback is invoked.
-   * @private
-   */
-  _runCommandWithResponse(cmd: UdpCommandSchema, callback: UdpCommandReceiveCallback): void {
-    if (this._dead) return;
-    this._runCommand(cmd, (err, result) => {
-      this._endCommand(() => callback(err, result));
+  _runCommand(cmd: UdpCommandSchema, reqReject: Function): Promise<null | string | Array<string>> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._commandMode(reqReject).then(() => {
+        this._sendAndWait(cmd, reqReject)
+          .then(resolve).catch(reject); // Chain rejection for completeness.
+      }).catch(reject); // Chain rejection for completeness.
     });
   }
   /**
-   * Puts the UFO in command mode, sends the given command to the UFO and runs
-   * the callback once a single response is received from the UFO. The callback
-   * has a possibly-null error and an empty string result. The "end" command is
-   * sent to the UFO before the callback is invoked.
+   * Puts the UFO in command mode and sends the given command to the UFO. If
+   * successful, the promise resolves with the response. The "end" command is
+   * sent to the UFO before the promise is resolved.
    * @private
+   * @internalUdp
    */
-  _runCommandNoResponse(cmd: UdpCommandSchema, callback: ?UdpCommandReceiveCallback): void {
-    if (this._dead) return;
-    this._runCommandWithResponse(cmd, (err, result) => { // eslint-disable-line no-unused-vars
-      if (callback) {
-        if (err) callback(err, '');
-        else callback(null, '');
-      }
+  _runCommandWithResponse(cmd: UdpCommandSchema, reqReject: Function): Promise<null | string | Array<string>> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommand(cmd, reqReject).then((result) => {
+        this._endCommand(reqReject)
+          .then(() => resolve(result))
+          .catch(reject); // Chain rejection for completeness.
+      }).catch(reject); // Chain rejection for completeness.
+    });
+  }
+  /**
+   * Puts the UFO in command mode and sends the given command to the UFO. If
+   * successful, the promise resolves with no arguments.
+   * @private
+   * @internalUdp
+   */
+  _runCommandNoResponse(cmd: UdpCommandSchema, reqReject: Function): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._runCommandWithResponse(cmd, reqReject)
+        .then(() => resolve()).catch(reject); // Chain rejection for completeness.
     });
   }
   /*
@@ -604,111 +668,103 @@ export class UdpClient {
     this._socket.close();
   }
   /** Returns the UFO's hardware/firmware version. */
-  getVersion(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('moduleVersion'), (err, version) => {
-      callback(err, String(version));
+  getVersion(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('moduleVersion'), reject)
+        .then(version => resolve(String(version)));
     });
   }
   /**
    * Reboots the UFO. The owning UFO object will be disconnected after this
-   * method is invoked. If a callback is provided to this method, it overrides
-   * whatever disconnect callback was defined when the client was constructed.
+   * method is invoked.
    */
-  reboot(callback?: Function): void {
-    // Override the callback if requested.
-    if (callback) this._ufo._disconnectCallback = callback;
-    // Reboot and disconnect.
-    // We cannot use _runCommand here because we wiill not receive any response.
-    this._commandMode(() => {
-      this._send(_assembleCommand('reboot'), (err) => {
-        if (err) this._socket.emit('error', err);
-        else this._ufo.disconnect();
+  reboot(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      // Reboot and disconnect.
+      // We cannot use _runCommand here because we wiill not receive any response.
+      this._commandMode(reject).then(() => {
+        this._send(_assembleCommand('reboot'), reject).then(() => {
+          this._ufo.disconnect().then(resolve);
+        });
       });
     });
   }
   /**
    * Resets the UFO to factory defaults. The owning UFO object will be
-   * disconnected after this method is invoked. If a callback is provided to
-   * this method, it overrides whatever disconnect callback was defined when the
-   * client was constructed.
+   * disconnected after this method is invoked.
    */
-  factoryReset(callback?: Function): void {
-    // Override the callback if requested.
-    if (callback) this._ufo._disconnectCallback = callback;
-    // Request a factory reset.
-    // This command implies a reboot, so no explicit reboot command is needed.
-    let expected = commandMap.get('factoryReset');
-    if (expected) expected = expected.get;
-    this._runCommand(_assembleCommand('factoryReset'), (err, resp) => {
-      // Emit the receive error, or...
-      // Emit an error if the response did not match, or...
-      // Fire the callback with the response.
-      if (err) {
-        this._socket.emit('error', err);
-      } else if (resp === expected) {
-        this._ufo.disconnect();
-      } else {
-        const response = String(resp) || 'null';
-        this._socket.emit('error', new Error(`Unexpected response: ${response}`));
-      }
+  factoryReset(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      // Request a factory reset.
+      // This command implies a reboot, so no explicit reboot command is needed.
+      let expected = commandMap.get('factoryReset');
+      if (expected) expected = expected.get;
+      this._runCommand(_assembleCommand('factoryReset'), reject).then((resp) => {
+        // Emit an error if the response did not match, or otherwise disconnect.
+        if (resp === expected) {
+          this._ufo.disconnect().then(resolve);
+        } else {
+          this._disconnectCallback = reject;
+          const response = String(resp) || 'null';
+          this._socket.emit('error', new Error(`Unexpected response: ${response}`));
+        }
+      });
     });
   }
   /** Returns the NTP server IP address. */
-  getNtpServer(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('ntp'), (err, ipAddress) => {
-      callback(err, String(ipAddress));
+  getNtpServer(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('ntp'), reject)
+        .then(ipAddress => resolve(String(ipAddress)));
     });
   }
   /** Sets the NTP server IP address. */
-  setNtpServer(ipAddress: string, callback: ?(?Error) => void): void {
-    if (!net.isIPv4(ipAddress)) {
-      if (callback) callback(new Error(`Invalid IP address provided: ${ipAddress}.`));
-      return;
-    }
-    this._runCommandNoResponse(_assembleCommand('ntp', ipAddress), callback);
+  setNtpServer(ipAddress: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (!net.isIPv4(ipAddress)) {
+        reject(new Error(`Invalid IP address provided: ${ipAddress}.`));
+        return;
+      }
+      this._runCommandNoResponse(_assembleCommand('ntp', ipAddress), reject)
+        .then(resolve);
+    });
   }
-  /**
-   * Sets the UDP password. If an error occurs while executing this command,
-   * the owning UFO object will be disconnected and the given callback (if any)
-   * will override whatever disconnect callback was previously defined.
-   */
-  setUdpPassword(password: string, callback: ?(?Error) => void): void {
-    if (password.length > 20) {
-      if (callback) callback(new Error(`Password is ${password.length} characters long, exceeding limit of 20.`));
-      return;
-    }
-    this._runCommand(_assembleCommand('udpPassword', password), (err) => {
-      if (err) {
-        // If this command fails, we have no way of knowing whether or not
-        // the password was actually set, so we have to assume that this object
-        // can no longer communicate with the UFO.
-        if (callback) this._ufo._disconnectCallback = callback;
-        this._socket.emit('error', err);
-      } else {
+  /** Sets the UDP password. */
+  setUdpPassword(password: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (password.length > 20) {
+        reject(new Error(`Password is ${password.length} characters long, exceeding limit of 20.`));
+        return;
+      }
+      this._runCommandNoResponse(_assembleCommand('udpPassword', password), reject).then(() => {
         // Update the password in the options object so we can continue
         // using this client to communicate.
         this._options.password = password;
-        if (callback) callback(null);
-      }
+        resolve();
+      });
     });
   }
   /**
    * Sets the TCP port. The owning UFO object will be disconnected after this
-   * method is invoked. If a callback is provided to this method, it overrides
-   * whatever disconnect callback was defined when the client was constructed.
+   * method is invoked.
    */
-  setTcpPort(port: number, callback?: Function): void {
-    this._commandMode(() => {
-      this._sendAndWait(_assembleCommand('tcpServer'), (err, tcpServer) => {
-        if (err && callback) callback(err);
-        else {
-          const cleanPort = _.clamp(port, 0, 65535);
-          // Override the callback if requested.
-          if (callback) this._ufo._disconnectCallback = callback;
-          this._sendAndWait(_assembleCommand('tcpServer', tcpServer[0], tcpServer[1], cleanPort, tcpServer[3]), (err2) => {
-            if (err2) this._socket.emit('error', err2);
-            else this._ufo.disconnect();
+  setTcpPort(port: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._runCommandWithResponse(_assembleCommand('tcpServer'), reject).then((tcpServer) => {
+        const cleanPort = _.clamp(port, 0, 65535);
+        if (tcpServer) {
+          this._runCommandNoResponse(_assembleCommand('tcpServer', tcpServer[0], tcpServer[1], cleanPort, tcpServer[3]), reject).then(() => {
+            this._ufo.disconnect().then(resolve);
           });
+        } else {
+          reject(new Error('Returned TCP server information is null.'));
         }
       });
     });
@@ -728,9 +784,11 @@ export class UdpClient {
    * Note that this method always returns a string even if the value is a
    * number.
    */
-  getWifiAutoSwitch(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiAutoSwitch'), (err, value) => {
-      callback(err, String(value));
+  getWifiAutoSwitch(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiAutoSwitch'), reject)
+        .then(value => resolve(String(value)));
     });
   }
   /**
@@ -745,27 +803,30 @@ export class UdpClient {
    * itself and enable its AP mode after the specified number of minutes have
    * passed.
    */
-  setWifiAutoSwitch(value: 'off' | 'on' | 'auto' | number, callback: ?(?Error) => void): void {
-    let error = false;
-    const intValue = parseInt(value, 10);
-    if (isNaN(intValue)) { // eslint-disable-line no-restricted-globals
-      switch (value) {
-        case 'off':
-        case 'on':
-        case 'auto':
-          break;
-        default:
-          error = true;
-          break;
+  setWifiAutoSwitch(value: 'off' | 'on' | 'auto' | number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      let error = false;
+      const intValue = parseInt(value, 10);
+      if (isNaN(intValue)) { // eslint-disable-line no-restricted-globals
+        switch (value) {
+          case 'off':
+          case 'on':
+          case 'auto':
+            break;
+          default:
+            error = true;
+            break;
+        }
+      } else {
+        error = intValue < 3 || intValue > 120;
       }
-    } else {
-      error = intValue < 3 || intValue > 120;
-    }
-    if (error) {
-      if (callback) callback(new Error(`Invalid value ${value}, must be "off", "on", "auto" or 3-120 inclusive.`));
-      return;
-    }
-    this._runCommandNoResponse(_assembleCommand('wifiAutoSwitch', value.toString()), callback);
+      if (error) {
+        reject(new Error(`Invalid value ${value}, must be "off", "on", "auto" or 3-120 inclusive.`));
+        return;
+      }
+      this._runCommandNoResponse(_assembleCommand('wifiAutoSwitch', value.toString()), reject).then(resolve);
+    });
   }
   /**
    * Returns the WiFi mode:
@@ -773,9 +834,11 @@ export class UdpClient {
    * - "STA" (client mode)
    * - "APSTA" (client and AP mode)
    */
-  getWifiMode(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiMode'), (err, mode) => {
-      callback(err, String(mode));
+  getWifiMode(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiMode'), reject)
+        .then(mode => resolve(String(mode)));
     });
   }
   /**
@@ -784,80 +847,94 @@ export class UdpClient {
    * - "STA" (client mode)
    * - "APSTA" (client and AP mode)
    */
-  setWifiMode(mode: 'AP' | 'STA' | 'APSTA', callback: ?(?Error) => void): void {
-    switch (mode) {
-      case 'AP':
-      case 'STA':
-      case 'APSTA':
-        break;
-      default:
-        if (callback) callback(new Error(`Invalid mode ${mode}, must be "AP", "STA" or "APSTA".`));
-        return;
-    }
-    this._runCommandNoResponse(_assembleCommand('wifiMode', mode), callback);
+  setWifiMode(mode: 'AP' | 'STA' | 'APSTA'): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      switch (mode) {
+        case 'AP':
+        case 'STA':
+        case 'APSTA':
+          break;
+        default:
+          reject(new Error(`Invalid mode ${mode}, must be "AP", "STA" or "APSTA".`));
+          return;
+      }
+      this._runCommandNoResponse(_assembleCommand('wifiMode', mode), reject).then(resolve);
+    });
   }
   /** Performs a WiFi AP scan from the UFO and returns the results. */
-  doWifiScan(callback: (?Error, Array<WifiNetwork>) => void): void {
-    const resultArray = [];
-    let headerReceived = false;
-    let errorReceived = false;
-    this._runCommand(_assembleCommand('wifiScan'), (err, result) => {
-      if (!errorReceived) {
-        if (err) {
-          errorReceived = true;
-          this._endCommand(() => callback(err, []));
-        } else if (!headerReceived) {
-          headerReceived = true;
-        } else if (Array.isArray(result)) {
-          // Each line in the output has a \n. It appears to be silently swallowed
-          // by the receiver function, which is fine because we don't want it anyway.
-          resultArray.push({
-            channel: parseInt(result[0], 10),
-            ssid: result[1] || null,
-            mac: _macAddress(result[2]),
-            security: result[3],
-            strength: parseInt(result[4], 10),
-          });
-        } else {
-          this._endCommand(() => callback(null, resultArray));
-        }
-      }
+  doWifiScan(): Promise<null | Array<WifiNetwork>> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      const resultArray = [];
+      let headerReceived = false;
+      let errorReceived = false;
+      this._commandMode(reject).then(() => {
+        this._sendAndStream(_assembleCommand('wifiScan'), (err, result) => {
+          if (!errorReceived) {
+            if (err) {
+              errorReceived = true;
+              this._endCommand(reject).then(() => {
+                this._disconnectCallback = reject;
+                this._socket.emit('error', err);
+              });
+            } else if (!headerReceived) {
+              headerReceived = true;
+            } else if (Array.isArray(result)) {
+              // Each line in the output has a \n. It appears to be silently swallowed
+              // by the receiver function, which is fine because we don't want it anyway.
+              resultArray.push({
+                channel: parseInt(result[0], 10),
+                ssid: result[1] || null,
+                mac: _macAddress(result[2]),
+                security: result[3],
+                strength: parseInt(result[4], 10),
+              });
+            } else {
+              this._endCommand(reject).then(() => resolve(resultArray));
+            }
+          }
+        });
+      }).catch(reject);
     });
   }
   /*
    * AP WiFi methods
    */
   /** Returns the IP address and netmask of the UFO AP. */
-  getWifiApIp(callback: (?Error, ?{ip: string, mask: string}) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiApIp'), (err, result) => {
-      if (err) callback(err, null);
-      else {
-        const resultArray = _asArray(result);
-        callback(null, {
+  getWifiApIp(): Promise<null | {ip: string, mask: string}> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiApIp'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
+        resolve({
           ip: resultArray[0],
           mask: resultArray[1],
         });
-      }
+      });
     });
   }
   /** Sets the IP address and netmask of the UFO AP. */
-  setWifiApIp(ip: string, mask: string, callback: ?(?Error) => void): void {
-    if (!net.isIPv4(ip)) {
-      if (callback) callback(new Error(`Invalid IP address provided: ${ip}.`));
-      return;
-    }
-    if (!net.isIPv4(mask)) {
-      if (callback) callback(new Error(`Invalid subnet mask provided: ${mask}.`));
-      return;
-    }
-    this._runCommandNoResponse(_assembleCommand('wifiApIp', ip, mask), callback);
+  setWifiApIp(ip: string, mask: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (!net.isIPv4(ip)) {
+        reject(new Error(`Invalid IP address provided: ${ip}.`));
+        return;
+      }
+      if (!net.isIPv4(mask)) {
+        reject(new Error(`Invalid subnet mask provided: ${mask}.`));
+        return;
+      }
+      this._runCommandNoResponse(_assembleCommand('wifiApIp', ip, mask), reject).then(resolve);
+    });
   }
   /** Returns the UFO AP's broadcast information. Channel is 1-11 inclusive. */
-  getWifiApBroadcast(callback: (?Error, ?{mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number}) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiApBroadcast'), (err, result) => {
-      if (err) callback(err, null);
-      else {
-        const resultArray = _asArray(result);
+  getWifiApBroadcast(): Promise<null | {mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number}> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiApBroadcast'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
         let mode;
         const rawMode = resultArray[0];
         switch (rawMode.toLowerCase()) {
@@ -871,91 +948,113 @@ export class UdpClient {
             mode = 'bgn';
             break;
           default:
-            callback(new Error(`Impossible AP mode: ${rawMode}`), null);
+            this._disconnectCallback = reject;
+            this._socket.emit('error', new Error(`Impossible AP mode: ${rawMode}`));
             return;
         }
         const ssid = resultArray[1];
         const channel = parseInt(resultArray[2].substring(2), 10);
-        callback(null, { mode, ssid, channel });
-      }
+        resolve({ mode, ssid, channel });
+      });
     });
   }
   /** Sets the UFO AP's broadcast information. Channel is 1-11 inclusive. */
-  setWifiApBroadcast(mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number, callback: ?(?Error) => void): void {
-    if (ssid.length > 32) {
-      if (callback) callback(new Error(`SSID is ${ssid.length} characters long, exceeding limit of 32.`));
-      return;
-    }
-    const cleanChannel = _.clamp(channel, 1, 11);
-    this._runCommandNoResponse(_assembleCommand('wifiApBroadcast', `11${mode.toUpperCase()}`, ssid, `CH${cleanChannel}`), callback);
+  setWifiApBroadcast(mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (ssid.length > 32) {
+        reject(new Error(`SSID is ${ssid.length} characters long, exceeding limit of 32.`));
+        return;
+      }
+      const cleanChannel = _.clamp(channel, 1, 11);
+      this._runCommandNoResponse(_assembleCommand('wifiApBroadcast', `11${mode.toUpperCase()}`, ssid, `CH${cleanChannel}`), reject).then(resolve);
+    });
   }
   /** Returns the UFO AP's passphrase. If null, AP network is open. */
-  getWifiApPassphrase(callback: (?Error, ?string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiApAuth'), (err, result) => {
-      const resultArray = _asArray(result);
-      callback(err, resultArray[0] === 'OPEN' ? null : resultArray[2]);
+  getWifiApPassphrase(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiApAuth'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
+        resolve(resultArray[0] === 'OPEN' ? null : resultArray[2]);
+      });
     });
   }
   /** Sets the UFO's AP passphrase. If null, network will be open. */
-  setWifiApPassphrase(passphrase: string | null, callback: ?(?Error) => void): void {
-    let cmd;
-    if (passphrase === null) {
-      cmd = _assembleCommand('wifiApAuth', 'OPEN', 'NONE');
-    } else if (passphrase.length < 8 || passphrase.length > 63) {
-      if (callback) callback(new Error(`Passphrase is ${passphrase.length} characters long, must be 8-63 characters inclusive.`));
-      return;
-    } else {
-      cmd = _assembleCommand('wifiApAuth', 'WPA2PSK', 'AES', passphrase);
-    }
-    this._runCommandNoResponse(cmd, callback);
+  setWifiApPassphrase(passphrase: string | null): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      let cmd;
+      if (passphrase === null) {
+        cmd = _assembleCommand('wifiApAuth', 'OPEN', 'NONE');
+      } else if (passphrase.length < 8 || passphrase.length > 63) {
+        reject(new Error(`Passphrase is ${passphrase.length} characters long, must be 8-63 characters inclusive.`));
+        return;
+      } else {
+        cmd = _assembleCommand('wifiApAuth', 'WPA2PSK', 'AES', passphrase);
+      }
+      this._runCommandNoResponse(cmd, reject).then(resolve);
+    });
   }
   /**
    * Returns the UFO AP's connection LED flag. If on, the UFO's blue LED will
    * turn on when any client is connected to the AP.
    */
-  getWifiApLed(callback: (?Error, boolean) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiApLed'), (err, result) => {
-      callback(err, String(result) === 'on');
+  getWifiApLed(): Promise<null | boolean> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiApLed'), reject).then((result) => {
+        resolve(String(result) === 'on');
+      });
     });
   }
   /**
    * Sets the UFO AP's connection LED flag. If on, the UFO's blue LED will turn
    * on when any client is connected to the AP.
    */
-  setWifiApLed(on: boolean, callback: ?(?Error) => void): void {
-    this._runCommandNoResponse(_assembleCommand('wifiApLed', on ? 'on' : 'off'), callback);
+  setWifiApLed(on: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._runCommandNoResponse(_assembleCommand('wifiApLed', on ? 'on' : 'off'), reject).then(resolve);
+    });
   }
   /**
    * Returns the UFO AP's DHCP server settings. If DHCP is on, the returned
    * object's "start" and "end" properties will be 0-254 inclusive.
    */
-  getWifiApDhcp(callback: (?Error, ?{on: boolean, start?: number, end?: number}) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiApDhcp'), (err, result) => {
-      if (err) callback(err, null);
-      else {
-        const resultArray = _asArray(result);
+  getWifiApDhcp(): Promise<null | {on: boolean, start?: number, end?: number}> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiApDhcp'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
         const dhcp = {};
         dhcp.on = resultArray[0] === 'on';
         if (dhcp.on) {
           dhcp.start = parseInt(resultArray[1], 10);
           dhcp.end = parseInt(resultArray[2], 10);
         }
-        callback(null, dhcp);
-      }
+        resolve(dhcp);
+      });
     });
   }
   /**
    * Sets the UFO AP's DHCP address range. Both arguments are 0-254 inclusive.
    * This command implicitly enables the DHCP server.
    */
-  setWifiApDhcp(start: number, end: number, callback: ?(?Error) => void): void {
-    const cleanStart = _.clamp(start, 0, 254);
-    const cleanEnd = _.clamp(start, 0, 254);
-    this._runCommandNoResponse(_assembleCommand('wifiApDhcp', 'on', cleanStart, cleanEnd), callback);
+  setWifiApDhcp(start: number, end: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      const cleanStart = _.clamp(start, 0, 254);
+      const cleanEnd = _.clamp(end, 0, 254);
+      this._runCommandNoResponse(_assembleCommand('wifiApDhcp', 'on', cleanStart, cleanEnd), reject).then(resolve);
+    });
   }
   /** Disables the UFO AP's DHCP server. */
-  disableWifiApDhcp(callback: ?(?Error) => void): void {
-    this._runCommandNoResponse(_assembleCommand('wifiApDhcp', 'off'), callback);
+  disableWifiApDhcp(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._runCommandNoResponse(_assembleCommand('wifiApDhcp', 'off'), reject).then(resolve);
+    });
   }
   /*
    * Client WiFi methods
@@ -964,76 +1063,91 @@ export class UdpClient {
    * Returns the UFO client's AP SSID and MAC address. If the UFO is not
    * connected to any AP, the returned object will be null.
    */
-  getWifiClientApInfo(callback: (?Error, ?{ssid: string, mac: string}) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiClientApInfo'), (err, result) => {
-      if (err) callback(err, null);
-      else {
+  getWifiClientApInfo(): Promise<null | {ssid: string, mac: string}> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiClientApInfo'), reject).then((result) => {
         const realResult = String(result);
         if (realResult === 'Disconnected') {
-          callback(null, null);
+          resolve(null);
         } else {
           const match = realResult.match(/(.{1,32})\(([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})\)/i) || [];
-          if (match.length < 2) callback(null, null);
-          else callback(null, { ssid: match[1], mac: _macAddress(match[2]) });
+          if (match.length < 2) resolve(null);
+          else resolve({ ssid: match[1], mac: _macAddress(match[2]) });
         }
-      }
+      });
     });
   }
   /** Returns the UFO client's AP signal strength, as seen by the UFO. */
-  getWifiClientApSignal(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiClientApSignal'), (err, result) => {
-      const resultArray = _asArray(result);
-      callback(err, resultArray.join(','));
+  getWifiClientApSignal(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiClientApSignal'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
+        resolve(resultArray.join(','));
+      });
     });
   }
   /** Returns the UFO client's IP configuration. */
-  getWifiClientIp(callback: (?Error, ?{dhcp: boolean, ip: string, mask: string, gateway: string}) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiClientIp'), (err, result) => {
-      const resultArray = _asArray(result);
-      if (err) callback(err, null);
-      else {
-        callback(null, {
+  getWifiClientIp(): Promise<null | {dhcp: boolean, ip: string, mask: string, gateway: string}> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiClientIp'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
+        resolve({
           dhcp: resultArray[0] === 'DHCP',
           ip: resultArray[1],
           mask: resultArray[2],
           gateway: resultArray[3],
         });
-      }
+      });
     });
   }
   /** Enables DHCP mode for the UFO client. */
-  setWifiClientIpDhcp(callback: ?(?Error) => void): void {
-    this._runCommandNoResponse(_assembleCommand('wifiClientIp', 'DHCP'), callback);
+  setWifiClientIpDhcp(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      this._runCommandNoResponse(_assembleCommand('wifiClientIp', 'DHCP'), reject).then(resolve);
+    });
   }
   /** Sets the IP configuration for the UFO client. Implicitly disables DHCP. */
-  setWifiClientIpStatic(ip: string, mask: string, gateway: string, callback: ?(?Error) => void): void {
-    if (!net.isIPv4(ip)) {
-      if (callback) callback(new Error(`Invalid IP address provided: ${ip}.`));
-      return;
-    }
-    if (!net.isIPv4(mask)) {
-      if (callback) callback(new Error(`Invalid subnet mask provided: ${mask}.`));
-      return;
-    }
-    if (!net.isIPv4(gateway)) {
-      if (callback) callback(new Error(`Invalid gateway provided: ${gateway}.`));
-      return;
-    }
-    this._runCommandNoResponse(_assembleCommand('wifiClientIp', 'static', ip, mask, gateway), callback);
+  setWifiClientIpStatic(ip: string, mask: string, gateway: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (!net.isIPv4(ip)) {
+        reject(new Error(`Invalid IP address provided: ${ip}.`));
+        return;
+      }
+      if (!net.isIPv4(mask)) {
+        reject(new Error(`Invalid subnet mask provided: ${mask}.`));
+        return;
+      }
+      if (!net.isIPv4(gateway)) {
+        reject(new Error(`Invalid gateway provided: ${gateway}.`));
+        return;
+      }
+      this._runCommandNoResponse(_assembleCommand('wifiClientIp', 'static', ip, mask, gateway), reject).then(resolve);
+    });
   }
   /** Returns the UFO client's AP SSID. */
-  getWifiClientSsid(callback: (?Error, string) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiClientSsid'), (err, result) => {
-      callback(err, String(result));
+  getWifiClientSsid(): Promise<null | string> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiClientSsid'), reject).then((result) => {
+        resolve(String(result));
+      });
     });
   }
   /** Sets the UFO client's AP SSID. */
-  setWifiClientSsid(ssid: string, callback: ?(?Error) => void): void {
-    if (ssid.length > 32) {
-      if (callback) callback(new Error(`SSID is ${ssid.length} characters long, exceeding limit of 32.`));
-      return;
-    }
-    this._runCommandNoResponse(_assembleCommand('wifiClientSsid', ssid), callback);
+  setWifiClientSsid(ssid: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (ssid.length > 32) {
+        reject(new Error(`SSID is ${ssid.length} characters long, exceeding limit of 32.`));
+        return;
+      }
+      this._runCommandNoResponse(_assembleCommand('wifiClientSsid', ssid), reject).then(resolve);
+    });
   }
   /**
    * Returns the UFO client's AP auth settings.
@@ -1048,17 +1162,17 @@ export class UdpClient {
    * - If encryption is TKIP or AES, paraphrase is 8-63 ASCII characters in
    * length, inclusive.
    */
-  getWifiClientAuth(callback: (?Error, ?{auth: string, encryption: string, passphrase: string | null}) => void): void {
-    this._runCommandWithResponse(_assembleCommand('wifiClientAuth'), (err, result) => {
-      if (err) callback(err, null);
-      else {
-        const resultArray = _asArray(result);
-        callback(null, {
+  getWifiClientAuth(): Promise<null | {auth: string, encryption: string, passphrase: string | null}> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(null); return; }
+      this._runCommandWithResponse(_assembleCommand('wifiClientAuth'), reject).then((result) => {
+        const resultArray = _asArray(result || '');
+        resolve({
           auth: resultArray[0],
           encryption: resultArray[1],
           passphrase: resultArray[2] || null,
         });
-      }
+      });
     });
   }
   /**
@@ -1078,78 +1192,80 @@ export class UdpClient {
     auth: 'OPEN' | 'SHARED' | 'WPAPSK' | 'WPA2PSK',
     encryption: 'NONE' | 'WEP-H' | 'WEP-A' | 'TKIP' | 'AES',
     passphrase?: string | null,
-    callback: ?(?Error) => void,
-  ): void {
-    if (auth === 'OPEN') {
-      switch (encryption) {
-        case 'NONE':
-        case 'WEP-H':
-        case 'WEP-A':
-          break;
-        default:
-          if (callback) callback(new Error(`Invocation error: auth is OPEN but unsupported encryption ${encryption} provided.`));
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this._dead) { resolve(); return; }
+      if (auth === 'OPEN') {
+        switch (encryption) {
+          case 'NONE':
+          case 'WEP-H':
+          case 'WEP-A':
+            break;
+          default:
+            reject(new Error(`Invocation error: auth is OPEN but unsupported encryption ${encryption} provided.`));
+            return;
+        }
+      } else if (auth === 'SHARED') {
+        switch (encryption) {
+          case 'WEP-H':
+          case 'WEP-A':
+            break;
+          default:
+            reject(new Error(`Invocation error: auth is SHARED but unsupported encryption ${encryption} provided.`));
+            return;
+        }
+      } else {
+        switch (encryption) {
+          case 'TKIP':
+          case 'AES':
+            break;
+          default:
+            reject(new Error(`Invocation error: auth is WPA(2)PSK but unsupported encryption ${encryption} provided.`));
+            return;
+        }
+      }
+      if (encryption === 'NONE' && passphrase !== null) {
+        reject(new Error('Invocation error: encryption is NONE but passphrase was provided.'));
+        return;
+      } else if (!passphrase) {
+        reject(new Error('Invocation error: encryption is enabled but passphrase was not provided.'));
+        return;
+      } else if (encryption === 'WEP-H') {
+        if (passphrase.length !== 10 && passphrase.length !== 26) {
+          reject(new Error(`Invocation error: encryption is WEP-H but passphrase length is ${passphrase.length}, not 10 or 26.`));
           return;
-      }
-    } else if (auth === 'SHARED') {
-      switch (encryption) {
-        case 'WEP-H':
-        case 'WEP-A':
-          break;
-        default:
-          if (callback) callback(new Error(`Invocation error: auth is SHARED but unsupported encryption ${encryption} provided.`));
+        }
+        if (passphrase.replace(/[0-9a-fA-F]/g, '').length !== 0) {
+          reject(new Error('Invocation error: encryption is WEP-H but passphrase contains non-hexadecimal characters.'));
           return;
-      }
-    } else {
-      switch (encryption) {
-        case 'TKIP':
-        case 'AES':
-          break;
-        default:
-          if (callback) callback(new Error(`Invocation error: auth is WPA(2)PSK but unsupported encryption ${encryption} provided.`));
+        }
+      } else if (encryption === 'WEP-A') {
+        if (passphrase.length !== 5 && passphrase.length !== 13) {
+          reject(new Error(`Invocation error: encryption is WEP-A but passphrase length is ${passphrase.length}, not 5 or 13.`));
           return;
+        }
+        if (passphrase.replace(/[\x00-\x7F]/g, '').length !== 0) { // eslint-disable-line no-control-regex
+          reject(new Error('Invocation error: encryption is WEP-A but passphrase contains non-ASCII characters.'));
+          return;
+        }
+      } else { // TKIP or AES
+        if (passphrase.length < 8 || passphrase.length > 63) {
+          reject(new Error(`Invocation error: encryption is ${encryption} but passphrase length is ${passphrase.length}, not 8-63 inclusive.`));
+          return;
+        }
+        if (passphrase.replace(/[\x00-\x7F]/g, '').length !== 0) { // eslint-disable-line no-control-regex
+          reject(new Error(`Invocation error: encryption is ${encryption} but passphrase contains non-ASCII characters.`));
+          return;
+        }
       }
-    }
-    if (encryption === 'NONE' && passphrase !== null) {
-      if (callback) callback(new Error('Invocation error: encryption is NONE but passphrase was provided.'));
-      return;
-    } else if (!passphrase) {
-      if (callback) callback(new Error('Invocation error: encryption is enabled but passphrase was not provided.'));
-      return;
-    } else if (encryption === 'WEP-H') {
-      if (passphrase.length !== 10 && passphrase.length !== 26) {
-        if (callback) callback(new Error(`Invocation error: encryption is WEP-H but passphrase length is ${passphrase.length}, not 10 or 26.`));
-        return;
+      let cmd;
+      if (encryption === 'NONE') {
+        cmd = _assembleCommand('wifiClientAuth', 'OPEN', 'NONE');
+      } else {
+        cmd = _assembleCommand('wifiClientAuth', auth, encryption, passphrase || '');
       }
-      if (passphrase.replace(/[0-9a-fA-F]/g, '').length !== 0) {
-        if (callback) callback(new Error('Invocation error: encryption is WEP-H but passphrase contains non-hexadecimal characters.'));
-        return;
-      }
-    } else if (encryption === 'WEP-A') {
-      if (passphrase.length !== 5 && passphrase.length !== 13) {
-        if (callback) callback(new Error(`Invocation error: encryption is WEP-A but passphrase length is ${passphrase.length}, not 5 or 13.`));
-        return;
-      }
-      if (passphrase.replace(/[\x00-\x7F]/g, '').length !== 0) { // eslint-disable-line no-control-regex
-        if (callback) callback(new Error('Invocation error: encryption is WEP-A but passphrase contains non-ASCII characters.'));
-        return;
-      }
-    } else { // TKIP or AES
-      if (passphrase.length < 8 || passphrase.length > 63) {
-        if (callback) callback(new Error(`Invocation error: encryption is ${encryption} but passphrase length is ${passphrase.length}, not 8-63 inclusive.`));
-        return;
-      }
-      if (passphrase.replace(/[\x00-\x7F]/g, '').length !== 0) { // eslint-disable-line no-control-regex
-        if (callback) callback(new Error(`Invocation error: encryption is ${encryption} but passphrase contains non-ASCII characters.`));
-        return;
-      }
-    }
-    let cmd;
-    if (encryption === 'NONE') {
-      cmd = _assembleCommand('wifiClientAuth', 'OPEN', 'NONE');
-    } else {
-      cmd = _assembleCommand('wifiClientAuth', auth, encryption, passphrase || '');
-    }
-    this._runCommandNoResponse(cmd, callback);
+      this._runCommandNoResponse(cmd, reject).then(resolve);
+    });
   }
 }
 export default UdpClient;

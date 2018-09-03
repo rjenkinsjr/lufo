@@ -266,12 +266,12 @@ class Ufo extends EventEmitter {
    * UFO configuration getter methods
    */
   /** Returns the UFO's hardware/firmware version. */
-  getVersion(callback: (?Error, string) => void): void {
-    this._udpClient.getVersion(callback);
+  getVersion(): Promise<null | string> {
+    return this._udpClient.getVersion();
   }
   /** Returns the UFO's NTP server IP address. */
-  getNtpServer(callback: (?Error, string) => void): void {
-    this._udpClient.getNtpServer(callback);
+  getNtpServer(): Promise<null | string> {
+    return this._udpClient.getNtpServer();
   }
   /**
    * Returns the UFO's WiFi "auto-switch" setting, which is one of the
@@ -289,8 +289,8 @@ class Ufo extends EventEmitter {
    * Note that this method always returns a string even if the value is a
    * number.
    */
-  getWifiAutoSwitch(callback: (?Error, string) => void): void {
-    this._udpClient.getWifiAutoSwitch(callback);
+  getWifiAutoSwitch(): Promise<null | string> {
+    return this._udpClient.getWifiAutoSwitch();
   }
   /**
    * Returns the UFO's WiFi mode:
@@ -298,57 +298,57 @@ class Ufo extends EventEmitter {
    * - "STA" (client mode)
    * - "APSTA" (client and AP mode)
    */
-  getWifiMode(callback: (?Error, string) => void): void {
-    this._udpClient.getWifiMode(callback);
+  getWifiMode(): Promise<null | string> {
+    return this._udpClient.getWifiMode();
   }
   /** Performs a WiFi AP scan from the UFO and returns the results. */
-  doWifiScan(callback: (?Error, Array<WifiNetwork>) => void): void {
-    this._udpClient.doWifiScan(callback);
+  doWifiScan(): Promise<null | Array<WifiNetwork>> {
+    return this._udpClient.doWifiScan();
   }
   /** Returns the IP address and netmask of the UFO AP. */
-  getWifiApIp(callback: (?Error, ?{ip: string, mask: string}) => void): void {
-    this._udpClient.getWifiApIp(callback);
+  getWifiApIp(): Promise<null | {ip: string, mask: string}> {
+    return this._udpClient.getWifiApIp();
   }
   /** Returns the UFO AP's broadcast information. Channel is 1-11 inclusive. */
-  getWifiApBroadcast(callback: (?Error, ?{mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number}) => void): void {
-    this._udpClient.getWifiApBroadcast(callback);
+  getWifiApBroadcast(): Promise<null | {mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number}> {
+    return this._udpClient.getWifiApBroadcast();
   }
   /** Returns the UFO AP's passphrase. If null, AP network is open. */
-  getWifiApPassphrase(callback: (?Error, ?string) => void): void {
-    this._udpClient.getWifiApPassphrase(callback);
+  getWifiApPassphrase(): Promise<null | string> {
+    return this._udpClient.getWifiApPassphrase();
   }
   /**
    * Returns the UFO AP's connection LED flag. If on, the UFO's blue LED will
    * turn on when any client is connected to the AP.
    */
-  getWifiApLed(callback: (?Error, boolean) => void): void {
-    this._udpClient.getWifiApLed(callback);
+  getWifiApLed(): Promise<null | boolean> {
+    return this._udpClient.getWifiApLed();
   }
   /**
    * Returns the UFO AP's DHCP server settings. If DHCP is on, the returned
    * object's "start" and "end" properties will be 0-254 inclusive.
    */
-  getWifiApDhcp(callback: (?Error, ?{on: boolean, start?: number, end?: number}) => void): void {
-    this._udpClient.getWifiApDhcp(callback);
+  getWifiApDhcp(): Promise<null | {on: boolean, start?: number, end?: number}> {
+    return this._udpClient.getWifiApDhcp();
   }
   /**
    * Returns the UFO client's AP SSID and MAC address. If the UFO is not
    * connected to any AP, the returned object will be null.
    */
-  getWifiClientApInfo(callback: (?Error, ?{ssid: string, mac: string}) => void): void {
-    this._udpClient.getWifiClientApInfo(callback);
+  getWifiClientApInfo(): Promise<null | {ssid: string, mac: string}> {
+    return this._udpClient.getWifiClientApInfo();
   }
   /** Returns the UFO client's AP signal strength, as seen by the UFO. */
-  getWifiClientApSignal(callback: (?Error, string) => void): void {
-    this._udpClient.getWifiClientApSignal(callback);
+  getWifiClientApSignal(): Promise<null | string> {
+    return this._udpClient.getWifiClientApSignal();
   }
   /** Returns the UFO client's IP configuration. */
-  getWifiClientIp(callback: (?Error, ?{dhcp: boolean, ip: string, mask: string, gateway: string}) => void): void {
-    this._udpClient.getWifiClientIp(callback);
+  getWifiClientIp(): Promise<null | {dhcp: boolean, ip: string, mask: string, gateway: string}> {
+    return this._udpClient.getWifiClientIp();
   }
   /** Returns the UFO client's AP SSID. */
-  getWifiClientSsid(callback: (?Error, string) => void): void {
-    this._udpClient.getWifiClientSsid(callback);
+  getWifiClientSsid(): Promise<null | string> {
+    return this._udpClient.getWifiClientSsid();
   }
   /**
    * Returns the UFO client's AP auth settings.
@@ -363,23 +363,23 @@ class Ufo extends EventEmitter {
    * - If encryption is TKIP or AES, paraphrase is 8-63 ASCII characters in
    * length, inclusive.
    */
-  getWifiClientAuth(callback: (?Error, ?{auth: string, encryption: string, passphrase: string | null}) => void): void {
-    this._udpClient.getWifiClientAuth(callback);
+  getWifiClientAuth(): Promise<null | {auth: string, encryption: string, passphrase: string | null}> {
+    return this._udpClient.getWifiClientAuth();
   }
   /*
    * UFO configuration setter methods
    */
   /** Sets the NTP server IP address. */
-  setNtpServer(ipAddress: string, callback: ?(?Error) => void): void {
-    this._udpClient.setNtpServer(ipAddress, callback);
+  setNtpServer(ipAddress: string): Promise<void> {
+    return this._udpClient.setNtpServer(ipAddress);
   }
   /**
    * Sets the UFO's UDP password. If an error occurs while executing this
    * command, the owning UFO object will be disconnected and the given callback
    * (if any) will override whatever disconnect callback was previously defined.
    */
-  setUdpPassword(password: string, callback: ?(?Error) => void): void {
-    this._udpClient.setUdpPassword(password, callback);
+  setUdpPassword(password: string): Promise<void> {
+    return this._udpClient.setUdpPassword(password);
   }
   /**
    * Sets the UFO's TCP port. The owning UFO object will be disconnected after
@@ -387,8 +387,8 @@ class Ufo extends EventEmitter {
    * overrides whatever disconnect callback was defined when the client was
    * constructed.
    */
-  setTcpPort(port: number, callback?: Function): void {
-    this._udpClient.setTcpPort(port, callback);
+  setTcpPort(port: number): Promise<void> {
+    return this._udpClient.setTcpPort(port);
   }
   /**
    * Sets the UFO's WiFi "auto-switch" setting, which is one of the following:
@@ -402,8 +402,8 @@ class Ufo extends EventEmitter {
    * itself and enable its AP mode after the specified number of minutes have
    * passed.
    */
-  setWifiAutoSwitch(value: 'off' | 'on' | 'auto' | number, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiAutoSwitch(value, callback);
+  setWifiAutoSwitch(value: 'off' | 'on' | 'auto' | number): Promise<void> {
+    return this._udpClient.setWifiAutoSwitch(value);
   }
   /**
    * Sets the UFO's WiFi mode:
@@ -411,50 +411,50 @@ class Ufo extends EventEmitter {
    * - "STA" (client mode)
    * - "APSTA" (client and AP mode)
    */
-  setWifiMode(mode: 'AP' | 'STA' | 'APSTA', callback: ?(?Error) => void): void {
-    this._udpClient.setWifiMode(mode, callback);
+  setWifiMode(mode: 'AP' | 'STA' | 'APSTA'): Promise<void> {
+    return this._udpClient.setWifiMode(mode);
   }
   /** Sets the IP address and netmask of the UFO AP. */
-  setWifiApIp(ip: string, mask: string, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiApIp(ip, mask, callback);
+  setWifiApIp(ip: string, mask: string): Promise<void> {
+    return this._udpClient.setWifiApIp(ip, mask);
   }
   /** Sets the UFO AP's broadcast information. Channel is 1-11 inclusive. */
-  setWifiApBroadcast(mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiApBroadcast(mode, ssid, channel, callback);
+  setWifiApBroadcast(mode: 'b' | 'bg' | 'bgn', ssid: string, channel: number): Promise<void> {
+    return this._udpClient.setWifiApBroadcast(mode, ssid, channel);
   }
   /** Sets the UFO's AP passphrase. If null, network will be open. */
-  setWifiApPassphrase(passphrase: string | null, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiApPassphrase(passphrase, callback);
+  setWifiApPassphrase(passphrase: string | null): Promise<void> {
+    return this._udpClient.setWifiApPassphrase(passphrase);
   }
   /**
    * Sets the UFO AP's connection LED flag. If on, the UFO's blue LED will turn
    * on when any client is connected to the AP.
    */
-  setWifiApLed(on: boolean, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiApLed(on, callback);
+  setWifiApLed(on: boolean): Promise<void> {
+    return this._udpClient.setWifiApLed(on);
   }
   /**
    * Sets the UFO AP's DHCP address range. Both arguments are 0-254 inclusive.
    * This command implicitly enables the DHCP server.
    */
-  setWifiApDhcp(start: number, end: number, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiApDhcp(start, end, callback);
+  setWifiApDhcp(start: number, end: number): Promise<void> {
+    return this._udpClient.setWifiApDhcp(start, end);
   }
   /** Disables the UFO AP's DHCP server. */
-  disableWifiApDhcp(callback: ?(?Error) => void): void {
-    this._udpClient.disableWifiApDhcp(callback);
+  disableWifiApDhcp(): Promise<void> {
+    return this._udpClient.disableWifiApDhcp();
   }
   /** Enables DHCP mode for the UFO client. */
-  setWifiClientIpDhcp(callback: ?(?Error) => void): void {
-    this._udpClient.setWifiClientIpDhcp(callback);
+  setWifiClientIpDhcp(): Promise<void> {
+    return this._udpClient.setWifiClientIpDhcp();
   }
   /** Sets the IP configuration for the UFO client. Implicitly disables DHCP. */
-  setWifiClientIpStatic(ip: string, mask: string, gateway: string, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiClientIpStatic(ip, mask, gateway, callback);
+  setWifiClientIpStatic(ip: string, mask: string, gateway: string): Promise<void> {
+    return this._udpClient.setWifiClientIpStatic(ip, mask, gateway);
   }
   /** Sets the UFO client's AP SSID. */
-  setWifiClientSsid(ssid: string, callback: ?(?Error) => void): void {
-    this._udpClient.setWifiClientSsid(ssid, callback);
+  setWifiClientSsid(ssid: string): Promise<void> {
+    return this._udpClient.setWifiClientSsid(ssid);
   }
   /**
    * Sets the UFO client's AP auth settings.
@@ -473,9 +473,8 @@ class Ufo extends EventEmitter {
     auth: 'OPEN' | 'SHARED' | 'WPAPSK' | 'WPA2PSK',
     encryption: 'NONE' | 'WEP-H' | 'WEP-A' | 'TKIP' | 'AES',
     passphrase?: string | null,
-    callback: ?(?Error) => void,
-  ): void {
-    this._udpClient.setWifiClientAuth(auth, encryption, passphrase, callback);
+  ): Promise<void> {
+    return this._udpClient.setWifiClientAuth(auth, encryption, passphrase);
   }
   /*
    * Miscellaneous methods
@@ -485,8 +484,8 @@ class Ufo extends EventEmitter {
    * method is invoked. If a callback is provided to this method, it overrides
    * whatever disconnect callback was defined when the client was constructed.
    */
-  reboot(callback?: Function): void {
-    this._udpClient.reboot(callback);
+  reboot(): Promise<void> {
+    return this._udpClient.reboot();
   }
   /**
    * Resets the UFO to factory defaults. The owning UFO object will be
@@ -494,8 +493,8 @@ class Ufo extends EventEmitter {
    * this method, it overrides whatever disconnect callback was defined when the
    * client was constructed.
    */
-  factoryReset(callback?: Function): void {
-    this._udpClient.factoryReset(callback);
+  factoryReset(): Promise<void> {
+    return this._udpClient.factoryReset();
   }
 }
 export default Ufo;
