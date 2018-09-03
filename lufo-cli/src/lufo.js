@@ -30,7 +30,7 @@ const quitError = function (obj) {
   if (_.isError(obj)) {
     console.error(obj);
   } else {
-    console.error(obj.toString());
+    console.error(`ERROR: ${obj.toString()}`);
   }
   if (theUfo) theUfo.disconnect();
   process.exitCode = 1;
