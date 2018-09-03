@@ -115,9 +115,7 @@ process.on('beforeExit', () => {
  */
 // Discover command
 const discover = function (args) {
-  Ufo.discover(args)
-    .then(data => console.log(JSON.stringify(data, null, 2)))
-    .catch(quitError);
+  Ufo.discover(args).then(quitValue(true)).catch(quitError);
 };
 cli.command('discover [timeout]')
   .alias('d')
