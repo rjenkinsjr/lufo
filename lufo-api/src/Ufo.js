@@ -103,7 +103,7 @@ class Ufo {
    */
   /**
    * Establishes a connection to the UFO. If this method fails, it is safe to
-   * retry connecting unless the error implies that retrying is not ppropriate.
+   * retry connecting unless the error implies that retrying is not appropriate.
    */
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
