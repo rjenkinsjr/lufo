@@ -4,6 +4,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$DIR/.."
 
 echo '--------------------------------------------------'
+echo '[nvm:deploy-version]'
+echo '--------------------------------------------------'
+eval . "$CIRCLE_WORKING_DIRECTORY/.lufoDependencies"
+cd ~/.nvm
+. nvm.sh
+nvm use $LUFO_DEPLOY_NODE_VERSION
+
+echo '--------------------------------------------------'
 echo '[pack:api]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api

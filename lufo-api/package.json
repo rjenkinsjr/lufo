@@ -1,6 +1,6 @@
 {
   "name": "lufo-api",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "API for LEDENET UFO WiFi RGBW controllers.",
   "main": "lib/Ufo.js",
   "dependencies": {
