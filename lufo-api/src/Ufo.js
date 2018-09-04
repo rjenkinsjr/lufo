@@ -1,5 +1,4 @@
 // @flow
-import EventEmitter from 'events';
 import { TcpClient } from './TcpClient';
 import type { BuiltinFunction, CustomMode, CustomStep, UfoStatus } from './TcpClient';
 import { UdpClient } from './UdpClient';
@@ -23,7 +22,7 @@ class UfoDisconnectError extends Error { // eslint-disable-line import/prefer-de
 }
 
 /** The API for interfacing with UFO devices. */
-class Ufo extends EventEmitter {
+class Ufo {
   _dead: boolean;
   _options: UfoOptions;
   _disconnectCallback: ?Function;
@@ -32,7 +31,6 @@ class Ufo extends EventEmitter {
   _tcpError: ?Error;
   _udpError: ?Error;
   constructor(options: UfoOptions) {
-    super();
     // Flag that tracks the state of this UFO object.
     this._dead = false;
     // Capture the options provided by the user.
@@ -40,39 +38,9 @@ class Ufo extends EventEmitter {
     // Create the TCP and UDP clients.
     this._tcpClient = new TcpClient(this, options);
     this._udpClient = new UdpClient(this, options);
-    // Define the "client is dead" event handlers.
+    // Define the "client is dead" flag variables.
     this._tcpError = null;
-    this.on('tcpDead', (deadData) => {
-      this._dead = true;
-      this._tcpError = deadData.error;
-      if (!this._disconnectCallback) this._disconnectCallback = deadData.callback;
-      if (this._udpClient._dead) {
-        this.emit('dead');
-      } else {
-        this._udpClient.disconnect();
-      }
-    });
     this._udpError = null;
-    this.on('udpDead', (deadData) => {
-      this._dead = true;
-      this._udpError = deadData.error;
-      if (!this._disconnectCallback) this._disconnectCallback = deadData.callback;
-      if (this._tcpClient._dead) {
-        this.emit('dead');
-      } else {
-        this._tcpClient.disconnect();
-      }
-    });
-    // Define the "UFO is dead" event handler, invoked once both clients are closed.
-    this.on('dead', () => {
-      // Invoke the disconnect callback, if one is defined.
-      let error = null;
-      if (this._udpError || this._tcpError) {
-        error = new UfoDisconnectError('UFO disconnected due to an error.', this._udpError, this._tcpError);
-      }
-      const dc = this._disconnectCallback;
-      if (dc) dc(error);
-    });
   }
   /** Searches for UFOs on the network. Returned array may be empty. */
   static discover(options: UfoDiscoverOptions): Promise<Array<DiscoveredUfo>> {
@@ -85,6 +53,50 @@ class Ufo extends EventEmitter {
   /** Indicates whether or not the given custom step is a null step. */
   static isNullStep(step: CustomStep): boolean {
     return TcpClient.isNullStep(step);
+  }
+  /*
+   * Dead handling methods.
+   */
+  /**
+   * Called by {@link TcpClient} when it dies.
+   * @private
+   */
+  _onTcpDead(deadData: {error: ?Error, callback: ?Function}): void {
+    this._dead = true;
+    this._tcpError = deadData.error;
+    if (!this._disconnectCallback) this._disconnectCallback = deadData.callback;
+    if (this._udpClient._dead) {
+      this._onUfoDead();
+    } else {
+      this._udpClient.disconnect();
+    }
+  }
+  /**
+   * Called by {@link UdpClient} when it dies.
+   * @private
+   */
+  _onUdpDead(deadData: {error: ?Error, callback: ?Function}): void {
+    this._dead = true;
+    this._udpError = deadData.error;
+    if (!this._disconnectCallback) this._disconnectCallback = deadData.callback;
+    if (this._tcpClient._dead) {
+      this._onUfoDead();
+    } else {
+      this._tcpClient.disconnect();
+    }
+  }
+  /**
+   * Called by _onTcpDead or _onUdpDead once both clients are dead.
+   * @private
+   */
+  _onUfoDead(): void {
+    // Invoke the disconnect callback, if one is defined.
+    let error = null;
+    if (this._udpError || this._tcpError) {
+      error = new UfoDisconnectError('UFO disconnected due to an error.', this._udpError, this._tcpError);
+    }
+    const dc = this._disconnectCallback;
+    if (dc) dc(error);
   }
   /*
    * Connect/disconnect methods
@@ -102,17 +114,29 @@ class Ufo extends EventEmitter {
   }
   /**
    * Disconnects from the UFO. After disconnecting, this object cannot be used;
-   * you must construct a new {@link Ufo} object to reconnect. The promise is
-   * guaranteed never to be rejected.
+   * you must construct a new {@link Ufo} object to reconnect.
+   *
+   * If a callback is provided, it is called once disconnect is finished and
+   * this function returns null. Otherwise, a promise is returned that will
+   * be resolved once disconnect is finished (this promise will never be
+   * rejected).
    */
-  disconnect(): Promise<void> {
-    return new Promise((resolve, reject) => { // eslint-disable-line no-unused-vars
-      if (this._dead) { resolve(); return; }
-      this._dead = true;
-      this._disconnectCallback = resolve;
-      this._udpClient.disconnect();
-      this._tcpClient.disconnect();
-    });
+  disconnect(cb: ?Function): ?Promise<void> {
+    if (typeof cb === 'undefined') {
+      return new Promise((resolve, reject) => { // eslint-disable-line no-unused-vars
+        if (this._dead) { resolve(); }
+        this._dead = true;
+        this._disconnectCallback = resolve;
+        this._udpClient.disconnect();
+        this._tcpClient.disconnect();
+      });
+    }
+    if (this._dead) { cb(); return null; }
+    this._dead = true;
+    this._disconnectCallback = cb;
+    this._udpClient.disconnect();
+    this._tcpClient.disconnect();
+    return null;
   }
   /*
    * Query methods

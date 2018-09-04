@@ -391,7 +391,7 @@ export class UdpClient {
     // The socket has been closed; react appropriately.
     this._socket.on('close', () => {
       this._socket.unref();
-      this._ufo.emit('udpDead', {
+      this._ufo._onUdpDead({
         error: this._error,
         callback: this._disconnectCallback,
       });
@@ -683,7 +683,7 @@ export class UdpClient {
       // We cannot use _runCommand here because we wiill not receive any response.
       this._commandMode(reject).then(() => {
         this._send(_assembleCommand('reboot'), reject).then(() => {
-          this._ufo.disconnect().then(resolve);
+          this._ufo.disconnect(resolve);
         });
       });
     });
@@ -702,7 +702,7 @@ export class UdpClient {
       this._runCommand(_assembleCommand('factoryReset'), reject).then((resp) => {
         // Emit an error if the response did not match, or otherwise disconnect.
         if (resp === expected) {
-          this._ufo.disconnect().then(resolve);
+          this._ufo.disconnect(resolve);
         } else {
           this._disconnectCallback = reject;
           const response = String(resp) || 'null';
@@ -758,7 +758,7 @@ export class UdpClient {
         const cleanPort = _.clamp(port, 0, 65535);
         if (tcpServer) {
           this._runCommandNoResponse(_assembleCommand('tcpServer', tcpServer[0], tcpServer[1], cleanPort, tcpServer[3]), reject).then(() => {
-            this._ufo.disconnect().then(resolve);
+            this._ufo.disconnect(resolve);
           });
         } else {
           reject(new Error('Returned TCP server information is null.'));

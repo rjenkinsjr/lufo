@@ -244,7 +244,7 @@ export class TcpClient {
     } else {
       // Mark this client as dead and notify the UFO object.
       this._dead = true;
-      this._ufo.emit('tcpDead', {
+      this._ufo._onTcpDead({
         error: this._error,
         callback: this._disconnectCallback,
       });

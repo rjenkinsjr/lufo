@@ -54,51 +54,50 @@ describe("TcpClient", function() {
     expect(client._options.remoteAddress).toBe(serverHost);
     expect(client._options.immediate).toBe(true);
   });
-  it("#connect works", async function() {
-    const cb = jasmine.createSpy('connect');
-    const client = new TcpClient(null, {host:serverHost});
-    client.connect(cb);
-    await Util.sleep(100);
-    expect(cb).toHaveBeenCalled();
-  });
   it("#on works", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.on(); });
+    await client.connect();
+    await client.on();
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x71, 0x23, 0x0F, 0xA3]));
   });
   it("#off works", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.off(); });
+    await client.connect();
+    await client.off();
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x71, 0x24, 0x0F, 0xA4]));
   });
   it("#rgbw works", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.rgbw(255, 255, 255, 255); });
+    await client.connect();
+    await client.rgbw(255, 255, 255, 255);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x31, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x0F, 0x3C]));
   });
   it("#rgbw clamps out-of-range values", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.rgbw(256, -1, 256, -1); });
+    await client.connect();
+    await client.rgbw(256, -1, 256, -1);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x31, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x0F, 0x3E]));
   });
   it("#builtin works", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.builtin('redGradualChange', 75); });
+    await client.connect();
+    await client.builtin('redGradualChange', 75);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x61, 0x26, 0x19, 0x0F, 0xAF]));
   });
   it("#builtin clamps out-of-range values", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.builtin('redGradualChange', 101); });
+    await client.connect();
+    await client.builtin('redGradualChange', 101);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x61, 0x26, 0x00, 0x0F, 0x96]));
@@ -107,22 +106,23 @@ describe("TcpClient", function() {
     const funcName = 'doesNotExist';
     const cb = jasmine.createSpy('builtin');
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.builtin(funcName, 0, cb); });
-    await Util.sleep(100);
-    expect(recv.length).toBe(0);
-    expect(cb).toHaveBeenCalled();
-    expect(cb.calls.first().args.length).toBe(1);
-    const error = cb.calls.first().args[0];
-    expect(error instanceof Error).toBe(true);
-    expect(error.message).toBe(`No such built-in function ${funcName}`);
+    await client.connect();
+    try {
+      await client.builtin(funcName, 0, cb);
+      fail('Invalid function name was not rejected')
+    } catch (error) {
+      expect(error instanceof Error).toBe(true);
+      expect(error.message).toBe(`No such built-in function ${funcName}`);
+    }
   });
   it("#custom works", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.custom('gradual', 10, [
+    await client.connect();
+    await client.custom('gradual', 10, [
       { red: 255, green: 0, blue: 0 },
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
-    ]); });
+    ]);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
@@ -147,11 +147,12 @@ describe("TcpClient", function() {
   });
   it("#custom clamps out-of-range values", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.custom('jumping', 40, [
+    await client.connect();
+    await client.custom('jumping', 40, [
       { red: 256, green: -1, blue: -1 },
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
-    ]); });
+    ]);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
@@ -176,12 +177,13 @@ describe("TcpClient", function() {
   });
   it("#custom strips out null steps", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.custom('strobe', 30, [
+    await client.connect();
+    await client.custom('strobe', 30, [
       { red: 1, green: 2, blue: 3 },
       { red: 255, green: 0, blue: 0 },
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
-    ]); });
+    ]);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
@@ -205,7 +207,8 @@ describe("TcpClient", function() {
     0xFF, 0x0F, 0xE7]));
   });it("#custom silently drops more than 16 steps", async function() {
     const client = new TcpClient(null, {host:serverHost});
-    client.connect(function() { client.custom('strobe', 30, [
+    await client.connect();
+    await client.custom('strobe', 30, [
       { red: 255, green: 0, blue: 0 },
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
@@ -224,7 +227,7 @@ describe("TcpClient", function() {
       { red: 255, green: 0, blue: 0 },
       { red: 0, green: 255, blue: 0 },
       { red: 0, green: 0, blue: 255 },
-    ]); });
+    ]);
     await Util.sleep(100);
     expect(recv.length).toBe(1);
     expect(recv[0]).toEqual(Buffer.from([0x51,
@@ -275,24 +278,23 @@ describe("TcpClient#status", function() {
       0x03, 0x00, 0x00,
     0x29]);
     const client = new TcpClient(null, {host:serverHost});
-    var err, status;
-    client.connect(function() { client.status(function(a, b) {
-      err = a;
-      status = b;
-    })});
-    await Util.sleep(100);
-    expect(recv.length).toBe(1);
-    expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
-    expect(err).toBe(null);
-    expect(status).toBeDefined();
-    expect(status.raw).toEqual(sendResponse);
-    expect(status.on).toBe(true);
-    expect(status.mode).toBe('static');
-    expect(status.speed).toBeUndefined();
-    expect(status.red).toBe(255);
-    expect(status.green).toBe(255);
-    expect(status.blue).toBe(255);
-    expect(status.white).toBe(255);
+    await client.connect();
+    try {
+      let status = await client.status();
+      await Util.sleep(100);
+      expect(recv.length).toBe(1);
+      expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+      expect(status.raw).toEqual(sendResponse);
+      expect(status.on).toBe(true);
+      expect(status.mode).toBe('static');
+      expect(status.speed).toBeUndefined();
+      expect(status.red).toBe(255);
+      expect(status.green).toBe(255);
+      expect(status.blue).toBe(255);
+      expect(status.white).toBe(255);
+    } catch (error) {
+      fail(error);
+    }
   });
   it('custom mode', async function() {
     sendResponse = Buffer.from([0x81, 0x04,
@@ -303,24 +305,23 @@ describe("TcpClient#status", function() {
       0x03, 0x00, 0x00,
     0x28]);
     const client = new TcpClient(null, {host:serverHost});
-    var err, status;
-    client.connect(function() { client.status(function(a, b) {
-      err = a;
-      status = b;
-    })});
-    await Util.sleep(100);
-    expect(recv.length).toBe(1);
-    expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
-    expect(err).toBe(null);
-    expect(status).toBeDefined();
-    expect(status.raw).toEqual(sendResponse);
-    expect(status.on).toBe(true);
-    expect(status.mode).toBe('custom');
-    expect(status.speed).toBe(30);
-    expect(status.red).toBe(255);
-    expect(status.green).toBe(255);
-    expect(status.blue).toBe(255);
-    expect(status.white).toBe(255);
+    await client.connect();
+    try {
+      let status = await client.status();
+      await Util.sleep(100);
+      expect(recv.length).toBe(1);
+      expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+      expect(status.raw).toEqual(sendResponse);
+      expect(status.on).toBe(true);
+      expect(status.mode).toBe('custom');
+      expect(status.speed).toBe(30);
+      expect(status.red).toBe(255);
+      expect(status.green).toBe(255);
+      expect(status.blue).toBe(255);
+      expect(status.white).toBe(255);
+    } catch (error) {
+      fail(error);
+    }
   });
   it('function mode', async function() {
     sendResponse = Buffer.from([0x81, 0x04,
@@ -331,24 +332,23 @@ describe("TcpClient#status", function() {
       0x03, 0x00, 0x00,
     0xED]);
     const client = new TcpClient(null, {host:serverHost});
-    var err, status;
-    client.connect(function() { client.status(function(a, b) {
-      err = a;
-      status = b;
-    })});
-    await Util.sleep(100);
-    expect(recv.length).toBe(1);
-    expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
-    expect(err).toBe(null);
-    expect(status).toBeDefined();
-    expect(status.raw).toEqual(sendResponse);
-    expect(status.on).toBe(true);
-    expect(status.mode).toBe('function:sevenColorCrossFade');
-    expect(status.speed).toBe(100);
-    expect(status.red).toBe(255);
-    expect(status.green).toBe(255);
-    expect(status.blue).toBe(255);
-    expect(status.white).toBe(255);
+    await client.connect();
+    try {
+      let status = await client.status();
+      await Util.sleep(100);
+      expect(recv.length).toBe(1);
+      expect(recv[0]).toEqual(Buffer.from([0x81, 0x8A, 0x8B, 0x96]));
+      expect(status.raw).toEqual(sendResponse);
+      expect(status.on).toBe(true);
+      expect(status.mode).toBe('function:sevenColorCrossFade');
+      expect(status.speed).toBe(100);
+      expect(status.red).toBe(255);
+      expect(status.green).toBe(255);
+      expect(status.blue).toBe(255);
+      expect(status.white).toBe(255);
+    } catch (error) {
+      fail(error);
+    }
   });
 });
 

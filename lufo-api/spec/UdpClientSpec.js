@@ -27,9 +27,8 @@ describe("UdpClient#constructorNonDefault", function() {
 describe("UdpClient", function() {
   var server, listening, recv, remotePort, remoteAddr, cmdMode;
   const ufo = {
-    disconnect: function() {
-      // Always pass null as the error.
-      if (this._disconnectCallback) this._disconnectCallback(null);
+    disconnect: function(resolve) {
+      resolve();
     }
   }
   const ip = '0.0.0.0';
@@ -164,392 +163,339 @@ describe("UdpClient", function() {
     expect(client._options.localPort).toBe(-1);
     expect(client._options.localAddress).toBe(undefined);
   });
-  it("#connect works", async function() {
-    const cb = jasmine.createSpy('connect');
-    const client = new UdpClient(ufo, {host:serverHost});
-    client.connect(cb);
-    await Util.sleep(100);
-    expect(cb).toHaveBeenCalled();
-  });
   it("#getVersion works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvVersion;
-    client.connect(function() {
-      client.getVersion(function(a, b) {
-        recvErr = a;
-        recvVersion = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvVersion).toBe(version);
-  });
-  it("#reboot works", async function() {
-    const cb = jasmine.createSpy('connect');
-    const client = new UdpClient(ufo, {host:serverHost});
-    client.connect(function() {
-      client.reboot(cb);
-    });
-    await Util.sleep(100);
-    expect(cb).toHaveBeenCalled();
-  });
-  it("#factoryReset works", async function() {
-    const cb = jasmine.createSpy('connect');
-    const client = new UdpClient(ufo, {host:serverHost});
-    client.connect(function() {
-      client.factoryReset(cb);
-    });
-    await Util.sleep(100);
-    expect(cb).toHaveBeenCalled();
+    try {
+      await client.connect();
+      let response = await client.getVersion();
+      await Util.sleep(100);
+      expect(response).toBe(version);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getNtpServer works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvIp;
-    client.connect(function() {
-      client.getNtpServer(function(a, b) {
-        recvErr = a;
-        recvIp = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvIp).toBe(ntpServer);
+    try {
+      await client.connect();
+      let response = await client.getNtpServer();
+      await Util.sleep(100);
+      expect(response).toBe(ntpServer);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setNtpServer works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setNtpServer('1.2.3.4', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setNtpServer('1.2.3.4');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setUdpPassword works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
     const newPassword = 'blahblahblah';
-    var recvErr;
-    client.connect(function() {
-      client.setUdpPassword(newPassword, function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(client._options.password).toBe(newPassword);
+    try {
+      await client.connect();
+      await client.setUdpPassword(newPassword);
+      await Util.sleep(100);
+      expect(client._options.password).toBe(newPassword);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setTcpPort works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setTcpPort('11111', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setTcpPort('11111');
+      await Util.sleep(100);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiAutoSwitch works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiAutoSwitch(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBe(wifiAutoSwitch);
+    try {
+      await client.connect();
+      let response = await client.getWifiAutoSwitch();
+      await Util.sleep(100);
+      expect(response).toBe(wifiAutoSwitch);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiAutoSwitch works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiAutoSwitch('off', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiAutoSwitch('off');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiMode works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiMode(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBe(wifiMode);
+    try {
+      await client.connect();
+      let response = await client.getWifiMode();
+      await Util.sleep(100);
+      expect(response).toBe(wifiMode);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiMode works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiMode('STA', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiMode('STA');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#doWifiScan works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.doWifiScan(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    const network = recvResult[0];
-    expect(network).not.toBe(null);
-    expect(network.channel).not.toBe(null);
-    expect(network.ssid).not.toBe(null);
-    expect(network.mac).not.toBe(null);
-    expect(network.security).not.toBe(null);
-    expect(network.strength).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.doWifiScan();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      const network = response[0];
+      expect(network).not.toBe(null);
+      expect(network.channel).not.toBe(null);
+      expect(network.ssid).not.toBe(null);
+      expect(network.mac).not.toBe(null);
+      expect(network.security).not.toBe(null);
+      expect(network.strength).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiApIp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiApIp(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    expect(recvResult.ip).not.toBe(null);
-    expect(recvResult.mask).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.getWifiApIp();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      expect(response.ip).not.toBe(null);
+      expect(response.mask).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiApIp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiApIp('0.0.0.0', '0.0.0.0', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiApIp('0.0.0.0', '0.0.0.0');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiApBroadcast works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiApBroadcast(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    expect(recvResult.mode).not.toBe(null);
-    expect(recvResult.ssid).not.toBe(null);
-    expect(recvResult.channel).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.getWifiApBroadcast();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      expect(response.mode).not.toBe(null);
+      expect(response.ssid).not.toBe(null);
+      expect(response.channel).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiApBroadcast works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiApBroadcast('bgn', '0.0.0.0', '7', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiApBroadcast('bgn', '0.0.0.0', '7');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiApPassphrase works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiApPassphrase(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBe(wifiApPassphrase);
+    try {
+      await client.connect();
+      let response = await client.getWifiApPassphrase();
+      await Util.sleep(100);
+      expect(response).toBe(wifiApPassphrase);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiApPassphrase works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiApPassphrase('abcd1234', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiApPassphrase('abcd1234');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiApLed works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiApLed(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBe(true);
+    try {
+      await client.connect();
+      let response = await client.getWifiApLed();
+      await Util.sleep(100);
+      expect(response).toBe(true);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiApLed works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiApLed(true, function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiApLed(true);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiApDhcp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiApDhcp(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    expect(recvResult.on).not.toBe(null);
-    expect(recvResult.start).not.toBe(null);
-    expect(recvResult.end).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.getWifiApDhcp();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      expect(response.on).not.toBe(null);
+      expect(response.start).not.toBe(null);
+      expect(response.end).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiApDhcp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiApDhcp('100', '150', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiApDhcp('100', '150');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#disableWifiApDhcp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.disableWifiApDhcp(function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.disableWifiApDhcp();
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiClientApInfo works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiClientApInfo(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    expect(recvResult.ssid).not.toBe(null);
-    expect(recvResult.mac).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.getWifiClientApInfo();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      expect(response.ssid).not.toBe(null);
+      expect(response.mac).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiClientApSignal works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiClientApSignal(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBe('Disconnected');
+    try {
+      await client.connect();
+      let response = await client.getWifiClientApSignal();
+      await Util.sleep(100);
+      expect(response).toBe('Disconnected');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiClientIp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiClientIp(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    expect(recvResult.dhcp).not.toBe(null);
-    expect(recvResult.ip).not.toBe(null);
-    expect(recvResult.mask).not.toBe(null);
-    expect(recvResult.gateway).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.getWifiClientIp();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      expect(response.dhcp).not.toBe(null);
+      expect(response.ip).not.toBe(null);
+      expect(response.mask).not.toBe(null);
+      expect(response.gateway).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiClientIpDhcp works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiClientIpDhcp(function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiClientIpDhcp();
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiClientIpStatic works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiClientIpStatic('0.0.0.0', '0.0.0.0', '0.0.0.0', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiClientIpStatic('0.0.0.0', '0.0.0.0', '0.0.0.0');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiClientSsid works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiClientSsid(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBe(wifiClientSsid);
+    try {
+      await client.connect();
+      let response = await client.getWifiClientSsid();
+      await Util.sleep(100);
+      expect(response).toBe(wifiClientSsid);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiClientSsid works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiClientSsid('abc123', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiClientSsid('abc123');
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#getWifiClientAuth works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr, recvResult;
-    client.connect(function() {
-      client.getWifiClientAuth(function(a, b) {
-        recvErr = a;
-        recvResult = b;
-      });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
-    expect(recvResult).toBeDefined();
-    expect(recvResult).not.toBe(null);
-    expect(recvResult.auth).not.toBe(null);
-    expect(recvResult.encryption).not.toBe(null);
-    expect(recvResult.passphrase).not.toBe(null);
+    try {
+      await client.connect();
+      let response = await client.getWifiClientAuth();
+      await Util.sleep(100);
+      expect(response).toBeDefined();
+      expect(response).not.toBe(null);
+      expect(response.auth).not.toBe(null);
+      expect(response.encryption).not.toBe(null);
+      expect(response.passphrase).not.toBe(null);
+    } catch (error) {
+      fail(error);
+    }
   });
   it("#setWifiClientAuth works", async function() {
     const client = new UdpClient(ufo, {host:serverHost});
-    var recvErr;
-    client.connect(function() {
-      client.setWifiClientAuth('WPA2PSK', 'AES', 'abcd1234', function(a) { recvErr = a; });
-    });
-    await Util.sleep(100);
-    expect(recvErr).toBe(null);
+    try {
+      await client.connect();
+      await client.setWifiClientAuth('WPA2PSK', 'AES', 'abcd1234');
+    } catch (error) {
+      fail(error);
+    }
   });
 });
