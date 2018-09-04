@@ -219,3 +219,7 @@ lufo reboot
 # You can also observe the UFO and wait for the blue LED to turn on, indicating that it is connected to the wireless network.
 lufo d
 ```
+
+## Changelog
+
+[https://github.com/rjenkinsjr/lufo/blob/master/README.md](https://github.com/rjenkinsjr/lufo/blob/master/README.md)

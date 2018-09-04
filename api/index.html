@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8' />
-  <title>lufo-api 0.1.0 | Documentation</title>
+  <title>lufo-api 0.2.4 | Documentation</title>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
   <link href='assets/bass.css' type='text/css' rel='stylesheet' />
   <link href='assets/style.css' type='text/css' rel='stylesheet' />
@@ -14,7 +14,7 @@
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>lufo-api</h3>
-          <div class='mb1'><code>0.1.0</code></div>
+          <div class='mb1'><code>0.2.4</code></div>
           <input
             placeholder='Filter'
             id='filter-input'
@@ -22,36 +22,6 @@
             type='text' />
           <div id='toc'>
             <ul class='list-reset h5 py1-ul'>
-              
-                
-                <li><a
-                  href='#ufodisconnectcallback'
-                  class="">
-                  UfoDisconnectCallback
-                  
-                </a>
-                
-                </li>
-              
-                
-                <li><a
-                  href='#ufodisconnecterror'
-                  class="">
-                  UfoDisconnectError
-                  
-                </a>
-                
-                </li>
-              
-                
-                <li><a
-                  href='#ufooptions'
-                  class="">
-                  UfoOptions
-                  
-                </a>
-                
-                </li>
               
                 
                 <li><a
@@ -115,9 +85,9 @@
               
                 
                 <li><a
-                  href='#ufodiscovercallback'
+                  href='#wifinetwork'
                   class="">
-                  UfoDiscoverCallback
+                  WifiNetwork
                   
                 </a>
                 
@@ -125,9 +95,9 @@
               
                 
                 <li><a
-                  href='#wifinetwork'
+                  href='#ufodisconnecterror'
                   class="">
-                  WifiNetwork
+                  UfoDisconnectError
                   
                 </a>
                 
@@ -466,6 +436,16 @@
                 
                 </li>
               
+                
+                <li><a
+                  href='#ufooptions'
+                  class="">
+                  UfoOptions
+                  
+                </a>
+                
+                </li>
+              
             </ul>
           </div>
           <div class='mt1 h6 quiet'>
@@ -474,304 +454,6 @@
         </div>
       </div>
       <div id='split-right' class='relative overflow-auto height-viewport-100'>
-        
-          
-            <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='ufodisconnectcallback'>
-      UfoDisconnectCallback
-    </h3>
-    
-    
-  </div>
-  
-
-  <p>A callback function that is invoked once a <a href="#ufo">Ufo</a> object has
-disconnected from the UFO, either because the <a href="#ufodisconnect">Ufo#disconnect</a> method
-was called or because a communication error occurred. The callback accepts a
-single error argument that, if not null, contains the error that caused the
-disconnect.</p>
-
-
-  <div class='pre p1 fill-light mt0'>UfoDisconnectCallback(error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</div>
-  
-    <p>
-      Type:
-      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>
-    </p>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>error</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</code>
-	    the error that caused the UFO to disconnect. If null,
-disconnect was not due to an error.
-
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-          
-            <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='ufodisconnecterror'>
-      UfoDisconnectError
-    </h3>
-    
-    
-  </div>
-  
-
-  <p>Errors of this type are thrown when communication with a UFO fails. The error
-object contains a message and an optional error from the UDP and TCP sockets
-that may have contributed to this error.</p>
-
-
-  <div class='pre p1 fill-light mt0'>new UfoDisconnectError(message: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, udpError: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, tcpError: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</div>
-  
-  
-    <p>
-      Extends
-      
-        <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>
-      
-    </p>
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>message</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-	    
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>udpError</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</code>
-	    
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>tcpError</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-          
-            <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='ufooptions'>
-      UfoOptions
-    </h3>
-    
-    
-  </div>
-  
-
-  <p>Available configuration options for the <a href="#ufo">Ufo</a> object.</p>
-
-
-  <div class='pre p1 fill-light mt0'>UfoOptions</div>
-  
-    <p>
-      Type:
-      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
-    </p>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Properties</div>
-    <div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>host</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-          : The IP address of the UFO. If you want a fixed IP
-address, you can either configure static DHCP assignment on your router using
-the UFO's MAC address or you can use the CLI to configure the UFO's WiFi
-client settings to use a static IP instead of DHCP.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>password</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
-          : the UDP password used to connect to the UFO.
-If unspecified, the default is used. You can use the CLI to change the UFO's
-password for greater security, since the default password is well-known and
-hardcoded into this library.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>localHost</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
-          : The local host used for establishing the
-TCP socket.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>localUdpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
-          : the port number that will be bound on this
-machine for UDP traffic to the  UFO. If unspecified, a random port is used.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>remoteUdpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
-          : the UDP port number on the UFO. If
-unspecified, the default port 48899 is used. You can change this using the
-CLI.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>localTcpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
-          : the port number that will be bound on this
-machine for UDP traffic to the  UFO. If unspecified, a random port is used.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>remoteTcpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
-          : the UDP port number on the UFO. If
-unspecified, the default port 5577 is used. You can change this using the
-CLI.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>immediate</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>?)</code>
-          : if true or unspecified,
-
-<a href="https://nodejs.org/api/net.html#net_socket_setnodelay_nodelay">socket.setNoDelay(true)</a>
-
-is invoked when the TCP socket is created. This prevents TCP data from being
-buffered by NodeJS before being sent to the UFO. If this causes communication
-issues, set this to false.
-
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>disconnectCallback</span> <code class='quiet'>(<a href="#ufodisconnectcallback">UfoDisconnectCallback</a>?)</code>
-          : the optional callback
-invoked when the UFO object disconnects for any reason. If no callback is
-specified, you will not be notified once a UFO object has disconnected
-regardless of the cause.
-
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
         
           
             <section class='p2 mb2 clearfix bg-white minishadow'>
@@ -1257,82 +939,6 @@ UDP socket.
   
   <div class='clearfix'>
     
-    <h3 class='fl m0' id='ufodiscovercallback'>
-      UfoDiscoverCallback
-    </h3>
-    
-    
-  </div>
-  
-
-  <p>A callback function that receives an array of discovered UFOs.</p>
-
-
-  <div class='pre p1 fill-light mt0'>UfoDiscoverCallback(error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, ufos: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#discoveredufo">DiscoveredUfo</a>>)</div>
-  
-    <p>
-      Type:
-      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>
-    </p>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>error</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</code>
-	    Possibly-null error object.
-
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>ufos</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#discoveredufo">DiscoveredUfo</a>>)</code>
-	    The list of UFOs that were discovered; may
-be empty.
-
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-          
-            <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
     <h3 class='fl m0' id='wifinetwork'>
       WifiNetwork
     </h3>
@@ -1427,25 +1033,26 @@ this network.
   
   <div class='clearfix'>
     
-    <h3 class='fl m0' id='ufo'>
-      Ufo
+    <h3 class='fl m0' id='ufodisconnecterror'>
+      UfoDisconnectError
     </h3>
     
     
   </div>
   
 
-  <p>The API for interfacing with UFO devices. If a callback is provided during
-construction, <a href="#ufoconnect">Ufo#connect</a> is called immediately after construction.</p>
+  <p>Errors of this type are thrown when communication with a UFO fails. The error
+object contains a message and an optional error from the UDP and TCP sockets
+that may have contributed to this error.</p>
 
 
-  <div class='pre p1 fill-light mt0'>new Ufo(options: <a href="#ufooptions">UfoOptions</a>, callback: function (): void?)</div>
+  <div class='pre p1 fill-light mt0'>new UfoDisconnectError(message: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, udpError: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, tcpError: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</div>
   
   
     <p>
       Extends
       
-        EventEmitter
+        <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>
       
     </p>
   
@@ -1463,7 +1070,7 @@ construction, <a href="#ufoconnect">Ufo#connect</a> is called immediately after 
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>options</span> <code class='quiet'>(<a href="#ufooptions">UfoOptions</a>)</code>
+            <span class='code bold'>message</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
 	    
           </div>
           
@@ -1471,7 +1078,75 @@ construction, <a href="#ufoconnect">Ufo#connect</a> is called immediately after 
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (): void?)</code>
+            <span class='code bold'>udpError</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>tcpError</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='ufo'>
+      Ufo
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>The API for interfacing with UFO devices.</p>
+
+
+  <div class='pre p1 fill-light mt0'>new Ufo(options: <a href="#ufooptions">UfoOptions</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="#ufooptions">UfoOptions</a>)</code>
 	    
           </div>
           
@@ -1496,7 +1171,7 @@ construction, <a href="#ufoconnect">Ufo#connect</a> is called immediately after 
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>discover(options, callback)</span>
+            <span class='code strong strong truncate'>discover(options)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1504,11 +1179,10 @@ construction, <a href="#ufoconnect">Ufo#connect</a> is called immediately after 
 
   
 
-  <p>Searches for UFOs on the network and invokes the given callback with the
-resulting list.</p>
+  <p>Searches for UFOs on the network. Returned array may be empty.</p>
 
 
-  <div class='pre p1 fill-light mt0'>discover(options: <a href="#ufodiscoveroptions">UfoDiscoverOptions</a>, callback: <a href="#ufodiscovercallback">UfoDiscoverCallback</a>): void</div>
+  <div class='pre p1 fill-light mt0'>discover(options: <a href="#ufodiscoveroptions">UfoDiscoverOptions</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#discoveredufo">DiscoveredUfo</a>>></div>
   
   
 
@@ -1531,14 +1205,6 @@ resulting list.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(<a href="#ufodiscovercallback">UfoDiscoverCallback</a>)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -1547,7 +1213,7 @@ resulting list.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#discoveredufo">DiscoveredUfo</a>>></code>
     
   
 
@@ -1692,7 +1358,7 @@ resulting list.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>connect(callback)</span>
+            <span class='code strong strong truncate'>connect()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1700,37 +1366,30 @@ resulting list.</p>
 
   
 
-  <p>Establishes a connection to the UFO, then invokes the given callback.</p>
+  <p>Establishes a connection to the UFO. If this method fails, it is safe to
+retry connecting unless the error implies that retrying is not appropriate.</p>
 
 
-  <div class='pre p1 fill-light mt0'>connect(callback: function (): void?)</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>connect(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
   
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
+  
+  
+  
+  
   
 
   
 
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
+    
   
 
   
@@ -1751,7 +1410,7 @@ resulting list.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>disconnect()</span>
+            <span class='code strong strong truncate'>disconnect(cb)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1761,23 +1420,45 @@ resulting list.</p>
 
   <p>Disconnects from the UFO. After disconnecting, this object cannot be used;
 you must construct a new <a href="#ufo">Ufo</a> object to reconnect.</p>
+<p>If a callback is provided, it is called once disconnect is finished and
+this function returns null. Otherwise, a promise is returned that will
+be resolved once disconnect is finished (this promise will never be
+rejected).</p>
 
 
-  <div class='pre p1 fill-light mt0'>disconnect()</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>disconnect(cb: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void>?</div>
   
   
 
   
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>cb</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
 
   
 
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void>?</code>
+    
   
 
   
@@ -1798,7 +1479,7 @@ you must construct a new <a href="#ufo">Ufo</a> object to reconnect.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getStatus(callback)</span>
+            <span class='code strong strong truncate'>getStatus()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1806,34 +1487,21 @@ you must construct a new <a href="#ufo">Ufo</a> object to reconnect.</p>
 
   
 
-  <p>Gets the UFO's output status and sends it to the given callback.
-The callback is guaranteed to have exactly one non-null argument.</p>
+  <p>Gets the UFO's output status.
+Result is null iff this UFO object is dead.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getStatus(callback: function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, data: <a href="#ufostatus">UfoStatus</a>?): void): void</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>getStatus(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="#ufostatus">UfoStatus</a>?></div>
   
   
 
   
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, data: <a href="#ufostatus">UfoStatus</a>?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
+  
+  
+  
+  
+  
+
   
 
   
@@ -1841,7 +1509,7 @@ The callback is guaranteed to have exactly one non-null argument.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="#ufostatus">UfoStatus</a>?></code>
     
   
 
@@ -1863,7 +1531,7 @@ The callback is guaranteed to have exactly one non-null argument.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setPower(on, callback)</span>
+            <span class='code strong strong truncate'>setPower(on)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1871,11 +1539,10 @@ The callback is guaranteed to have exactly one non-null argument.</p>
 
   
 
-  <p>Sets the UFO's output flag to the given value, then invokes the given
-callback.</p>
+  <p>Sets the UFO's output flag to the given value.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setPower(on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, callback: function (): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setPower(on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -1898,14 +1565,6 @@ callback.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -1914,7 +1573,7 @@ callback.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -1936,7 +1595,7 @@ callback.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>turnOn(callback)</span>
+            <span class='code strong strong truncate'>turnOn()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1944,33 +1603,20 @@ callback.</p>
 
   
 
-  <p>Turns the UFO on, then invokes the given callback.</p>
+  <p>Turns the UFO on.</p>
 
 
-  <div class='pre p1 fill-light mt0'>turnOn(callback: function (): void?): void</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>turnOn(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
   
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
+  
+  
+  
+  
+  
+
   
 
   
@@ -1978,7 +1624,7 @@ callback.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2000,7 +1646,7 @@ callback.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>turnOff(callback)</span>
+            <span class='code strong strong truncate'>turnOff()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2008,33 +1654,20 @@ callback.</p>
 
   
 
-  <p>Turns the UFO off, then invokes the given callback.</p>
+  <p>Turns the UFO off.</p>
 
 
-  <div class='pre p1 fill-light mt0'>turnOff(callback: function (): void?): void</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>turnOff(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
   
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
+  
+  
+  
+  
+  
+
   
 
   
@@ -2042,7 +1675,7 @@ callback.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2064,7 +1697,7 @@ callback.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>togglePower(callback)</span>
+            <span class='code strong strong truncate'>togglePower()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2072,33 +1705,20 @@ callback.</p>
 
   
 
-  <p>Toggle the UFO's output flag, then invokes the given callback.</p>
+  <p>Toggle the UFO's output flag.</p>
 
 
-  <div class='pre p1 fill-light mt0'>togglePower(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>togglePower(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
   
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
+  
+  
+  
+  
+  
+
   
 
   
@@ -2106,7 +1726,7 @@ callback.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2128,7 +1748,7 @@ callback.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setColor(red, green, blue, white, callback)</span>
+            <span class='code strong strong truncate'>setColor(red, green, blue, white)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2136,12 +1756,11 @@ callback.</p>
 
   
 
-  <p>Sets the UFO output to the static values specified, then invokes the given
-calllback. The RGBW values are clamped from 0-255 inclusive, where 0 is off
-and 255 is fully on/100% output.</p>
+  <p>Sets the UFO output to the static values specified. The RGBW values are
+clamped from 0-255 inclusive, where 0 is off and 255 is fully on/100% output.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setColor(red: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, green: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, blue: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, white: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, callback: function (): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setColor(red: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, green: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, blue: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, white: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2188,14 +1807,6 @@ and 255 is fully on/100% output.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -2204,7 +1815,7 @@ and 255 is fully on/100% output.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2226,7 +1837,7 @@ and 255 is fully on/100% output.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setRed(value, solo, callback)</span>
+            <span class='code strong strong truncate'>setRed(value, solo)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2234,12 +1845,11 @@ and 255 is fully on/100% output.</p>
 
   
 
-  <p>Sets the red output value, then invokes the given callback. If solo is
-true, all other output values are set to zero. Input value is clamped to
-0-255 inclusive.</p>
+  <p>Sets the red output value. If solo is true, all other output values are set
+to zero. Input value is clamped to 0-255 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setRed(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</div>
+  <div class='pre p1 fill-light mt0'>setRed(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2270,19 +1880,16 @@ true, all other output values are set to zero. Input value is clamped to
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
   
 
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
+    
   
 
   
@@ -2303,7 +1910,7 @@ true, all other output values are set to zero. Input value is clamped to
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setGreen(value, solo, callback)</span>
+            <span class='code strong strong truncate'>setGreen(value, solo)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2311,12 +1918,11 @@ true, all other output values are set to zero. Input value is clamped to
 
   
 
-  <p>Sets the green output value, then invokes the given callback. If solo is
-true, all other output values are set to zero. Input value is clamped to
-0-255 inclusive.</p>
+  <p>Sets the green output value. If solo is true, all other output values are
+set to zero. Input value is clamped to 0-255 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setGreen(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</div>
+  <div class='pre p1 fill-light mt0'>setGreen(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2347,19 +1953,16 @@ true, all other output values are set to zero. Input value is clamped to
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
   
 
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
+    
   
 
   
@@ -2380,7 +1983,7 @@ true, all other output values are set to zero. Input value is clamped to
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setBlue(value, solo, callback)</span>
+            <span class='code strong strong truncate'>setBlue(value, solo)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2388,12 +1991,11 @@ true, all other output values are set to zero. Input value is clamped to
 
   
 
-  <p>Sets the blue output value, then invokes the given callback. If solo is
-true, all other output values are set to zero. Input value is clamped to
-0-255 inclusive.</p>
+  <p>Sets the blue output value. If solo is true, all other output values are
+set to zero. Input value is clamped to 0-255 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setBlue(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</div>
+  <div class='pre p1 fill-light mt0'>setBlue(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2424,19 +2026,16 @@ true, all other output values are set to zero. Input value is clamped to
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
   
 
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
+    
   
 
   
@@ -2457,7 +2056,7 @@ true, all other output values are set to zero. Input value is clamped to
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWhite(value, solo, callback)</span>
+            <span class='code strong strong truncate'>setWhite(value, solo)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2465,12 +2064,11 @@ true, all other output values are set to zero. Input value is clamped to
 
   
 
-  <p>Sets the white output value, then invokes the given callback. If solo is
-true, all other output values are set to zero. Input value is clamped to
-0-255 inclusive.</p>
+  <p>Sets the white output value. If solo is true, all other output values are
+set to zero. Input value is clamped to 0-255 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWhite(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</div>
+  <div class='pre p1 fill-light mt0'>setWhite(value: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, solo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2501,19 +2099,16 @@ true, all other output values are set to zero. Input value is clamped to
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
   
 
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
+    
   
 
   
@@ -2534,7 +2129,7 @@ true, all other output values are set to zero. Input value is clamped to
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setBuiltin(name, speed, callback)</span>
+            <span class='code strong strong truncate'>setBuiltin(name, speed)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2542,9 +2137,8 @@ true, all other output values are set to zero. Input value is clamped to
 
   
 
-  <p>Starts one of the UFO's built-in functions at the given speed, then invokes
-the given callback. The error is always null unless an invalid function
-name is given.</p>
+  <p>Starts one of the UFO's built-in functions at the given speed. The promise
+will be rejected if an invalid function name is given.</p>
 <p>The speed is clamped from 0-100 inclusive. Speed values do not result in
 the same durations across all functions (e.g. sevenColorStrobeFlash is
 much faster at speed 100 than sevenColorJumpingChange); you will need to
@@ -2552,7 +2146,7 @@ experiment with different values to get the desired timing for the function
 you wish to use.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setBuiltin(name: <a href="#builtinfunction">BuiltinFunction</a>, speed: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, callback: function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setBuiltin(name: <a href="#builtinfunction">BuiltinFunction</a>, speed: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2583,14 +2177,6 @@ you wish to use.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -2599,7 +2185,7 @@ you wish to use.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2621,7 +2207,7 @@ you wish to use.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setCustom(mode, speed, steps, callback)</span>
+            <span class='code strong strong truncate'>setCustom(mode, speed, steps)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2629,8 +2215,8 @@ you wish to use.</p>
 
   
 
-  <p>Starts the given custom function, then invokes the given callback. The
-error is always null unless an invalid mode is given.</p>
+  <p>Starts the given custom function. The promise will be rejected if an
+invalid mode is given.</p>
 <ul>
 <li>
 <p>The speed is clamped from 0-30 inclusive. Below is a list of step
@@ -2654,7 +2240,7 @@ the limit of 16 documented above is considered.</li>
 </ul>
 
 
-  <div class='pre p1 fill-light mt0'>setCustom(mode: <a href="#custommode">CustomMode</a>, speed: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, steps: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#customstep">CustomStep</a>>, callback: function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setCustom(mode: <a href="#custommode">CustomMode</a>, speed: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, steps: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#customstep">CustomStep</a>>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2693,14 +2279,6 @@ the limit of 16 documented above is considered.</li>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -2709,7 +2287,7 @@ the limit of 16 documented above is considered.</li>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2731,7 +2309,7 @@ the limit of 16 documented above is considered.</li>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>freezeOutput(callback)</span>
+            <span class='code strong strong truncate'>freezeOutput()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2743,7 +2321,7 @@ the limit of 16 documented above is considered.</li>
 running. The output remains on after being frozen.</p>
 
 
-  <div class='pre p1 fill-light mt0'>freezeOutput(callback: function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>freezeOutput(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2754,19 +2332,6 @@ running. The output remains on after being frozen.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -2774,7 +2339,7 @@ running. The output remains on after being frozen.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2796,7 +2361,7 @@ running. The output remains on after being frozen.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>zeroOutput(callback)</span>
+            <span class='code strong strong truncate'>zeroOutput()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2807,7 +2372,7 @@ running. The output remains on after being frozen.</p>
   <p>Sets all output to zero.</p>
 
 
-  <div class='pre p1 fill-light mt0'>zeroOutput(callback: function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>zeroOutput(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -2818,19 +2383,6 @@ running. The output remains on after being frozen.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -2838,7 +2390,7 @@ running. The output remains on after being frozen.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -2860,7 +2412,7 @@ running. The output remains on after being frozen.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getVersion(callback)</span>
+            <span class='code strong strong truncate'>getVersion()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2871,7 +2423,7 @@ running. The output remains on after being frozen.</p>
   <p>Returns the UFO's hardware/firmware version.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getVersion(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getVersion(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -2882,19 +2434,6 @@ running. The output remains on after being frozen.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -2902,7 +2441,7 @@ running. The output remains on after being frozen.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -2924,7 +2463,7 @@ running. The output remains on after being frozen.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getNtpServer(callback)</span>
+            <span class='code strong strong truncate'>getNtpServer()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -2935,7 +2474,7 @@ running. The output remains on after being frozen.</p>
   <p>Returns the UFO's NTP server IP address.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getNtpServer(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getNtpServer(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -2946,19 +2485,6 @@ running. The output remains on after being frozen.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -2966,7 +2492,7 @@ running. The output remains on after being frozen.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -2988,7 +2514,7 @@ running. The output remains on after being frozen.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiAutoSwitch(callback)</span>
+            <span class='code strong strong truncate'>getWifiAutoSwitch()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3012,7 +2538,7 @@ passed.</p>
 number.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiAutoSwitch(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiAutoSwitch(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -3023,19 +2549,6 @@ number.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3043,7 +2556,7 @@ number.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -3065,7 +2578,7 @@ number.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiMode(callback)</span>
+            <span class='code strong strong truncate'>getWifiMode()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3081,7 +2594,7 @@ number.</p>
 </ul>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiMode(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiMode(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -3092,19 +2605,6 @@ number.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3112,7 +2612,7 @@ number.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -3134,7 +2634,7 @@ number.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>doWifiScan(callback)</span>
+            <span class='code strong strong truncate'>doWifiScan()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3145,7 +2645,7 @@ number.</p>
   <p>Performs a WiFi AP scan from the UFO and returns the results.</p>
 
 
-  <div class='pre p1 fill-light mt0'>doWifiScan(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#wifinetwork">WifiNetwork</a>>): void): void</div>
+  <div class='pre p1 fill-light mt0'>doWifiScan(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#wifinetwork">WifiNetwork</a>>)></div>
   
   
 
@@ -3156,19 +2656,6 @@ number.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#wifinetwork">WifiNetwork</a>>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3176,7 +2663,7 @@ number.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#wifinetwork">WifiNetwork</a>>)></code>
     
   
 
@@ -3198,7 +2685,7 @@ number.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiApIp(callback)</span>
+            <span class='code strong strong truncate'>getWifiApIp()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3209,7 +2696,7 @@ number.</p>
   <p>Returns the IP address and netmask of the UFO AP.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiApIp(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiApIp(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></div>
   
   
 
@@ -3220,19 +2707,6 @@ number.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3240,7 +2714,7 @@ number.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></code>
     
   
 
@@ -3262,7 +2736,7 @@ number.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiApBroadcast(callback)</span>
+            <span class='code strong strong truncate'>getWifiApBroadcast()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3273,7 +2747,7 @@ number.</p>
   <p>Returns the UFO AP's broadcast information. Channel is 1-11 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiApBroadcast(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {mode: (<code>"b"</code> | <code>"bg"</code> | <code>"bgn"</code>), ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, channel: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiApBroadcast(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {mode: (<code>"b"</code> | <code>"bg"</code> | <code>"bgn"</code>), ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, channel: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>})></div>
   
   
 
@@ -3284,19 +2758,6 @@ number.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {mode: (<code>"b"</code> | <code>"bg"</code> | <code>"bgn"</code>), ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, channel: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3304,7 +2765,7 @@ number.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {mode: (<code>"b"</code> | <code>"bg"</code> | <code>"bgn"</code>), ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, channel: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>})></code>
     
   
 
@@ -3326,7 +2787,7 @@ number.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiApPassphrase(callback)</span>
+            <span class='code strong strong truncate'>getWifiApPassphrase()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3337,7 +2798,7 @@ number.</p>
   <p>Returns the UFO AP's passphrase. If null, AP network is open.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiApPassphrase(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiApPassphrase(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -3348,19 +2809,6 @@ number.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3368,7 +2816,7 @@ number.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -3390,7 +2838,7 @@ number.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiApLed(callback)</span>
+            <span class='code strong strong truncate'>getWifiApLed()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3402,7 +2850,7 @@ number.</p>
 turn on when any client is connected to the AP.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiApLed(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiApLed(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>)></div>
   
   
 
@@ -3413,19 +2861,6 @@ turn on when any client is connected to the AP.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3433,7 +2868,7 @@ turn on when any client is connected to the AP.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>)></code>
     
   
 
@@ -3455,7 +2890,7 @@ turn on when any client is connected to the AP.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiApDhcp(callback)</span>
+            <span class='code strong strong truncate'>getWifiApDhcp()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3467,7 +2902,7 @@ turn on when any client is connected to the AP.</p>
 object's "start" and "end" properties will be 0-254 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiApDhcp(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, start: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?, end: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?}?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiApDhcp(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, start: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?, end: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?})></div>
   
   
 
@@ -3478,19 +2913,6 @@ object's "start" and "end" properties will be 0-254 inclusive.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, start: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?, end: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?}?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3498,7 +2920,7 @@ object's "start" and "end" properties will be 0-254 inclusive.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, start: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?, end: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?})></code>
     
   
 
@@ -3520,7 +2942,7 @@ object's "start" and "end" properties will be 0-254 inclusive.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiClientApInfo(callback)</span>
+            <span class='code strong strong truncate'>getWifiClientApInfo()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3532,7 +2954,7 @@ object's "start" and "end" properties will be 0-254 inclusive.</p>
 connected to any AP, the returned object will be null.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiClientApInfo(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mac: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiClientApInfo(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mac: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></div>
   
   
 
@@ -3543,19 +2965,6 @@ connected to any AP, the returned object will be null.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mac: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3563,7 +2972,7 @@ connected to any AP, the returned object will be null.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mac: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></code>
     
   
 
@@ -3585,7 +2994,7 @@ connected to any AP, the returned object will be null.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiClientApSignal(callback)</span>
+            <span class='code strong strong truncate'>getWifiClientApSignal()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3596,7 +3005,7 @@ connected to any AP, the returned object will be null.</p>
   <p>Returns the UFO client's AP signal strength, as seen by the UFO.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiClientApSignal(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiClientApSignal(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -3607,19 +3016,6 @@ connected to any AP, the returned object will be null.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3627,7 +3023,7 @@ connected to any AP, the returned object will be null.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -3649,7 +3045,7 @@ connected to any AP, the returned object will be null.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiClientIp(callback)</span>
+            <span class='code strong strong truncate'>getWifiClientIp()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3660,7 +3056,7 @@ connected to any AP, the returned object will be null.</p>
   <p>Returns the UFO client's IP configuration.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiClientIp(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {dhcp: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, gateway: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiClientIp(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {dhcp: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, gateway: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></div>
   
   
 
@@ -3671,19 +3067,6 @@ connected to any AP, the returned object will be null.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {dhcp: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, gateway: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3691,7 +3074,7 @@ connected to any AP, the returned object will be null.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {dhcp: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, gateway: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></code>
     
   
 
@@ -3713,7 +3096,7 @@ connected to any AP, the returned object will be null.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiClientSsid(callback)</span>
+            <span class='code strong strong truncate'>getWifiClientSsid()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3724,7 +3107,7 @@ connected to any AP, the returned object will be null.</p>
   <p>Returns the UFO client's AP SSID.</p>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiClientSsid(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiClientSsid(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></div>
   
   
 
@@ -3735,19 +3118,6 @@ connected to any AP, the returned object will be null.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3755,7 +3125,7 @@ connected to any AP, the returned object will be null.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)></code>
     
   
 
@@ -3777,7 +3147,7 @@ connected to any AP, the returned object will be null.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getWifiClientAuth(callback)</span>
+            <span class='code strong strong truncate'>getWifiClientAuth()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3800,7 +3170,7 @@ length, inclusive.</li>
 </ul>
 
 
-  <div class='pre p1 fill-light mt0'>getWifiClientAuth(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {auth: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, encryption: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)}?): void): void</div>
+  <div class='pre p1 fill-light mt0'>getWifiClientAuth(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {auth: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, encryption: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)})></div>
   
   
 
@@ -3811,19 +3181,6 @@ length, inclusive.</li>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?, {auth: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, encryption: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)}?): void)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -3831,7 +3188,7 @@ length, inclusive.</li>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;(null | {auth: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, encryption: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)})></code>
     
   
 
@@ -3853,7 +3210,7 @@ length, inclusive.</li>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setNtpServer(ipAddress, callback)</span>
+            <span class='code strong strong truncate'>setNtpServer(ipAddress)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3864,7 +3221,7 @@ length, inclusive.</li>
   <p>Sets the NTP server IP address.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setNtpServer(ipAddress: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setNtpServer(ipAddress: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -3887,14 +3244,6 @@ length, inclusive.</li>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -3903,7 +3252,7 @@ length, inclusive.</li>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -3925,7 +3274,7 @@ length, inclusive.</li>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setUdpPassword(password, callback)</span>
+            <span class='code strong strong truncate'>setUdpPassword(password)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -3934,11 +3283,10 @@ length, inclusive.</li>
   
 
   <p>Sets the UFO's UDP password. If an error occurs while executing this
-command, the owning UFO object will be disconnected and the given callback
-(if any) will override whatever disconnect callback was previously defined.</p>
+command, the owning UFO object will be disconnected.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setUdpPassword(password: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setUdpPassword(password: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -3961,14 +3309,6 @@ command, the owning UFO object will be disconnected and the given callback
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -3977,7 +3317,7 @@ command, the owning UFO object will be disconnected and the given callback
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -3999,7 +3339,7 @@ command, the owning UFO object will be disconnected and the given callback
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setTcpPort(port, callback)</span>
+            <span class='code strong strong truncate'>setTcpPort(port)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4008,12 +3348,10 @@ command, the owning UFO object will be disconnected and the given callback
   
 
   <p>Sets the UFO's TCP port. The owning UFO object will be disconnected after
-this method is invoked. If a callback is provided to this method, it
-overrides whatever disconnect callback was defined when the client was
-constructed.</p>
+this method is invoked.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setTcpPort(port: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, callback: <a href="#ufodisconnectcallback">UfoDisconnectCallback</a>): void</div>
+  <div class='pre p1 fill-light mt0'>setTcpPort(port: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4036,14 +3374,6 @@ constructed.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(<a href="#ufodisconnectcallback">UfoDisconnectCallback</a>)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4052,7 +3382,7 @@ constructed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4074,7 +3404,7 @@ constructed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiAutoSwitch(value, callback)</span>
+            <span class='code strong strong truncate'>setWifiAutoSwitch(value)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4095,7 +3425,7 @@ itself and enable its AP mode after the specified number of minutes have
 passed.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiAutoSwitch(value: (<code>"off"</code> | <code>"on"</code> | <code>"auto"</code> | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>), callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiAutoSwitch(value: (<code>"off"</code> | <code>"on"</code> | <code>"auto"</code> | <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4118,14 +3448,6 @@ passed.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4134,7 +3456,7 @@ passed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4156,7 +3478,7 @@ passed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiMode(mode, callback)</span>
+            <span class='code strong strong truncate'>setWifiMode(mode)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4172,7 +3494,7 @@ passed.</p>
 </ul>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiMode(mode: (<code>"AP"</code> | <code>"STA"</code> | <code>"APSTA"</code>), callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiMode(mode: (<code>"AP"</code> | <code>"STA"</code> | <code>"APSTA"</code>)): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4195,14 +3517,6 @@ passed.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4211,7 +3525,7 @@ passed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4233,7 +3547,7 @@ passed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiApIp(ip, mask, callback)</span>
+            <span class='code strong strong truncate'>setWifiApIp(ip, mask)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4244,7 +3558,7 @@ passed.</p>
   <p>Sets the IP address and netmask of the UFO AP.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiApIp(ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiApIp(ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4275,14 +3589,6 @@ passed.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4291,7 +3597,7 @@ passed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4313,7 +3619,7 @@ passed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiApBroadcast(mode, ssid, channel, callback)</span>
+            <span class='code strong strong truncate'>setWifiApBroadcast(mode, ssid, channel)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4324,7 +3630,7 @@ passed.</p>
   <p>Sets the UFO AP's broadcast information. Channel is 1-11 inclusive.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiApBroadcast(mode: (<code>"b"</code> | <code>"bg"</code> | <code>"bgn"</code>), ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, channel: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiApBroadcast(mode: (<code>"b"</code> | <code>"bg"</code> | <code>"bgn"</code>), ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, channel: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4363,14 +3669,6 @@ passed.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4379,7 +3677,7 @@ passed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4401,7 +3699,7 @@ passed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiApPassphrase(passphrase, callback)</span>
+            <span class='code strong strong truncate'>setWifiApPassphrase(passphrase)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4412,7 +3710,7 @@ passed.</p>
   <p>Sets the UFO's AP passphrase. If null, network will be open.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiApPassphrase(passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null), callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiApPassphrase(passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4435,14 +3733,6 @@ passed.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4451,7 +3741,7 @@ passed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4473,7 +3763,7 @@ passed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiApLed(on, callback)</span>
+            <span class='code strong strong truncate'>setWifiApLed(on)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4485,7 +3775,7 @@ passed.</p>
 on when any client is connected to the AP.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiApLed(on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiApLed(on: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4508,14 +3798,6 @@ on when any client is connected to the AP.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4524,7 +3806,7 @@ on when any client is connected to the AP.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4546,7 +3828,7 @@ on when any client is connected to the AP.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiApDhcp(start, end, callback)</span>
+            <span class='code strong strong truncate'>setWifiApDhcp(start, end)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4558,7 +3840,7 @@ on when any client is connected to the AP.</p>
 This command implicitly enables the DHCP server.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiApDhcp(start: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, end: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiApDhcp(start: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, end: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4589,14 +3871,6 @@ This command implicitly enables the DHCP server.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4605,7 +3879,7 @@ This command implicitly enables the DHCP server.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4627,7 +3901,7 @@ This command implicitly enables the DHCP server.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>disableWifiApDhcp(callback)</span>
+            <span class='code strong strong truncate'>disableWifiApDhcp()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4638,7 +3912,7 @@ This command implicitly enables the DHCP server.</p>
   <p>Disables the UFO AP's DHCP server.</p>
 
 
-  <div class='pre p1 fill-light mt0'>disableWifiApDhcp(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>disableWifiApDhcp(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4649,19 +3923,6 @@ This command implicitly enables the DHCP server.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -4669,7 +3930,7 @@ This command implicitly enables the DHCP server.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4691,7 +3952,7 @@ This command implicitly enables the DHCP server.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiClientIpDhcp(callback)</span>
+            <span class='code strong strong truncate'>setWifiClientIpDhcp()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4702,7 +3963,7 @@ This command implicitly enables the DHCP server.</p>
   <p>Enables DHCP mode for the UFO client.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiClientIpDhcp(callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiClientIpDhcp(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4713,19 +3974,6 @@ This command implicitly enables the DHCP server.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -4733,7 +3981,7 @@ This command implicitly enables the DHCP server.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4755,7 +4003,7 @@ This command implicitly enables the DHCP server.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiClientIpStatic(ip, mask, gateway, callback)</span>
+            <span class='code strong strong truncate'>setWifiClientIpStatic(ip, mask, gateway)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4766,7 +4014,7 @@ This command implicitly enables the DHCP server.</p>
   <p>Sets the IP configuration for the UFO client. Implicitly disables DHCP.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiClientIpStatic(ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, gateway: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiClientIpStatic(ip: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, mask: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, gateway: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4805,14 +4053,6 @@ This command implicitly enables the DHCP server.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4821,7 +4061,7 @@ This command implicitly enables the DHCP server.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4843,7 +4083,7 @@ This command implicitly enables the DHCP server.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiClientSsid(ssid, callback)</span>
+            <span class='code strong strong truncate'>setWifiClientSsid(ssid)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4854,7 +4094,7 @@ This command implicitly enables the DHCP server.</p>
   <p>Sets the UFO client's AP SSID.</p>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiClientSsid(ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiClientSsid(ssid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4877,14 +4117,6 @@ This command implicitly enables the DHCP server.</p>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4893,7 +4125,7 @@ This command implicitly enables the DHCP server.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -4915,7 +4147,7 @@ This command implicitly enables the DHCP server.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setWifiClientAuth(auth, encryption, passphrase, callback)</span>
+            <span class='code strong strong truncate'>setWifiClientAuth(auth, encryption, passphrase)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -4938,7 +4170,7 @@ length, inclusive.</li>
 </ul>
 
 
-  <div class='pre p1 fill-light mt0'>setWifiClientAuth(auth: (<code>"OPEN"</code> | <code>"SHARED"</code> | <code>"WPAPSK"</code> | <code>"WPA2PSK"</code>), encryption: (<code>"NONE"</code> | <code>"WEP-H"</code> | <code>"WEP-A"</code> | <code>"TKIP"</code> | <code>"AES"</code>), passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null), callback: function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?): void</div>
+  <div class='pre p1 fill-light mt0'>setWifiClientAuth(auth: (<code>"OPEN"</code> | <code>"SHARED"</code> | <code>"WPAPSK"</code> | <code>"WPA2PSK"</code>), encryption: (<code>"NONE"</code> | <code>"WEP-H"</code> | <code>"WEP-A"</code> | <code>"TKIP"</code> | <code>"AES"</code>), passphrase: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -4977,14 +4209,6 @@ length, inclusive.</li>
           
         </div>
       
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(function (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>?): void?)</code>
-	    
-          </div>
-          
-        </div>
-      
     </div>
   
 
@@ -4993,7 +4217,7 @@ length, inclusive.</li>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -5015,7 +4239,7 @@ length, inclusive.</li>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>reboot(callback)</span>
+            <span class='code strong strong truncate'>reboot()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -5024,34 +4248,20 @@ length, inclusive.</li>
   
 
   <p>Reboots the UFO. The owning UFO object will be disconnected after this
-method is invoked. If a callback is provided to this method, it overrides
-whatever disconnect callback was defined when the client was constructed.</p>
+method is invoked.</p>
 
 
-  <div class='pre p1 fill-light mt0'>reboot(callback: <a href="#ufodisconnectcallback">UfoDisconnectCallback</a>): void</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>reboot(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
   
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(<a href="#ufodisconnectcallback">UfoDisconnectCallback</a>)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
+  
+  
+  
+  
+  
+
   
 
   
@@ -5059,7 +4269,7 @@ whatever disconnect callback was defined when the client was constructed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -5081,7 +4291,7 @@ whatever disconnect callback was defined when the client was constructed.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>factoryReset(callback)</span>
+            <span class='code strong strong truncate'>factoryReset()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -5090,12 +4300,10 @@ whatever disconnect callback was defined when the client was constructed.</p>
   
 
   <p>Resets the UFO to factory defaults. The owning UFO object will be
-disconnected after this method is invoked. If a callback is provided to
-this method, it overrides whatever disconnect callback was defined when the
-client was constructed.</p>
+disconnected after this method is invoked.</p>
 
 
-  <div class='pre p1 fill-light mt0'>factoryReset(callback: <a href="#ufodisconnectcallback">UfoDisconnectCallback</a>): void</div>
+  <div class='pre p1 fill-light mt0'>factoryReset(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
   
   
 
@@ -5106,19 +4314,6 @@ client was constructed.</p>
   
   
 
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>callback</span> <code class='quiet'>(<a href="#ufodisconnectcallback">UfoDisconnectCallback</a>)</code>
-	    
-          </div>
-          
-        </div>
-      
-    </div>
   
 
   
@@ -5126,7 +4321,7 @@ client was constructed.</p>
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>
     
   
 
@@ -5145,6 +4340,138 @@ client was constructed.</p>
     </div>
   
 </div>
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='ufooptions'>
+      UfoOptions
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Available configuration options for the <a href="#ufo">Ufo</a> object.</p>
+
+
+  <div class='pre p1 fill-light mt0'>UfoOptions</div>
+  
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
+    </p>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Properties</div>
+    <div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>host</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+          : The IP address of the UFO. If you want a fixed IP
+address, you can either configure static DHCP assignment on your router using
+the UFO's MAC address or you can use the CLI to configure the UFO's WiFi
+client settings to use a static IP instead of DHCP.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>password</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
+          : the UDP password used to connect to the UFO.
+If unspecified, the default is used. You can use the CLI to change the UFO's
+password for greater security, since the default password is well-known and
+hardcoded into this library.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>localHost</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
+          : The local host used for establishing the
+TCP socket.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>localUdpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
+          : the port number that will be bound on this
+machine for UDP traffic to the  UFO. If unspecified, a random port is used.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>remoteUdpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
+          : the UDP port number on the UFO. If
+unspecified, the default port 48899 is used. You can change this using the
+CLI.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>localTcpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
+          : the port number that will be bound on this
+machine for UDP traffic to the  UFO. If unspecified, a random port is used.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>remoteTcpPort</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>?)</code>
+          : the UDP port number on the UFO. If
+unspecified, the default port 5577 is used. You can change this using the
+CLI.
+
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>immediate</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>?)</code>
+          : if true or unspecified,
+
+<a href="https://nodejs.org/api/net.html#net_socket_setnodelay_nodelay">socket.setNoDelay(true)</a>
+
+is invoked when the TCP socket is created. This prevents TCP data from being
+buffered by NodeJS before being sent to the UFO. If this causes communication
+issues, set this to false.
+
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
 
   
 
