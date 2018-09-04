@@ -121,7 +121,7 @@ class Ufo {
    * be resolved once disconnect is finished (this promise will never be
    * rejected).
    */
-  disconnect(cb: ?Function): ?Promise<void> {
+  disconnect(cb?: Function): ?Promise<void> {
     if (typeof cb === 'undefined') {
       return new Promise((resolve, reject) => { // eslint-disable-line no-unused-vars
         if (this._dead) { resolve(); }
