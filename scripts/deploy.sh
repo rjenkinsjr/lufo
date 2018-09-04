@@ -49,8 +49,8 @@ echo
 echo '--------------------------------------------------'
 echo '[deploy:login]'
 echo '--------------------------------------------------'
-cd ~
-echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+npm install -g npm-cli-login
+npm-cli-login
 
 echo
 echo '--------------------------------------------------'
