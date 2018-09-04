@@ -73,8 +73,6 @@ class Ufo extends EventEmitter {
       const dc = this._disconnectCallback;
       if (dc) dc(error);
     });
-    // Make sure this UFO disconnects before NodeJS exits.
-    process.on('exit', (code) => { this.disconnect(); }); // eslint-disable-line no-unused-vars
   }
   /** Searches for UFOs on the network. Returned array may be empty. */
   static discover(options: UfoDiscoverOptions): Promise<Array<DiscoveredUfo>> {
