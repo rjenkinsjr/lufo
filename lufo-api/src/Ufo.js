@@ -22,10 +22,7 @@ class UfoDisconnectError extends Error { // eslint-disable-line import/prefer-de
   }
 }
 
-/**
- * The API for interfacing with UFO devices. If a callback is provided during
- * construction, {@link Ufo#connect} is called immediately after construction.
- */
+/** The API for interfacing with UFO devices. */
 class Ufo extends EventEmitter {
   _dead: boolean;
   _options: UfoOptions;
