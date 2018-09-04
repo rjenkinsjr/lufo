@@ -42,7 +42,7 @@ Switch from callback-based API to Promise-based API.
 - Other
     - Drop support for NodeJS 4/5/6
     - Do not build the gh-pages branch in CircleCI
-    - Fix Git tagging/npm auth during the deploy process
+    - Fix Git tagging during the deploy process
     - Fix permissions on UDP test shell script
     - Add changelog
 
