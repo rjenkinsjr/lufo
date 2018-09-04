@@ -656,10 +656,7 @@ export class UdpClient {
       }
     });
   }
-  /**
-   * Closes the UDP socket on this machine. The disconnect callback, if defined
-   * when this client was constructed, will be invoked.
-   */
+  /** Closes the UDP socket on this machine. */
   disconnect(): void {
     if (this._dead) return;
     // We're intentionally closing this connection.

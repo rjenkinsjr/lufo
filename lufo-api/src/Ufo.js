@@ -372,17 +372,14 @@ class Ufo extends EventEmitter {
   }
   /**
    * Sets the UFO's UDP password. If an error occurs while executing this
-   * command, the owning UFO object will be disconnected and the given callback
-   * (if any) will override whatever disconnect callback was previously defined.
+   * command, the owning UFO object will be disconnected.
    */
   setUdpPassword(password: string): Promise<void> {
     return this._udpClient.setUdpPassword(password);
   }
   /**
    * Sets the UFO's TCP port. The owning UFO object will be disconnected after
-   * this method is invoked. If a callback is provided to this method, it
-   * overrides whatever disconnect callback was defined when the client was
-   * constructed.
+   * this method is invoked.
    */
   setTcpPort(port: number): Promise<void> {
     return this._udpClient.setTcpPort(port);
@@ -478,17 +475,14 @@ class Ufo extends EventEmitter {
    */
   /**
    * Reboots the UFO. The owning UFO object will be disconnected after this
-   * method is invoked. If a callback is provided to this method, it overrides
-   * whatever disconnect callback was defined when the client was constructed.
+   * method is invoked.
    */
   reboot(): Promise<void> {
     return this._udpClient.reboot();
   }
   /**
    * Resets the UFO to factory defaults. The owning UFO object will be
-   * disconnected after this method is invoked. If a callback is provided to
-   * this method, it overrides whatever disconnect callback was defined when the
-   * client was constructed.
+   * disconnected after this method is invoked.
    */
   factoryReset(): Promise<void> {
     return this._udpClient.factoryReset();

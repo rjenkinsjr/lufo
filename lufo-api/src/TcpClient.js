@@ -433,8 +433,7 @@ export class TcpClient {
   /**
    * The TCP command sent by this method appears to set/synchronize time on the
    * UFO. This is based on the construction of the payload, as observed via
-   * packet sniffing. The given callback, if any, is invoked after the command
-   * is sent.
+   * packet sniffing.
    * - The Android app appears to send this command when a UFO is factory reset
    * or has its WiFi configuration is updated. Neither of these actions seem
    * dependent on this command function executing, however, so this method

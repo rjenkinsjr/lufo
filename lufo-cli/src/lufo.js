@@ -67,9 +67,6 @@ const go = function (action) {
   const cliOptions = getOptions();
   if (cliOptions.host) {
     if (net.isIPv4(cliOptions.host)) {
-      cliOptions.disconnectCallback = (err) => {
-        if (err) quitError(err);
-      };
       theUfo = new Ufo(cliOptions);
       theUfo.connect()
         .then(action.bind(theUfo))
