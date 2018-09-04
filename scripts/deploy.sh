@@ -65,16 +65,14 @@ echo '--------------------------------------------------'
 echo '[deploy:api]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api
-API_DEPLOY_TAR="$(ls *.tgz)"
-npm publish $API_DEPLOY_TAR
+npm publish $(ls *.tgz)
 
 echo
 echo '--------------------------------------------------'
 echo '[deploy:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
-CLI_DEPLOY_TAR="$(ls *.tgz)"
-npm publish $CLI_DEPLOY_TAR
+npm publish $(ls *.tgz)
 
 echo
 echo '--------------------------------------------------'
