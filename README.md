@@ -25,7 +25,7 @@ The following features from the mobile app are not implemented and are unlikely 
 
 ## Changelog
 
-### 0.2.3
+### 0.2.4
 Switch from callback-based API to Promise-based API.
 *Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
 

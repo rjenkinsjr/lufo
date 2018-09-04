@@ -81,5 +81,7 @@ echo '[tag]'
 echo '--------------------------------------------------'
 VERSION=$(cd $ROOT_DIR/lufo-api ; npx -c 'echo "$npm_package_version"')
 cd $ROOT_DIR
+git config user.email "do-not-reply@ronjenkins.info"
+git config user.name "CircleCI"
 git tag -a $VERSION -m "$VERSION [skip ci]"
 git push origin $VERSION
