@@ -27,7 +27,7 @@ The following features from the mobile app are not implemented and are unlikely 
 
 ### 0.2.0
 Switch from callback-based API to Promise-based API.
-*Tested against NodeJS versions 6.14.4 7.10.1 8.11.4 9.11.2 and 10.9.0.*
+*Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
 
 - API
     - Converted all public-facing methods (and most private methods) to produce/consume Promises
@@ -40,7 +40,7 @@ Switch from callback-based API to Promise-based API.
     - Improve error logging
     - Other fixes
 - Other
-    - Drop support for NodeJS 4.x and 5.x
+    - Drop support for NodeJS 4/5/6
     - Do not build the gh-pages branch in CircleCI
     - Fix Git tagging during the deploy process
     - Fix permissions on UDP test shell script
