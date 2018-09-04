@@ -10,6 +10,7 @@ eval . "$CIRCLE_WORKING_DIRECTORY/.lufoDependencies"
 cd ~/.nvm
 . nvm.sh
 nvm use $LUFO_DEPLOY_NODE_VERSION
+echo
 
 echo '--------------------------------------------------'
 echo '[pack:api]'
@@ -78,6 +79,7 @@ echo
 echo '--------------------------------------------------'
 echo '[tag]'
 echo '--------------------------------------------------'
+VERSION=$(cd $ROOT_DIR/lufo-api ; npx -c 'echo "$npm_package_version"')
 cd $ROOT_DIR
 git tag -a $VERSION -m "$VERSION [skip ci]"
 git push origin $VERSION
