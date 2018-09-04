@@ -58,7 +58,7 @@ ufo.connect()
 
 ## API Reference
 
-[https://rjenkinsjr.github.com/lufo/api/index.html](https://rjenkinsjr.github.com/lufo/api/index.html)
+[https://rjenkinsjr.github.com/lufo/api/index.html](https://rjenkinsjr.github.com/lufo/api/index.html#ufo)
 
 ## Changelog
 
