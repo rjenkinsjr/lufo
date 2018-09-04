@@ -4,7 +4,7 @@ echo '--------------------------------------------------'
 echo 'Installing dependencies...'
 echo '--------------------------------------------------'
 rm -rf node_modules
-yarn
+yarn --ignore-engines
 . ../.lufoDependencies
 echo
 for v in "${LUFO_NODE_VERSIONS[@]}"; do
