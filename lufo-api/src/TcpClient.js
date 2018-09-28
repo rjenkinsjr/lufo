@@ -75,6 +75,7 @@ type TcpOptions = {
   remotePort: number,
   remoteAddress: string,
   immediate: boolean,
+  cache: boolean,
 };
 
 /* Private variables. */
@@ -198,6 +199,7 @@ export class TcpClient {
   _disconnectCallback: ?Function;
   _statusArray: Uint8Array;
   _statusIndex: number;
+  _statusCache: ?UfoStatus;
   _socket: net.Socket;
   _error: ?Error;
   _statusCallback: ?(?Error, ?UfoStatus) => void
@@ -209,6 +211,7 @@ export class TcpClient {
       remotePort: options.remoteTcpPort || defaultPort,
       remoteAddress: options.host,
       immediate: options.immediate !== undefined ? options.immediate : true,
+      cache: options.cache !== undefined ? options.cache : true,
     };
     this._createSocket();
   }
@@ -275,6 +278,7 @@ export class TcpClient {
     // Storage/tracking for the status response.
     this._statusArray = new Uint8Array(statusResponseSize);
     this._statusIndex = 0;
+    this._statusCache = null;
     // The TCP socket used to communicate with the UFO.
     this._socket = new net.Socket();
     this._socket.setNoDelay(this._options.immediate);
@@ -419,6 +423,27 @@ export class TcpClient {
     }
   }
   /**
+   * Updates an element in the status cache.
+   * @private
+   */
+  _updateStatusCache(path: string, value: mixed): void {
+    if (this._statusCache != null) {
+      _.set(this._statusCache, path, value);
+    }
+  }
+  /**
+   * Deletes an element in the status cache. If no element given, deletes the
+   * entire status cache.
+   * @private
+   */
+  _unsetStatusCache(path: ?string): void {
+    if (path === undefined) {
+      this._statusCache = null;
+    } else if (this._statusCache != null) {
+      _.unset(this._statusCache, path);
+    }
+  }
+  /**
    * Sends the data in the given buffer to the TCP socket, then invokes the
    * appropriate promise method.
    * @private
@@ -503,7 +528,13 @@ export class TcpClient {
           this._error = err;
           // NodeJS automatically emits a "close" event after an "error" event.
         });
-        resolve();
+        // If status cache is enabled, get status now.
+        // Otherwise we're done.
+        if (this._options.cache) {
+          this.status().then(() => resolve()).catch(reject);
+        } else {
+          resolve();
+        }
       });
     });
   }
@@ -521,20 +552,26 @@ export class TcpClient {
     this._socket.emit('close');
   }
   /**
-   * Gets the UFO's output status.
+   * Gets the UFO's output status. If force is true, status cache is ignored.
    * Result is null iff this UFO object is dead.
    */
-  status(): Promise<?UfoStatus> {
+  status(force: boolean = false): Promise<?UfoStatus> {
     return new Promise((resolve, reject) => {
       if (this._dead) { resolve(null); return; }
+      const cacheIsEnabled = this._options.cache;
+      const cacheExists = this._statusCache != null;
+      const isStatic = cacheExists && _.get(this._statusCache, 'mode') === 'static';
+      if (cacheIsEnabled && !force && cacheExists && isStatic) { resolve(this._statusCache); return; }
       this._socket.resume();
       this._statusCallback = function (err, data) {
         this._statusCallback = null;
         this._socket.pause();
         if (err) {
+          this._statusCache = null;
           reject(err);
         } else {
           this._disconnectCallback = null;
+          this._statusCache = data;
           resolve(data);
         }
       }.bind(this);
@@ -546,14 +583,22 @@ export class TcpClient {
   on(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this._dead) { resolve(); return; }
-      this._writePromise(powerOn, resolve, reject);
+      this._writePromise(powerOn, () => {
+        // Update the status cache before resolving.
+        this._updateStatusCache('on', true);
+        resolve();
+      }, reject);
     });
   }
   /** Turns the UFO output off. */
   off(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this._dead) { resolve(); return; }
-      this._writePromise(powerOff, resolve, reject);
+      this._writePromise(powerOff, () => {
+        // Update the status cache before resolving.
+        this._updateStatusCache('on', false);
+        resolve();
+      }, reject);
     });
   }
   /**
@@ -568,12 +613,27 @@ export class TcpClient {
       // 0x00 seems to be a constant terminator.
       const buf = Buffer.alloc(6);
       buf.writeUInt8(0x31, 0);
-      buf.writeUInt8(_clampRGBW(red), 1);
-      buf.writeUInt8(_clampRGBW(green), 2);
-      buf.writeUInt8(_clampRGBW(blue), 3);
-      buf.writeUInt8(_clampRGBW(white), 4);
+      const realRed = _clampRGBW(red);
+      const realGreen = _clampRGBW(green);
+      const realBlue = _clampRGBW(blue);
+      const realWhite = _clampRGBW(white);
+      buf.writeUInt8(realRed, 1);
+      buf.writeUInt8(realGreen, 2);
+      buf.writeUInt8(realBlue, 3);
+      buf.writeUInt8(realWhite, 4);
       buf.writeUInt8(0, 5);
-      this._writePromise(_prepareBytes(buf), resolve, reject);
+      const finalData = _prepareBytes(buf);
+      this._writePromise(finalData, () => {
+        // Update the status cache before resolving.
+        this._updateStatusCache('raw', finalData);
+        this._updateStatusCache('mode', 'static');
+        this._unsetStatusCache('speed');
+        this._updateStatusCache('red', realRed);
+        this._updateStatusCache('green', realGreen);
+        this._updateStatusCache('blue', realBlue);
+        this._updateStatusCache('white', realWhite);
+        resolve();
+      }, reject);
     });
   }
   /**
@@ -598,7 +658,11 @@ export class TcpClient {
         buf.writeUInt8(0x61, 0);
         buf.writeUInt8(functionId, 1);
         buf.writeUInt8(_builtinFlipSpeed(speed), 2);
-        this._writePromise(_prepareBytes(buf), resolve, reject);
+        this._writePromise(_prepareBytes(buf), () => {
+          // Update the status cache before resolving.
+          this._unsetStatusCache();
+          resolve();
+        }, reject);
       }
     });
   }
@@ -677,7 +741,11 @@ export class TcpClient {
       index += 1;
       // Add terminator and write.
       buf.writeUInt8(0xFF, index);
-      this._writePromise(_prepareBytes(buf), resolve, reject);
+      this._writePromise(_prepareBytes(buf), () => {
+        // Update the status cache before resolving.
+        this._unsetStatusCache();
+        resolve();
+      }, reject);
     });
   }
   /** Returns the list of built-in functions usable by the API/CLI. */

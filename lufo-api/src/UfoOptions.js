@@ -27,6 +27,11 @@
  * is invoked when the TCP socket is created. This prevents TCP data from being
  * buffered by NodeJS before being sent to the UFO. If this causes communication
  * issues, set this to false.
+ * @property {boolean} [cache] if true or unspecified, the UFO object will cache
+ * the UFO's status internally. This speeds up future calls to methods that
+ * return/make use of the UFO's status. This cache is used only when the last
+ * known UFO mode is "static"; the cache is invalidated whenever a builtin or
+ * custom function is invoked on the UFO.
  */
 export type UfoOptions = {
   host: string,
@@ -37,4 +42,5 @@ export type UfoOptions = {
   localTcpPort?: number,
   remoteTcpPort?: number,
   immediate?: boolean,
+  cache?: boolean,
 };

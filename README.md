@@ -25,6 +25,15 @@ The following features from the mobile app are not implemented and are unlikely 
 
 ## Changelog
 
+### 0.3.0
+Added status caching.
+*Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
+
+- API
+    - Added status caching. Status cache is used only when mode is `static` and is invalidated when a builtin or custom function is defined.
+- CLI
+    - _No changes._
+
 ### 0.2.4
 Switch from callback-based API to Promise-based API.
 *Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*

@@ -142,11 +142,11 @@ class Ufo {
    * Query methods
    */
   /**
-   * Gets the UFO's output status.
+   * Gets the UFO's output status. If force is true, status cache is ignored.
    * Result is null iff this UFO object is dead.
    */
-  getStatus(): Promise<?UfoStatus> {
-    return this._tcpClient.status();
+  getStatus(force: boolean = false): Promise<?UfoStatus> {
+    return this._tcpClient.status(force);
   }
   /*
    * RGBW control methods

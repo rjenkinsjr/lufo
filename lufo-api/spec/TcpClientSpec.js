@@ -12,7 +12,8 @@ describe("TcpClient#constructorNonDefault", function() {
     localHost: 'localhost',
     remoteTcpPort: 4477,
     host: serverHost,
-    immediate: false
+    immediate: false,
+    cache: false
   };
   beforeEach(async function() {
     server.listen(options.remoteTcpPort, serverHost);
@@ -29,6 +30,7 @@ describe("TcpClient#constructorNonDefault", function() {
     expect(client._options.remotePort).toBe(options.remoteTcpPort);
     expect(client._options.remoteAddress).toBe(options.host);
     expect(client._options.immediate).toBe(false);
+    expect(client._options.cache).toBe(false);
   });
 });
 
@@ -53,9 +55,10 @@ describe("TcpClient", function() {
     expect(client._options.remotePort).toBe(defaultPort);
     expect(client._options.remoteAddress).toBe(serverHost);
     expect(client._options.immediate).toBe(true);
+    expect(client._options.cache).toBe(true);
   });
   it("#on works", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.on();
     await Util.sleep(100);
@@ -63,7 +66,7 @@ describe("TcpClient", function() {
     expect(recv[0]).toEqual(Buffer.from([0x71, 0x23, 0x0F, 0xA3]));
   });
   it("#off works", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.off();
     await Util.sleep(100);
@@ -71,7 +74,7 @@ describe("TcpClient", function() {
     expect(recv[0]).toEqual(Buffer.from([0x71, 0x24, 0x0F, 0xA4]));
   });
   it("#rgbw works", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.rgbw(255, 255, 255, 255);
     await Util.sleep(100);
@@ -79,7 +82,7 @@ describe("TcpClient", function() {
     expect(recv[0]).toEqual(Buffer.from([0x31, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x0F, 0x3C]));
   });
   it("#rgbw clamps out-of-range values", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.rgbw(256, -1, 256, -1);
     await Util.sleep(100);
@@ -87,7 +90,7 @@ describe("TcpClient", function() {
     expect(recv[0]).toEqual(Buffer.from([0x31, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x0F, 0x3E]));
   });
   it("#builtin works", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.builtin('redGradualChange', 75);
     await Util.sleep(100);
@@ -95,7 +98,7 @@ describe("TcpClient", function() {
     expect(recv[0]).toEqual(Buffer.from([0x61, 0x26, 0x19, 0x0F, 0xAF]));
   });
   it("#builtin clamps out-of-range values", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.builtin('redGradualChange', 101);
     await Util.sleep(100);
@@ -105,7 +108,7 @@ describe("TcpClient", function() {
   it("#builtin rejects invalid function names", async function() {
     const funcName = 'doesNotExist';
     const cb = jasmine.createSpy('builtin');
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     try {
       await client.builtin(funcName, 0, cb);
@@ -116,7 +119,7 @@ describe("TcpClient", function() {
     }
   });
   it("#custom works", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.custom('gradual', 10, [
       { red: 255, green: 0, blue: 0 },
@@ -146,7 +149,7 @@ describe("TcpClient", function() {
     0xFF, 0x0F, 0xF9]));
   });
   it("#custom clamps out-of-range values", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.custom('jumping', 40, [
       { red: 256, green: -1, blue: -1 },
@@ -176,7 +179,7 @@ describe("TcpClient", function() {
     0xFF, 0x0F, 0xE6]));
   });
   it("#custom strips out null steps", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.custom('strobe', 30, [
       { red: 1, green: 2, blue: 3 },
@@ -206,7 +209,7 @@ describe("TcpClient", function() {
       0x01, 0x3C,
     0xFF, 0x0F, 0xE7]));
   });it("#custom silently drops more than 16 steps", async function() {
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     await client.custom('strobe', 30, [
       { red: 255, green: 0, blue: 0 },
@@ -277,7 +280,7 @@ describe("TcpClient#status", function() {
       0xFF, 0xFF, 0xFF, 0xFF,
       0x03, 0x00, 0x00,
     0x29]);
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     try {
       let status = await client.status();
@@ -304,7 +307,7 @@ describe("TcpClient#status", function() {
       0xFF, 0xFF, 0xFF, 0xFF,
       0x03, 0x00, 0x00,
     0x28]);
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     try {
       let status = await client.status();
@@ -331,7 +334,7 @@ describe("TcpClient#status", function() {
       0xFF, 0xFF, 0xFF, 0xFF,
       0x03, 0x00, 0x00,
     0xED]);
-    const client = new TcpClient(null, {host:serverHost});
+    const client = new TcpClient(null, {host:serverHost,cache:false});
     await client.connect();
     try {
       let status = await client.status();
