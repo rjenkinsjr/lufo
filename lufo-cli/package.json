@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "commander": "2.17.1",
-    "lodash": "4.17.10",
+    "lodash": "4.17.11",
     "lufo-api": "file:../lufo-api",
     "promptly": "^2.2.0"
   },
