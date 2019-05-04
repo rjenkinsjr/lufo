@@ -16,43 +16,35 @@ echo '--------------------------------------------------'
 echo '[pack:api]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api
-yarn pack
+yarn run pack
+API_VERSION="$(cat package.json | jq -r '.version')"
 
 echo
 echo '--------------------------------------------------'
 echo '[pack:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
-yarn pack
+yarn run pack
 
 echo
 echo '--------------------------------------------------'
-echo '[pack:cli:merge]'
+echo '[pack:cli:repack]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR
-API_TARBALL=$(ls lufo-api/*.tgz)
-CLI_TARBALL=$(ls lufo-cli/*.tgz)
 echo 'Decompressing CLI package...'
+CLI_TARBALL=$(ls lufo-cli/*.tgz)
 TMP_DIR="/tmp/lufo-cli-$RANDOM"
 mkdir $TMP_DIR
 tar -xzf $CLI_TARBALL -C $TMP_DIR
-echo 'Decompressing API package as a bundled dependency...'
+echo 'Pinning API dependency and repackaging CLI package...'
 PKG_ROOT_DIR='package'
-TMP_API_DIR="$TMP_DIR/$PKG_ROOT_DIR/node_modules/lufo-api"
-mkdir -p $TMP_API_DIR
-tar -xzf $API_TARBALL \
-  --strip-components=1 \
-  -C $TMP_API_DIR \
-  --exclude=README.md \
-  --exclude=lib/*.flow
-echo 'Stripping API dependency and repackaging CLI package...'
 PACKAGE_JSON="$TMP_DIR/$PKG_ROOT_DIR/package.json"
 PACKAGE_JSON_TMP="$PACKAGE_JSON.tmp"
-cat $PACKAGE_JSON | jq 'del(.dependencies."lufo-api") | del(.scripts.postinstall)' > $PACKAGE_JSON_TMP
+cat $PACKAGE_JSON | jq ".dependencies.\"lufo-api\" = \"$API_VERSION\" | del(.scripts.postinstall)" > $PACKAGE_JSON_TMP
 mv $PACKAGE_JSON_TMP $PACKAGE_JSON
 rm -f $CLI_TARBALL
 tar -czf $CLI_TARBALL -C $TMP_DIR $PKG_ROOT_DIR
-echo 'Done merging.'
+echo 'Done repackaging.'
 
 echo
 echo '--------------------------------------------------'

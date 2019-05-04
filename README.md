@@ -25,7 +25,7 @@ The following features from the mobile app are not implemented and are unlikely 
 
 ## Changelog
 
-### 0.3.1
+### 0.3.2
 Fixed broken CLI installation.
 *Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
 
