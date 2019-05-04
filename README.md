@@ -30,9 +30,10 @@ Fixed broken CLI installation.
 *Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
 
 - API
-    - _No changes._
+    - Upgraded `lodash@4.17.11` to fix [CVE-2018-16487](https://nvd.nist.gov/vuln/detail/CVE-2018-16487).
 - CLI
     - Fixed CLI installation bug (#1).
+    - Upgraded `lodash@4.17.11` to fix [CVE-2018-16487](https://nvd.nist.gov/vuln/detail/CVE-2018-16487).
 
 ### 0.3.0
 Added status caching.
