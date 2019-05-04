@@ -32,12 +32,6 @@ jobs:
                   ../scripts/test.sh
                   # Prevent CircleCI caching.
                   ./node_modules/.bin/linklocal -u > /dev/null 2>&1
-            - run:
-                name: Deploy
-                command: |
-                  if [[ "$CIRCLE_BRANCH" == "publish" ]]; then
-                    scripts/deploy.sh
-                  fi
             - save_cache:
                 key: nvm-cache-{{ .Environment.NVM_CACHE_VERSION }}-{{ arch }}-{{ checksum ".lufoDependencies" }}
                 paths:
@@ -52,8 +46,9 @@ jobs:
                 paths:
                     - /home/circleci/lufo/lufo-cli/node_modules
             - run:
-                name: Publish docs
+                name: Deploy/publish docs
                 command: |
                   if [[ "$CIRCLE_BRANCH" == "publish" ]]; then
+                    scripts/deploy.sh
                     scripts/docs.sh
                   fi

@@ -16,6 +16,7 @@ echo '--------------------------------------------------'
 echo '[pack:api]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-api
+yarn --ignore-engines
 yarn run pack
 API_VERSION="$(cat package.json | jq -r '.version')"
 
@@ -24,6 +25,7 @@ echo '--------------------------------------------------'
 echo '[pack:cli]'
 echo '--------------------------------------------------'
 cd $ROOT_DIR/lufo-cli
+yarn --ignore-engines
 yarn run pack
 
 echo
