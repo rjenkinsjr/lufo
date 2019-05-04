@@ -48,7 +48,7 @@ tar -xzf $API_TARBALL \
 echo 'Stripping API dependency and repackaging CLI package...'
 PACKAGE_JSON="$TMP_DIR/$PKG_ROOT_DIR/package.json"
 PACKAGE_JSON_TMP="$PACKAGE_JSON.tmp"
-cat $PACKAGE_JSON | jq 'del(.dependencies."lufo-api")' > $PACKAGE_JSON_TMP
+cat $PACKAGE_JSON | jq 'del(.dependencies."lufo-api") | del(.scripts.postinstall)' > $PACKAGE_JSON_TMP
 mv $PACKAGE_JSON_TMP $PACKAGE_JSON
 rm -f $CLI_TARBALL
 tar -czf $CLI_TARBALL -C $TMP_DIR $PKG_ROOT_DIR

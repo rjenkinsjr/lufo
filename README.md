@@ -25,6 +25,15 @@ The following features from the mobile app are not implemented and are unlikely 
 
 ## Changelog
 
+### 0.3.1
+Fixed broken CLI installation.
+*Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
+
+- API
+    - _No changes._
+- CLI
+    - Fixed CLI installation bug (#1).
+
 ### 0.3.0
 Added status caching.
 *Tested against NodeJS versions 7.10.1 8.11.4 9.11.2 and 10.9.0.*
