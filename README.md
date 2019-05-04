@@ -32,7 +32,7 @@ Fixed broken CLI installation.
 - API
     - Upgraded `lodash@4.17.11` to fix [CVE-2018-16487](https://nvd.nist.gov/vuln/detail/CVE-2018-16487).
 - CLI
-    - Fixed CLI installation bug (https://github.com/rjenkinsjr/lufo/issues/1).
+    - Fixed CLI installation bug ([#1](https://github.com/rjenkinsjr/lufo/issues/1)).
     - Upgraded `lodash@4.17.11` to fix [CVE-2018-16487](https://nvd.nist.gov/vuln/detail/CVE-2018-16487).
 
 ### 0.3.0
